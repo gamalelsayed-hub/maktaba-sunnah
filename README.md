@@ -12,10 +12,14 @@
 |---|---|
 | `index.html`, `css/`, `js/` | البرنامج |
 | `data/` | المكتبة المدمجة: القرآن، و17 كتاب حديث بأحكام المحدثين، وملف المراجعة المنشورة `review.js` |
-| `scripts/build_pack.py` | يبني ملفات `data/` من المصادر الأصلية |
+| `scripts/build_pack.py` | يبني القرآن وكتب الحديث في `data/` |
+| `scripts/build_books.py` | يبني الشروح والتفاسير وكتب الفقه والسيرة من نصوص OpenITI، ويربطها بالأحاديث والآيات |
+| `scripts/build_catalog.py` | يبني فهرس كتب التراث (12 ألف كتاب) للبحث والتحميل |
+| `scripts/build_curriculum.py` | يبني منهج طلب العلم ويربط متونه بالمكتبة والفهرس |
 | `scripts/test_*.py` | اختبارات آلية في المتصفح |
 
 ## المصادر
 - نص القرآن الكريم: [مشروع تنزيل](https://tanzil.net). يُذكر المصدر ولا يُعدَّل النص.
 - الكتب الستة والموطأ والأربعينات مع أحكام المحدثين: [hadith-api](https://github.com/fawazahmed0/hadith-api).
+- الشروح والتفاسير وكتب الفقه والسيرة وفهرس الكتب: [OpenITI](https://github.com/OpenITI) عن المكتبة الشاملة.
 - باقي كتب الحديث: [hadith-json](https://github.com/AhmedBaset/hadith-json)، المأخوذ من sunnah.com.

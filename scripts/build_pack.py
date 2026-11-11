@@ -91,6 +91,10 @@ API_BOOKS = [  # (ملف, معرف, العنوان, المؤلف, ملاحظة �
     ('ara-dehlawi', 'dehlawi40', 'الأربعون حديثاً', 'الشاه ولي الله الدهلوي', 'ترقيم المصدر', None),
 ]
 
+# ترقيم محمد فؤاد عبد الباقي لصحيح مسلم (مستخرج بمطابقة شرح النووي — انظر build_books.py)
+_mp = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data', '_muslim_abdulbaqi.json')
+MUSLIM_ABD = json.load(open(_mp)) if os.path.exists(_mp) else {}
+
 def build_api(fname, bid, title, author, numbering, implicit):
     c = sqlite3.connect(os.path.join(api_dir, fname + '.sqlite'))
     # أسماء الكتب العربية في hadith-api غير دقيقة أحياناً (مثل «كتاب الصلاة» لكتاب الأذان)،
@@ -114,6 +118,7 @@ def build_api(fname, bid, title, author, numbering, implicit):
         gs = grades.get(hid, [])
         if implicit: gs = [{'grader': 'الإمام ' + implicit, 'grade': 'صحيح', 'reason': 'أخرجه في صحيحه الذي التزم فيه الصحة: اتصال السند بنقل العدل الضابط عن مثله، مع السلامة من الشذوذ والعلة.', 'source': title}] + gs
         it = {'id': f'{bid}:{num}', 'bookId': bid, 'type': 'hadith', 'num': num, 'kitab': sec.get(sid, ''), 'isnad': isnad, 'matn': matn}
+        if bid == 'muslim' and str(num) in MUSLIM_ABD: it['printedNum'] = MUSLIM_ABD[str(num)]
         if gs: it['grades'] = gs
         items.append(it)
     # أرقام مكررة (نادرة): نُبقي الأول ونميز الباقي
@@ -187,6 +192,9 @@ for rel, bid, title, author in BOOKS:
     manifest.append({'file': 'hadith-' + bid, 'id': bid, 'title': title, 'count': len(items), 'size': sz, 'version': book['packVersion']})
     stats[bid] = (len(items), split_ok)
 
+# الكتب الإضافية (الشروح والتفاسير وكتب الفقه والسيرة) من build_books.py
+_bm = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data', '_books_manifest.json')
+if os.path.exists(_bm): manifest += json.load(open(_bm, encoding='utf-8'))
 with open(os.path.join(out, 'manifest.js'), 'w', encoding='utf-8') as f:
     f.write('window.PACK_MANIFEST=' + json.dumps(manifest, ensure_ascii=False, indent=1) + ';')
 

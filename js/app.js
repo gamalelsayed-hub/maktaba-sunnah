@@ -38,8 +38,9 @@
       switch (it.type) {
         case 'ayah': return 'سورة ' + AR.SURAHS[it.surah - 1] + ' — آية ' + it.ayah;
         case 'hadith': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' (' + it.num + (it.printedNum && it.printedNum !== it.num ? '، وفي المطبوع ' + it.printedNum : '') + ')';
-        case 'tafsir': return APP.bookTitle(it.bookId) + ' — ' + AR.SURAHS[it.surah - 1] + ' ' + it.ayah;
-        case 'sharh': return APP.bookTitle(it.bookId) + ' — حديث ' + (it.hadithRef || '').split(':')[1];
+        case 'tafsir': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title + ' (' + APP.state.books[it.bookId].author + ')' : it.bookId) + ' — ' + AR.SURAHS[it.surah - 1] + ' ' + it.ayah + (it.ayahTo && it.ayahTo !== it.ayah ? '–' + it.ayahTo : '');
+        case 'sharh': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' — حديث ' + (it.num || (it.hadithRef || '').split(':')[1]);
+        case 'section': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' — ' + (it.title || '');
         case 'event': return it.title + ' (' + APP.yearLabel(it.year) + ')';
         default: return it.title || it.id;
       }
@@ -50,7 +51,7 @@
         const g = (it.grades || []).map(g => g.grader + ': ' + g.grade).join('، ');
         return '«' + it.matn + '» ' + 'رواه ' + APP.titleOf(it) + (g ? ' [' + g + ']' : '');
       }
-      return (it.title ? it.title + ': ' : '') + (it.text || it.summary || '') + ' — ' + APP.bookTitle(it.bookId);
+      return (it.title ? it.title + ': ' : '') + (it.text || it.summary || '') + ' — ' + APP.bookTitle(it.bookId) + (it.page ? ' (' + it.page + ')' : '');
     },
     gradeCls(g) { const n = AR.normalize(g); return /ضعيف|منكر|موضوع|باطل/.test(n) ? 'g-daif' : /حسن/.test(n) ? 'g-hasan' : /صحيح/.test(n) ? 'g-sahih' : 'g-none'; },
     gradeSummary(it) {
@@ -282,7 +283,7 @@
 
     async init() {
       await DB.open();
-      const sig = (window.PACK_MANIFEST || []).map(m => m.id + ':' + m.count).join(',');
+      const sig = IMPORT.coreSig();
       if (sig && (await DB.setting('packsInstalled')) !== sig) await APP.installScreen();
       else if (!(await DB.setting('sampleLoaded'))) await IMPORT.loadSample();
       await APP.loadMeta();
@@ -327,13 +328,14 @@
 
     async installScreen() {
       const el = $('#view');
-      const list = window.PACK_MANIFEST;
+      const list = window.PACK_MANIFEST.filter(m => !m.optional);
       const mb = Math.round(list.reduce((s, m) => s + m.size, 0) / 1e6);
-      el.innerHTML = `<h1>تثبيت المكتبة</h1><div class="sub">أول تشغيل فقط: يُثبَّت القرآن الكريم و${list.length - 1} كتاباً من كتب الحديث داخل البرنامج (نحو ${mb} ميجا). بعدها يعمل كل شيء بدون إنترنت.</div>
+      el.innerHTML = `<h1>تثبيت المكتبة</h1><div class="sub">يُثبَّت القرآن الكريم و${list.length - 1} كتاباً من كتب الحديث داخل البرنامج (نحو ${mb} ميجا). بعدها يعمل كل شيء بدون إنترنت. والشروح والتفاسير والمطولات تثبّتها متى شئت من «المكتبة».</div>
         <div class="card"><div class="progress"><div id="insBar" style="width:0%"></div></div><div id="insMsg" style="margin-top:8px"></div></div>
         <table class="t">${list.map(m => `<tr><td>${esc(m.title)}</td><td>${m.count.toLocaleString('ar')} نص</td><td id="ins-${m.id}" class="muted">بالانتظار</td></tr>`).join('')}</table>`;
       try {
         await IMPORT.installPacks((i, n, title, msg) => {
+          if (!list[i - 1]) return;
           $('#insBar').style.width = Math.round((i - 1) / n * 100) + '%';
           $('#insMsg').textContent = '(' + i + ' من ' + n + ') ' + title + ' — ' + msg;
           const c = $('#ins-' + list[i - 1].id); if (c) c.textContent = msg;

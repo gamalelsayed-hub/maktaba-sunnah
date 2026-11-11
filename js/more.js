@@ -1,0 +1,148 @@
+/* «اسأل عن مسألة»، الكتب الإضافية، فهرس الكتب وتحميلها */
+(function () {
+  const { esc, $ } = APP;
+  const V = APP.views;
+  const N = AR.normalize;
+  const STOP = ['في', 'من', 'عن', 'علي', 'الي', 'ما', 'ماذا', 'هل', 'كل', 'التي', 'الذي', 'او', 'ثم', 'حكم', 'يجوز', 'يحل', 'يحرم', 'حرام', 'حلال', 'جائز', 'الشرع', 'الاسلام', 'رأي', 'راي', 'العلماء', 'قول', 'اقوال', 'مع', 'او', 'ان', 'لا', 'هو', 'هي'];
+  const HUKM = { 'تحريم': ['حرام', 'يحرم', 'تحريم', 'محرم'], 'وجوب': ['واجب', 'يجب', 'فرض', 'وجوب'], 'إباحة': ['حلال', 'يجوز', 'جائز', 'مباح', 'يحل'], 'كراهة': ['مكروه', 'يكره'], 'ندب': ['مستحب', 'يستحب', 'سنه'] };
+
+  // ================= اسأل عن مسألة =================
+  V.ask = async (el, _, p) => {
+    const q = (p.q || '').trim();
+    el.innerHTML = `<h1>❓ اسأل عن مسألة</h1>
+      <div class="sub">اكتب المسألة بكلماتك (مثل: «قراءة الفاتحة خلف الإمام»، «زكاة الحلي»، «بيع التقسيط»، «المسح على الجوربين»). يجمع لك البرنامج كل ما في المكتبة عنها: المسائل المحررة، والآيات، والأحاديث بأحكامها، وأقوال الفقهاء في كتب المذاهب والخلاف، وأحكام القرآن، وشروح الحديث.</div>
+      <form id="askF" class="filters"><input type="text" name="q" value="${esc(q)}" placeholder="اكتب المسألة…" style="flex:1;min-width:260px;font-size:16px"><button class="btn primary">ابحث</button></form>
+      <div class="warn" style="font-size:13px">البرنامج يجمع النصوص من مصادرها ويحيل إليها، ولا يُفتي من عنده. وللنوازل والحالات الخاصة يُرجع إلى أهل العلم.</div>
+      <div id="askR"></div>`;
+    $('#askF').onsubmit = e => { e.preventDefault(); const v = new FormData(e.target).get('q').trim(); if (v) location.hash = '#/ask?q=' + encodeURIComponent(v); };
+    if (!q) {
+      const missing = (window.PACK_MANIFEST || []).filter(m => m.optional && !(APP.state.books[m.id] || {}).count && !(APP.state.books[m.id] || {}).sample);
+      if (missing.length) $('#askR').innerHTML = `<div class="info">للحصول على أوسع إجابة، ثبّت كتب الفقه والتفسير والشروح من <a href="#/library">المكتبة ← الكتب الإضافية</a> (${missing.length} كتاباً غير مثبت).</div>`;
+      return;
+    }
+    let words = N(q).split(' ').filter(w => w.length >= 2 && !STOP.includes(w));
+    let hukm = '';
+    for (const [h, ws] of Object.entries(HUKM)) if (N(q).split(' ').some(w => ws.includes(w))) hukm = hukm || h;
+    if (!words.length) words = N(q).split(' ').filter(w => w.length >= 2);
+    const box = $('#askR');
+    const books = Object.values(APP.state.books).filter(b => b.count);
+    const panels = [
+      { key: 'fiqh', title: '⚖️ المسائل المحررة (أقوال المذاهب وأدلتها)', quick: x => x.type === 'fiqh', limit: 5 },
+      { key: 'ayah', title: '📖 من القرآن الكريم', quick: x => x.type === 'ayah', limit: 8 },
+      { key: 'hadith', title: '📜 من الأحاديث (الأقوى إسناداً أولاً)', quick: x => x.type === 'hadith', limit: 10 },
+      { key: 'qaida', title: '🧩 القواعد الفقهية', quick: x => x.type === 'qaida', limit: 4 },
+      { key: 'fiqhbook', title: '🏛 أقوال الفقهاء في كتب المذاهب والخلاف', deep: books.filter(b => b.type === 'fiqhbook').map(b => b.id), limit: 4, perBook: true },
+      { key: 'tafsir', title: '📗 في التفاسير وأحكام القرآن', deep: books.filter(b => b.type === 'tafsir' || b.type === 'tafsirbook').map(b => b.id), limit: 3, perBook: true },
+      { key: 'sharh', title: '📘 في شروح الحديث', deep: books.filter(b => b.type === 'sharh' || b.type === 'hadithbook').map(b => b.id), limit: 3, perBook: true }
+    ];
+    box.innerHTML = panels.map(pn => `<div id="pn-${pn.key}"><h2>${pn.title}</h2><div class="muted">جارٍ البحث…</div></div>`).join('');
+    const idx = await DB.searchIndex();
+    const gradeRank = g => /^sahih/.test(g) ? 3 : /^hasan/.test(g) ? 2 : /^daif/.test(g) ? 0 : 1;
+    for (const pn of panels) {
+      const slot = $('#pn-' + pn.key);
+      let hits = [];
+      if (pn.quick) {
+        for (const x of idx) {
+          if (!pn.quick(x) || !APP.visible(x.id)) continue;
+          const sc = APP.scoreText(x.n, x.t, words, null);
+          if (sc) hits.push({ id: x.id, score: sc + (hukm && x.hukm.includes(hukm) ? 8 : 0) + (x.type === 'hadith' ? gradeRank(x.grade) * 3 : 0), bookId: x.bookId });
+        }
+      } else if (pn.deep.length) {
+        hits = await APP.deepFind(words, null, pn.deep, {}, bid => { slot.querySelector('.muted').textContent = 'يبحث في: ' + APP.bookTitle(bid) + '…'; });
+      }
+      hits.sort((a, b) => b.score - a.score);
+      let chosen;
+      if (pn.perBook) { const per = {}; chosen = hits.filter(h => (per[h.bookId] = (per[h.bookId] || 0) + 1) <= pn.limit); }
+      else chosen = hits.slice(0, pn.limit);
+      const items = (await Promise.all(chosen.map(h => DB.get('items', h.id)))).filter(Boolean);
+      let html = `<h2>${pn.title} <small class="muted">(${hits.length})</small></h2>`;
+      if (!pn.quick && !pn.deep.length) html += `<div class="muted">لا توجد كتب مثبتة من هذا النوع — <a href="#/library">ثبّتها من المكتبة</a>.</div>`;
+      else if (!items.length) html += '<div class="muted">لا شيء مطابق.</div>';
+      else if (pn.perBook) {
+        const byBook = {}; items.forEach(it => (byBook[it.bookId] = byBook[it.bookId] || []).push(it));
+        html += Object.entries(byBook).map(([bid, arr]) => `<h3>${esc(APP.bookTitle(bid))} <a class="btn sm" href="#/search?q=${encodeURIComponent(q)}&book=${bid}&deep=1&nodirect=1">كل النتائج في الكتاب</a></h3>` + arr.map(it => APP.mini(it, words.join(' '))).join('')).join('');
+      } else html += items.map(it => APP.mini(it, words.join(' '))).join('') + (hits.length > items.length ? `<a class="btn sm" href="#/search?q=${encodeURIComponent(words.join(' '))}&type=${pn.key}&nodirect=1">عرض الكل (${hits.length})</a>` : '');
+      slot.innerHTML = html;
+    }
+  };
+
+  // ================= المكتبة: الكتب الإضافية وفهرس الكتب =================
+  const origLib = V.library;
+  V.library = async (el, parts, p) => {
+    await origLib(el, parts, p);
+    const opt = (window.PACK_MANIFEST || []).filter(m => m.optional);
+    const st = m => { const b = APP.state.books[m.id]; return b && b.count && !b.sample && b.packVersion === m.version ? 'ok' : (b && b.count && !b.sample ? 'old' : 'no'); };
+    const TYPE = { sharh: 'شرح حديث', tafsir: 'تفسير', fiqhbook: 'فقه', sirabook: 'سيرة وتاريخ وتراجم', rijal: 'رجال' };
+    const sec = document.createElement('div');
+    sec.innerHTML = `<h2>الكتب الإضافية المدمجة (بدون إنترنت) — ${opt.filter(m => st(m) === 'ok').length} من ${opt.length} مثبت</h2>
+      <div class="sub">الشروح مربوطة بأحاديثها، والتفاسير بآياتها، وكتب الفقه مقسمة على أبوابها. ثبّت ما تحتاجه — كل كتاب يُثبَّت مرة واحدة.</div>
+      <div class="row" style="margin-bottom:8px"><button class="btn primary" id="optAll">تثبيت الكل (${Math.round(opt.reduce((s, m) => s + m.size, 0) / 1e6)} ميجا)</button><span id="optMsg" class="muted"></span></div>
+      <table class="t"><tr><th>الكتاب</th><th>النوع</th><th>الحجم</th><th></th></tr>${opt.map(m => `<tr><td>${esc(m.title)}<br><small class="muted">${esc(m.author || '')}</small></td><td>${TYPE[(window.PACK_MANIFEST.find(x => x.id === m.id) || {}).type] || ''}</td><td>${(m.size / 1e6).toFixed(1)} ميجا</td>
+        <td>${st(m) === 'ok' ? '<span class="tag st-ok">✔ مثبت</span> <a class="btn sm" href="#/book/' + m.id + '">تصفح</a>' : `<button class="btn sm primary" data-opt="${m.id}">${st(m) === 'old' ? 'تحديث' : 'تثبيت'}</button>`}</td></tr>`).join('')}</table>
+      <h2>🔎 فهرس كتب التراث (أكثر من 12 ألف كتاب)</h2>
+      <div class="sub">ابحث عن أي كتاب بالعنوان أو المؤلف أو الفن، واضغط «تحميل» — يحتاج إنترنت وقت التحميل فقط، ثم يُحفظ في مكتبتك ويعمل بدون إنترنت. المصدر: نصوص المكتبة الشاملة عبر مشروع OpenITI المفتوح.</div>
+      <form id="catF" class="filters"><input type="text" name="cq" placeholder="اسم الكتاب أو المؤلف أو الفن (مثل: الموطأ، ابن تيمية، أصول الفقه)" style="flex:1;min-width:260px" value="${esc(p.cq || '')}"><button class="btn primary">بحث في الفهرس</button></form>
+      <div id="catR"></div>`;
+    el.insertBefore(sec, el.children[1] || null);
+    const installIds = async ids => {
+      const msg = $('#optMsg');
+      try { await IMPORT.installPacks((i, n, title, m) => { msg.textContent = '(' + i + '/' + n + ') ' + title + ' — ' + m; }, ids); }
+      catch (e) { msg.textContent = 'تعذر: ' + e.message; return; }
+      await APP.loadMeta(); DB.invalidate(); APP.toast('تم التثبيت'); APP.rerender();
+    };
+    sec.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => installIds([b.dataset.opt]));
+    $('#optAll').onclick = () => installIds(opt.filter(m => st(m) !== 'ok').map(m => m.id));
+    $('#catF').onsubmit = e => { e.preventDefault(); APP.catalogSearch(new FormData(e.target).get('cq'), $('#catR')); };
+    if (p.cq) APP.catalogSearch(p.cq, $('#catR'));
+  };
+
+  // فهرس OpenITI يُحمَّل عند أول استخدام (4 ميجا)
+  APP.loadCatalog = async () => {
+    if (window.CATALOG) return window.CATALOG;
+    await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/catalog.js'; s.onload = res; s.onerror = () => rej(new Error('ملف الفهرس غير موجود')); document.body.appendChild(s); });
+    window.CATALOG.forEach(c => { c._n = N(c.t + ' ' + c.a + ' ' + c.g); });
+    return window.CATALOG;
+  };
+  APP.catalogSearch = async (q, box) => {
+    box.innerHTML = '<div class="muted">جارٍ البحث في الفهرس…</div>';
+    const cat = await APP.loadCatalog();
+    const ws = N(q || '').split(' ').filter(w => w.length >= 2);
+    if (!ws.length) { box.innerHTML = ''; return; }
+    const hits = cat.filter(c => ws.every(w => c._n.includes(w))).sort((a, b) => (a.s !== 'p') - (b.s !== 'p') || (N(b.t).startsWith(ws[0]) - N(a.t).startsWith(ws[0])) || a.d - b.d).slice(0, 80);
+    const have = id => (APP.state.books[id] || {}).count;
+    box.innerHTML = `<div class="muted">${hits.length >= 80 ? 'أول 80 نتيجة' : hits.length + ' نتيجة'}</div>` + (hits.length ? `<table class="t"><tr><th>الكتاب</th><th>المؤلف</th><th>الفن</th><th>الحجم</th><th></th></tr>${hits.map(c => {
+      const id = IMPORT.slug(c.v);
+      return `<tr><td>${esc(c.t)}${c.s === 's' ? ' <small class="muted">(نسخة أخرى)</small>' : ''}</td><td>${esc(c.a)}${c.d ? ' <small class="muted">ت ' + c.d + 'هـ</small>' : ''}</td><td><small>${esc(c.g)}</small></td><td><small>${c.c > 1e6 ? (c.c / 1e6).toFixed(1) + ' م حرف' : Math.round(c.c / 1e3) + ' ألف حرف'}</small></td>
+        <td>${have(id) ? `<a class="btn sm" href="#/book/${id}">فتح</a>` : `<button class="btn sm primary" data-dl="${esc(c.v)}">تحميل</button>`}</td></tr>`; }).join('')}</table>` : '<div class="muted">لا توجد نتائج. جرّب كلمة واحدة من العنوان أو اسم المؤلف.</div>');
+    box.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => APP.downloadBook(cat.find(c => c.v === b.dataset.dl), b));
+  };
+  APP.downloadBook = async (entry, btn) => {
+    const label = t => { if (btn) btn.textContent = t; else APP.toast(t, 1500); };
+    if (btn) btn.disabled = true;
+    try {
+      const r = await IMPORT.downloadOpenITI(entry, label);
+      await APP.loadMeta();
+      label('✔ تم');
+      APP.toast('تم تحميل «' + r.book.title + '» — ' + r.count + ' قسماً');
+      return r;
+    } catch (e) {
+      label('تحميل'); if (btn) btn.disabled = false;
+      APP.modal(`<h2 style="margin-top:0">تعذر التحميل</h2><p>${esc(e.message)}</p><p>بديل: افتح الرابط المباشر وانسخ الصفحة كاملة في ملف نصي، ثم استورده من «استيراد ملف» — البرنامج يتعرف على صيغة OpenITI تلقائياً:</p><p><a href="${esc(IMPORT.OPENITI_RAW + entry.u)}" target="_blank" rel="noopener" style="word-break:break-all">${esc(IMPORT.OPENITI_RAW + entry.u)}</a></p><button class="btn" onclick="APP.closeModal()">إغلاق</button>`);
+      return null;
+    }
+  };
+
+  // ================= تحسينات العرض =================
+  const origRijal = V.rijal;
+  V.rijal = async (el, parts, p) => {
+    await origRijal(el, parts, p);
+    const t = APP.state.books.taqrib;
+    el.querySelector('.sub').insertAdjacentHTML('afterend', t && t.count ? `<div class="info">📚 ${t.count.toLocaleString('ar')} ترجمة من تقريب التهذيب — <a href="#/book/taqrib">تصفح</a> أو ابحث باسم الراوي من البحث المتقدم (نوع: الرواة).</div>` : `<div class="info">ثبّت «تقريب التهذيب» من <a href="#/library">المكتبة ← الكتب الإضافية</a> لتحصل على أكثر من 8800 ترجمة.</div>`);
+  };
+  const origSahaba = V.sahaba;
+  V.sahaba = async (el, parts, p) => {
+    await origSahaba(el, parts, p);
+    const b = APP.state.books.isaba;
+    el.querySelector('.sub').insertAdjacentHTML('afterend', b && b.count ? `<div class="info">📚 «الإصابة في تمييز الصحابة» مثبت — <a href="#/book/isaba">تصفح التراجم</a> أو ابحث باسم الصحابي في البحث المتقدم.</div>` : `<div class="info">ثبّت «الإصابة في تمييز الصحابة» من <a href="#/library">المكتبة</a> لتراجم آلاف الصحابة.</div>`);
+  };
+})();

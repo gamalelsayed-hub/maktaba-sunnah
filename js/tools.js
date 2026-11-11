@@ -13,7 +13,7 @@
     'كراهة': ['مكروه', 'يكره', 'كراهه', 'الكراهه']
   };
   const HADITH_BOOKS = [['بخاري', 'bukhari'], ['مسلم', 'muslim'], ['داود', 'abudawud'], ['ترمذي', 'tirmidhi'], ['نسايي', 'nasai'], ['ماجه', 'ibnmajah']];
-  const TYPE_LABEL = { ayah: 'آيات', hadith: 'أحاديث', tafsir: 'تفسير', sharh: 'شروح', fiqh: 'مسائل فقهية', qaida: 'قواعد', event: 'أحداث السيرة', sahabi: 'الصحابة', rawi: 'الرواة', section: 'كتب أخرى', gharib: 'غريب' };
+  const TYPE_LABEL = { ayah: 'آيات', hadith: 'أحاديث', tafsir: 'تفسير', sharh: 'شروح', fiqh: 'مسائل فقهية', qaida: 'قواعد', event: 'أحداث السيرة', sahabi: 'الصحابة', rawi: 'الرواة', section: 'الكتب والمطولات', gharib: 'غريب' };
 
   // تحويل الاستعلام إلى انتقال مباشر إن كان مرجعاً
   function directTarget(q) {
@@ -31,6 +31,29 @@
     if ((m = n.match(/^(?:سوره\s*)(.+)$/)) && AR.surahByName(m[1])) return { hash: '#/quran/' + AR.surahByName(m[1]) };
     return null;
   }
+
+  // درجة تطابق نص طويل: كل الكلمات لازمة، ومكافأة للعنوان ولتقارب الكلمات في موضع واحد
+  function scoreText(n, t, words, rootRe) {
+    if (rootRe) return rootRe.test(n) ? 1 : 0;
+    let sc = 0; const pos = [];
+    for (const w of words) {
+      let i = n.indexOf(w);
+      if (i < 0) { const st = AR.stem(w); if (st.length < 3 || (i = n.indexOf(st)) < 0) return 0; sc += 1; } else sc += 2;
+      pos.push(i);
+      if (t.includes(w)) sc += 6;
+    }
+    if (pos.length > 1 && Math.max(...pos) - Math.min(...pos) < 400) sc += 5;
+    return sc;
+  }
+  const DEEP_TYPES = ['sharh', 'tafsir', 'fiqhbook', 'sirabook', 'tafsirbook', 'hadithbook', 'other', 'rijal'];
+  async function deepFind(words, rootRe, bookIds, f, onBook) {
+    const seen = f.seen || new Set();
+    return DB.deepScan(bookIds, it => {
+      if (!DB.HEAVY.includes(it.type) || seen.has(it.id) || (f.type && it.type !== f.type) || !APP.visible(it.id)) return 0;
+      return scoreText(it.n || '', N((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.chapter || '')), words, rootRe);
+    }, onBook);
+  }
+  APP.deepFind = deepFind; APP.scoreText = scoreText;
 
   async function runSearch(q, f) {
     const idx = await DB.searchIndex();
@@ -55,6 +78,7 @@
       if (f.school && !x.schools.includes(f.school)) continue;
       if (hukm && !x.hukm.includes(hukm)) continue;
       if (!APP.visible(x.id)) continue;
+      if (f.deep && x.heavy) continue;
       let score = 0;
       if (rootRe) { if (!rootRe.test(x.n)) continue; score = 1; }
       else if (words.length) {
@@ -69,6 +93,10 @@
         if (x.topics.some(t => N(t) === n)) score += 15;
       } else if (!hukm) continue;
       res.push({ id: x.id, type: x.type, score });
+    }
+    if (f.deep && (words.length || rootRe) && !hukm) {
+      const ids = Object.values(APP.state.books).filter(b => b.count && DEEP_TYPES.includes(b.type) && (!f.book || b.id === f.book)).map(b => b.id);
+      res.push(...await deepFind(words, rootRe, ids, f, f.onBook));
     }
     res.sort((a, b) => b.score - a.score);
     return { res, hukm, words, root: !!rootRe };
@@ -96,20 +124,22 @@
         ${sel('hukm', Object.keys(HUKM_WORDS).map(h => [h, 'ما يدل على ' + h]), 'كل الأحكام')}
         ${sel('school', ['الحنفية', 'المالكية', 'الشافعية', 'الحنابلة', 'الظاهرية', 'أقوال الصحابة', 'أقوال التابعين'].map(s => [s, s]), 'كل المذاهب')}
         <select name="book"><option value="">كل الكتب</option>${bookOpts}</select>
+        <label class="row" style="gap:4px"><input type="checkbox" name="deep" value="1" ${p.deep ? 'checked' : ''}> بحث عميق داخل الشروح والتفاسير والمطولات</label>
         <button class="btn primary">بحث</button>
       </form><div id="sr"></div>`;
     $('#sf').onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); const sp = new URLSearchParams([...f].filter(([, v]) => v)); sp.set('nodirect', '1'); location.hash = '#/search?' + sp.toString(); };
     if (!q && !p.hukm) return;
     const box = $('#sr'); box.innerHTML = '<div class="muted">جارٍ البحث… (أول بحث يجهّز الفهرس ويأخذ ثوانٍ)</div>';
     const t0 = performance.now();
-    const { res, hukm, root } = await runSearch(p.nohukm ? q.split(' ').filter(w => !Object.values(HUKM_WORDS).flat().includes(N(w))).join(' ') : q, p);
+    const { res, hukm, root } = await runSearch(p.nohukm ? q.split(' ').filter(w => !Object.values(HUKM_WORDS).flat().includes(N(w))).join(' ') : q,
+      Object.assign({}, p, { onBook: bid => { box.innerHTML = '<div class="muted">بحث عميق في: ' + esc(APP.bookTitle(bid)) + '…</div>'; } }));
     const counts = {}; res.forEach(r => counts[r.type] = (counts[r.type] || 0) + 1);
     const types = Object.keys(counts).sort((a, b) => Object.keys(TYPE_LABEL).indexOf(a) - Object.keys(TYPE_LABEL).indexOf(b));
     const tab = p.tab && counts[p.tab] ? p.tab : types[0];
     const show = res.filter(r => r.type === tab).slice(0, +(p.more || 30));
     const items = await Promise.all(show.map(r => DB.get('items', r.id)));
     const mk = (k, v) => { const sp = new URLSearchParams(p); sp.set(k, v); sp.set('nodirect', '1'); return '#/search?' + sp.toString(); };
-    box.innerHTML = `<div class="info">${res.length.toLocaleString('ar')} نتيجة في ${Math.round(performance.now() - t0)} ملّي ثانية${hukm ? ' — مُصفّاة بالنصوص المصنّفة بأنها تدل على <b>' + esc(hukm) + '</b> (التصنيف يكتمل مع المراجعة). <a href="' + mk('nohukm', '1') + '">اعرض كل النصوص التي فيها الكلمة</a>' : ''}${root ? ' — بحث بالجذر (تقريبي)' : ''}.</div>
+    box.innerHTML = `<div class="info">${res.length.toLocaleString('ar')} نتيجة في ${Math.round(performance.now() - t0)} ملّي ثانية${hukm ? ' — مُصفّاة بالنصوص المصنّفة بأنها تدل على <b>' + esc(hukm) + '</b> (التصنيف يكتمل مع المراجعة). <a href="' + mk('nohukm', '1') + '">اعرض كل النصوص التي فيها الكلمة</a>' : ''}${root ? ' — بحث بالجذر (تقريبي)' : ''}.${p.deep ? '' : ' <a href="' + mk('deep', '1') + '">ابحث أيضاً داخل نصوص الشروح والتفاسير والمطولات</a>'}</div>
       ${res.length ? `<div class="tabs">${types.map(t => `<button class="${t === tab ? 'on' : ''}" onclick="location.hash='${mk('tab', t)}'">${TYPE_LABEL[t] || t} (${counts[t]})</button>`).join('')}</div>` : '<div class="muted">لا توجد نتائج. جرّب كلمة أقصر، أو أزل بعض الفلاتر، أو ابحث بالجذر.</div>'}
       ${items.map(it => APP.mini(it, q)).join('')}
       ${counts[tab] > show.length ? `<a class="btn" href="${mk('more', +(p.more || 30) + 30)}">عرض المزيد</a>` : ''}`;
@@ -283,6 +313,10 @@
           const text = await f.text();
           let msg;
           if (/\.json$/i.test(f.name)) msg = (await IMPORT.importJSON(JSON.parse(text), prog, f.name)).msg;
+          else if (text.startsWith('######OpenITI#') || text.includes('#META#Header#End#')) {
+            const r = await IMPORT.importOpenITI(text, {}, prog);
+            msg = 'تم استيراد «' + r.book.title + '»: ' + r.count + ' قسماً.';
+          }
           else if (/^\d+\|\d+\|/m.test(text.slice(0, 2000))) {
             const items = IMPORT.parseTanzil(text);
             await IMPORT.saveBook({ id: 'quran', title: 'القرآن الكريم', type: 'quran' }, items, prog);

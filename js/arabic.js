@@ -61,6 +61,22 @@
     } catch (e) { return safe; }
   }
 
+  // مقتطف حول أول موضع لكلمات البحث في نص طويل (مع التمييز)
+  function snippetHtml(text, query, len = 520) {
+    text = String(text || '');
+    const words = normalize(query).split(' ').filter(w => w.length >= 2).slice(0, 6);
+    if (!words.length || text.length <= len) return highlight(text.slice(0, len), query) + (text.length > len ? '…' : '');
+    const map = { 'ا': '[وى]?[اأإآٱ\u0670]', 'ي': '[يىئ]', 'ه': '[هة]', 'و': '[وؤ]' };
+    const tk = '[\u0610-\u061A\u064B-\u065F\u0670\u0640]*';
+    let pos = -1;
+    for (const w of words) {
+      try { const m = new RegExp(w.split('').map(ch => (map[ch] || ch) + tk).join('')).exec(text); if (m && (pos < 0 || m.index < pos)) pos = m.index; } catch (e) {}
+    }
+    if (pos < 0) pos = 0;
+    const a = Math.max(0, pos - Math.floor(len / 3)), b = Math.min(text.length, a + len);
+    return (a > 0 ? '…' : '') + highlight(text.slice(a, b), query) + (b < text.length ? '…' : '');
+  }
+
   const SURAHS = ['الفاتحة', 'البقرة', 'آل عمران', 'النساء', 'المائدة', 'الأنعام', 'الأعراف', 'الأنفال', 'التوبة', 'يونس', 'هود', 'يوسف', 'الرعد', 'إبراهيم', 'الحجر', 'النحل', 'الإسراء', 'الكهف', 'مريم', 'طه', 'الأنبياء', 'الحج', 'المؤمنون', 'النور', 'الفرقان', 'الشعراء', 'النمل', 'القصص', 'العنكبوت', 'الروم', 'لقمان', 'السجدة', 'الأحزاب', 'سبأ', 'فاطر', 'يس', 'الصافات', 'ص', 'الزمر', 'غافر', 'فصلت', 'الشورى', 'الزخرف', 'الدخان', 'الجاثية', 'الأحقاف', 'محمد', 'الفتح', 'الحجرات', 'ق', 'الذاريات', 'الطور', 'النجم', 'القمر', 'الرحمن', 'الواقعة', 'الحديد', 'المجادلة', 'الحشر', 'الممتحنة', 'الصف', 'الجمعة', 'المنافقون', 'التغابن', 'الطلاق', 'التحريم', 'الملك', 'القلم', 'الحاقة', 'المعارج', 'نوح', 'الجن', 'المزمل', 'المدثر', 'القيامة', 'الإنسان', 'المرسلات', 'النبأ', 'النازعات', 'عبس', 'التكوير', 'الانفطار', 'المطففين', 'الانشقاق', 'البروج', 'الطارق', 'الأعلى', 'الغاشية', 'الفجر', 'البلد', 'الشمس', 'الليل', 'الضحى', 'الشرح', 'التين', 'العلق', 'القدر', 'البينة', 'الزلزلة', 'العاديات', 'القارعة', 'التكاثر', 'العصر', 'الهمزة', 'الفيل', 'قريش', 'الماعون', 'الكوثر', 'الكافرون', 'النصر', 'المسد', 'الإخلاص', 'الفلق', 'الناس'];
 
   function surahByName(name) {
@@ -75,5 +91,5 @@
 
   const toArabicDigits = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
-  window.AR = { uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
+  window.AR = { snippetHtml, uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
 })();

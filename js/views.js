@@ -15,13 +15,13 @@
     let body = '';
     switch (it.type) {
       case 'ayah': body = `<div class="quran-text" style="font-size:calc(var(--fs)*1.35)">${hl(it.text)} <span class="ayah-num">${AR.toArabicDigits(it.ayah)}</span></div>`; break;
-      case 'hadith': body = `${it.bab ? '<div class="muted">' + esc(it.bab) + '</div>' : ''}<div class="matn">${hl(it.matn)}</div><div>${APP.gradeSummary(it)}</div>`; break;
+      case 'hadith': body = `${it.bab ? '<div class="muted">' + esc(it.bab) + '</div>' : ''}<div class="matn">${APP.withGharib(AR.snippetHtml(it.matn, q, 700))}</div><div>${APP.gradeSummary(it)}</div>`; break;
       case 'fiqh': body = `<b>${hl(it.title)}</b><div class="text">${hl(it.summary)}</div><div>${(it.schools || []).map(s => '<span class="tag">' + esc(s) + '</span>').join('')}</div>`; break;
       case 'event': body = `<span class="cat cat-${esc(it.category)}">${esc(it.category)}</span> <b>${hl(it.title)}</b> — <span class="muted">${esc(APP.yearLabel(it.year))} ${esc(it.month || '')}</span><div class="text">${hl(it.summary)}</div>`; break;
       case 'sahabi': body = `<b>${hl(it.title)}</b><div class="text">${hl(it.summary)}</div>`; break;
       case 'rawi': body = `<b>${hl(it.title)}</b> — <span class="muted">${hl(it.rank)}</span>`; break;
       case 'qaida': body = `<b>${hl(it.title)}</b><div class="text">${hl(it.text)}</div>`; break;
-      default: body = `<div class="text">${hl((it.text || '').slice(0, 500))}${(it.text || '').length > 500 ? '…' : ''}</div>`;
+      default: body = `${it.bab ? '<div class="muted">' + esc(it.bab.slice(0, 160)) + '</div>' : ''}<div class="text">${APP.withGharib(AR.snippetHtml(it.text || '', q))}</div>${it.page ? '<small class="muted">' + esc(it.page) + '</small>' : ''}`;
     }
     return `<div class="card ${APP.hlClass(it.id)}" data-card="${esc(it.id)}">${head}${body}${APP.actionsBar(it)}</div>`;
   };
@@ -83,14 +83,23 @@
     let items = (await DB.byIndex('items', 'bookId', id)).filter(x => APP.visible(x.id));
     const head = `<h1>${esc(b.title)}</h1><div class="sub">${esc(b.author || '')}${b.rights ? ' — <b>' + esc(b.rights) + '</b>' : ''}</div>`;
     if (!items.length) { el.innerHTML = head + `<div class="warn">هذا الرف فارغ — الكتاب لم يُستورد بعد. <a href="#/library">استيراد الآن</a></div>`; return; }
-    const sortKey = x => x.num ?? x.seq ?? (x.surah ? x.surah * 1000 + x.ayah : 0) ?? 0;
+    const sortKey = x => (x.type === 'section' && b.type !== 'fiqhbook' && b.type !== 'sirabook' && b.type !== 'other' && !String(b.type).endsWith('book') ? -100000 + (x.seq || 0) : 0) + (x.surah ? x.surah * 1000 + x.ayah : (x.num ?? x.seq ?? 0));
     items.sort((a, c) => (sortKey(a) - sortKey(c)) || (a.year || 0) - (c.year || 0) || String(a.title || '').localeCompare(String(c.title || ''), 'ar'));
-    const groupField = b.type === 'hadith' || b.type === 'fiqh' ? 'kitab' : (items[0].chapter ? 'chapter' : null);
+    if (b.type === 'tafsir') items.forEach(x => x._g = x.surah ? 'سورة ' + AR.SURAHS[x.surah - 1] : 'المقدمة');
+    const groupField = b.type === 'tafsir' ? '_g' : b.type === 'sharh' ? null : (b.type === 'hadith' || b.type === 'fiqh' ? 'kitab' : (items[0].chapter ? 'chapter' : null));
+    const jump = (b.type === 'sharh' || b.type === 'hadith') ? `<form class="row" onsubmit="event.preventDefault();location.hash='#/item/${id}:'+this.n.value"><input type="number" name="n" placeholder="رقم الحديث" style="width:130px"><button class="btn sm">اذهب</button></form>` : '';
     if (groupField && !params.g) {
       const groups = []; const seen = {};
       for (const x of items) { const k = x[groupField] || 'بدون عنوان'; if (!seen[k]) { seen[k] = { k, n: 0, first: x }; groups.push(seen[k]); } seen[k].n++; }
+      if (groups.length > 150) {
+        // فهرس طويل (مثل المغني): قائمة عناوين مقسمة على صفحات
+        const pg = +(params.tp || 0), PER = 200, sl = items.slice(pg * PER, pg * PER + PER);
+        const nav = `<div class="row">${pg > 0 ? `<a class="btn" href="#/book/${id}?tp=${pg - 1}">السابق</a>` : ''}<span class="muted">${pg * PER + 1}–${Math.min(items.length, pg * PER + PER)} من ${items.length}</span>${(pg + 1) * PER < items.length ? `<a class="btn" href="#/book/${id}?tp=${pg + 1}">التالي</a>` : ''}</div>`;
+        el.innerHTML = head + `<div class="info">ابحث داخل الكتاب: <a href="#/search?book=${id}&deep=1&nodirect=1">البحث المتقدم في «${esc(b.title)}»</a></div><h2>الفهرس</h2>` + nav + '<ol start="' + (pg * PER + 1) + '">' + sl.map(x => `<li>${APP.link(x.id, x.title || x.id)} ${x.page ? '<small class="muted">' + esc(x.page) + '</small>' : ''}</li>`).join('') + '</ol>' + nav;
+        return;
+      }
       if (groups.length > 1) {
-        el.innerHTML = head + `<h2>الفهرس</h2><div class="grid">${groups.map(g => `<a class="tile" href="#/book/${id}?g=${encodeURIComponent(g.k)}"><b>${esc(g.k)}</b><small>${g.n} نص — يبدأ من ${esc(String(g.first.num || ''))}</small></a>`).join('')}</div>`;
+        el.innerHTML = head + jump + `<h2>الفهرس</h2><div class="grid">${groups.map(g => `<a class="tile" href="#/book/${id}?g=${encodeURIComponent(g.k)}"><b>${esc(g.k)}</b><small>${g.n} نص${g.first.num ? ' — يبدأ من ' + esc(String(g.first.num)) : ''}</small></a>`).join('')}</div>`;
         return;
       }
     }
@@ -98,7 +107,7 @@
     const page = +(params.p || 0), PER = 40;
     const slice = items.slice(page * PER, page * PER + PER);
     const nav = items.length > PER ? `<div class="row">${page > 0 ? `<a class="btn" href="#/book/${id}?g=${encodeURIComponent(params.g || '')}&p=${page - 1}">السابق</a>` : ''}<span class="muted">${page * PER + 1}–${Math.min(items.length, page * PER + PER)} من ${items.length}</span>${(page + 1) * PER < items.length ? `<a class="btn" href="#/book/${id}?g=${encodeURIComponent(params.g || '')}&p=${page + 1}">التالي</a>` : ''}</div>` : '';
-    el.innerHTML = head + (params.g ? `<div class="row"><a href="#/book/${id}">← الفهرس</a> <b>${esc(params.g)}</b></div>` : '') + nav + slice.map(x => APP.mini(x)).join('') + nav;
+    el.innerHTML = head + jump + (params.g ? `<div class="row"><a href="#/book/${id}">← الفهرس</a> <b>${esc(params.g)}</b></div>` : '') + nav + slice.map(x => APP.mini(x)).join('') + nav;
   };
 
   // ===== صفحة النص الكاملة =====
@@ -205,7 +214,11 @@
 
     async generic(it, L) {
       const target = it.hadithRef || (it.type === 'tafsir' ? 'quran:' + it.surah + ':' + it.ayah : '');
-      return `<h1>${esc(APP.titleOf(it))}</h1>${target ? '<div class="sub">على: ' + await APP.linkFor(target) + '</div>' : ''}
+      const tgt = target ? await DB.get('items', target) : null;
+      const nb = it.type === 'section' ? `<div class="row"><a class="btn sm" href="#/item/${it.bookId}:${(it.seq || 1) - 1}">→ السابق</a><a class="btn sm" href="#/book/${it.bookId}">فهرس الكتاب</a><a class="btn sm" href="#/item/${it.bookId}:${(it.seq || 0) + 1}">التالي ←</a></div>` :
+        it.type === 'sharh' ? `<div class="row"><a class="btn sm" href="#/item/${it.bookId}:${(it.num || 1) - 1}">→ السابق</a><a class="btn sm" href="#/item/${it.bookId}:${(it.num || 0) + 1}">التالي ←</a></div>` : '';
+      const tgtHtml = tgt ? `<div class="summary-box">${tgt.type === 'ayah' ? '<div class="quran-text" style="font-size:calc(var(--fs)*1.3)">﴿' + esc(tgt.text) + '﴾</div>' : '<div class="matn">' + esc((tgt.matn || '').slice(0, 600)) + '</div>' + APP.gradeSummary(tgt)}</div>` : '';
+      return `<h1>${esc(APP.titleOf(it))}</h1>${it.chapter && it.chapter !== it.title ? '<div class="sub">' + esc(it.chapter) + '</div>' : ''}${(it.ref || []).length ? '<div class="sub">على: ' + (await Promise.all(it.ref.filter(r => !r.startsWith(it.bookId)).slice(0, 4).map(APP.linkFor))).join('، ') + '</div>' : ''}${nb}${tgtHtml}
         <div class="card ${APP.hlClass(it.id)}" data-card="${it.id}">${it.page ? '<div class="muted">الصفحة ' + esc(it.page) + '</div>' : ''}<div class="text" style="white-space:pre-wrap">${APP.withGharib(esc(it.text || ''))}</div>${APP.actionsBar(it)}</div>`;
     }
   };

@@ -58,7 +58,7 @@
   }
 
   // العينة: إن كان الكتاب الحقيقي مثبتاً تُضاف بيانات العينة (الأحكام والروابط والموضوعات) فوق النص الحقيقي دون تغييره
-  const KEEP_REAL = ['id', 'bookId', 'type', 'num', 'text', 'matn', 'isnad', 'kitab', 'surah', 'ayah'];
+  const KEEP_REAL = ['id', 'bookId', 'type', 'num', 'text', 'matn', 'isnad', 'kitab', 'surah', 'ayah', 'ayahTo', 'placeholder', 'hadithRef', 'ref', 'page', 'bab'];
   async function loadSample() {
     const D = window.SAMPLE_DATA;
     for (const b of D.books) {
@@ -90,21 +90,92 @@
   function loadScript(src) {
     return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('تعذر تحميل ' + src)); }; document.body.appendChild(s); });
   }
-  async function installPacks(onStep) {
-    const list = window.PACK_MANIFEST || [];
+  async function installOne(m, onStep, i = 1, n = 1) {
+    const have = await DB.get('books', m.id);
+    if (have && !have.sample && have.count >= m.count && (!m.version || have.packVersion === m.version)) { onStep && onStep(i, n, m.title, 'مثبت'); return false; }
+    onStep && onStep(i, n, m.title, 'جارٍ التحميل…');
+    await loadScript('data/' + m.file + '.js');
+    const P = window.PACK; window.PACK = null;
+    if (have) await DB.deleteBook(m.id); // نزيل العينة أو النسخة القديمة قبل الجديدة
+    await saveBook(P.book, P.items, (d, t) => onStep && onStep(i, n, m.title, 'حفظ ' + d + ' / ' + t));
+    return true;
+  }
+  // الأساسية تُثبَّت تلقائياً، والإضافية (الشروح والتفاسير والمطولات) عند طلب المستخدم
+  async function installPacks(onStep, ids) {
+    const chosen = (await DB.setting('optionalBooks')) || [];
+    const list = (window.PACK_MANIFEST || []).filter(m => ids ? ids.includes(m.id) : (!m.optional || chosen.includes(m.id)));
     let i = 0;
-    for (const m of list) {
-      i++;
-      const have = await DB.get('books', m.id);
-      if (have && !have.sample && have.count >= m.count && (!m.version || have.packVersion === m.version)) { onStep && onStep(i, list.length, m.title, 'مثبت'); continue; }
-      onStep && onStep(i, list.length, m.title, 'جارٍ التحميل…');
-      await loadScript('data/' + m.file + '.js');
-      const P = window.PACK; window.PACK = null;
-      if (have) await DB.deleteBook(m.id); // نزيل العينة أو النسخة القديمة قبل الجديدة
-      await saveBook(P.book, P.items, (d, t) => onStep && onStep(i, list.length, m.title, 'حفظ ' + d + ' / ' + t));
-    }
-    await DB.setting('packsInstalled', list.map(m => m.id + ':' + m.count).join(','));
+    for (const m of list) await installOne(m, onStep, ++i, list.length);
+    if (!ids) await DB.setting('packsInstalled', coreSig());
+    if (ids) await DB.setting('optionalBooks', [...new Set(chosen.concat(ids))]);
     await loadSample(); // إعادة تركيب الأحكام والروابط التجريبية فوق النصوص الحقيقية
+  }
+  const coreSig = () => (window.PACK_MANIFEST || []).filter(m => !m.optional).map(m => m.id + ':' + (m.version || m.count)).join(',');
+
+  // ---------- نصوص OpenITI (المكتبة الشاملة) ----------
+  function parseOpenITI(raw) {
+    raw = raw.split('#META#Header#End#').pop();
+    const blocks = []; let page = '', cur = null;
+    const flush = () => { if (cur && cur.text.trim()) { cur.text = cur.text.replace(/\s+/g, ' ').trim(); blocks.push(cur); } cur = null; };
+    for (let line of raw.split('\n')) {
+      const m = line.match(/PageV(\d+)P(\d+)/);
+      if (m) { page = (+m[1] ? 'ج' + (+m[1]) + ' ' : '') + 'ص' + (+m[2]); line = line.replace(/#?\s*PageV\d+P\d+/g, ' '); }
+      line = line.replace(/\bms\d+\b/g, '').replace(/<\/?span[^>]*>/g, '');
+      if (line.startsWith('### ')) { flush(); const h = line.match(/^### (\|+)\s?(.*)/); cur = { kind: 'h', lvl: h ? h[1].length : 1, text: h ? h[2] : line.slice(4), page }; }
+      else if (line.startsWith('~~')) { if (cur) cur.text += ' ' + line.slice(2); }
+      else if (line.startsWith('# ')) {
+        if (cur && cur.kind === 'h' && (!cur.text.trim() || (cur.text.split('[').length > cur.text.split(']').length))) { cur.text += ' ' + line.slice(2); continue; }
+        flush(); cur = { kind: 'p', lvl: 0, text: line.slice(2), page };
+      } else if (line.trim() && cur) cur.text += ' ' + line.trim();
+    }
+    flush();
+    return blocks;
+  }
+  function openitiMeta(raw) {
+    const g = k => { const m = raw.slice(0, 8000).match(new RegExp('#META# ' + k.replace('.', '\\.') + '\\s*::\\s*(.+)')); return m && m[1].trim() !== 'NODATA' ? m[1].trim() : ''; };
+    return { title: g('020.BookTITLE'), author: g('010.AuthorNAME'), subject: g('021.BookSUBJ'), publisher: g('043.EdPUBLISHER') };
+  }
+  function openitiItems(bid, blocks, maxlen = 12000) {
+    const items = []; let chapter = '', title = '', buf = [], page = '', seq = 0;
+    const emit = () => {
+      const text = buf.join('\n').trim(); if (text.length < 2) return;
+      const parts = text.length > maxlen * 1.3 ? text.match(new RegExp('[\\s\\S]{1,' + maxlen + '}', 'g')) : [text];
+      parts.forEach((t, k) => { seq++; items.push({ id: bid + ':' + seq, bookId: bid, type: 'section', seq, chapter: (chapter || 'مقدمة').slice(0, 120), title: ((title || chapter || 'مقدمة').slice(0, 140) + (parts.length > 1 ? ' (' + (k + 1) + ')' : '')), page, text: t }); });
+    };
+    for (const b of blocks) {
+      if (b.kind === 'h') { emit(); buf = []; page = b.page; if (b.lvl === 1) chapter = title = b.text; else title = b.text; }
+      else { if (!buf.length) page = page || b.page; buf.push(b.text); }
+    }
+    emit();
+    return items;
+  }
+  function guessType(cat, title) {
+    const s = (cat || '') + ' ' + (title || '');
+    if (/فقه|أصول|اصول|فتاوى|فتاوي|قواعد/.test(s)) return 'fiqhbook';
+    if (/سيرة|سير|تاريخ|تراجم|طبقات|مغازي|صحابة/.test(s)) return 'sirabook';
+    if (/تفسير|علوم القرآن|قراءات/.test(s)) return 'tafsirbook';
+    if (/حديث|سنن|مسند|شروح|أجزاء/.test(s)) return 'hadithbook';
+    return 'other';
+  }
+  const slug = v => 'oi-' + v.replace(/[^A-Za-z0-9]+/g, '-').toLowerCase().slice(0, 80);
+  async function importOpenITI(raw, info, onProgress) {
+    const md = openitiMeta(raw);
+    const id = info.id || slug(info.v || (md.title + Date.now()));
+    const book = { id, title: info.t || md.title || 'كتاب', author: info.a || md.author || '', type: info.type || guessType(info.g || md.subject, info.t || md.title),
+      source: 'المكتبة الشاملة عبر مشروع OpenITI' + (info.v ? ' (' + info.v + ')' : ''), edition: md.publisher, openiti: info.v || '' };
+    const items = openitiItems(id, parseOpenITI(raw));
+    await saveBook(book, items, onProgress);
+    return { book, count: items.length };
+  }
+  const OPENITI_RAW = 'https://raw.githubusercontent.com/OpenITI/';
+  async function downloadOpenITI(entry, onProgress) {
+    onProgress && onProgress('جارٍ التحميل من GitHub…');
+    let res;
+    try { res = await fetch(OPENITI_RAW + entry.u); } catch (e) { throw new Error('تعذر الاتصال بالإنترنت أو بالمصدر'); }
+    if (!res.ok) throw new Error('المصدر رد بخطأ ' + res.status);
+    const raw = await res.text();
+    onProgress && onProgress('جارٍ التجهيز والحفظ…');
+    return importOpenITI(raw, entry, (d, t) => onProgress && onProgress('حفظ ' + d + ' / ' + t));
   }
 
   // ---------- CSV ----------
@@ -256,5 +327,5 @@
     { title: 'الدرر السنية — الموسوعة الحديثية', url: 'https://dorar.net/hadith', how: 'مرجع لأحكام المحدثين على الأحاديث (الألباني وغيره) للمراجعة والمقابلة.', license: 'للمراجعة؛ لا يُنسخ المحتوى بالجملة دون إذن.' }
   ];
 
-  window.IMPORT = { installPacks, detectJSON, prepareItem, saveBook, loadSample, parseCSV, rowsToItems, mergeGrades, parseTanzil, importJSON, exportBook, CSV_TEMPLATES, SOURCES };
+  window.IMPORT = { installOne, coreSig, importOpenITI, downloadOpenITI, slug, OPENITI_RAW, installPacks, detectJSON, prepareItem, saveBook, loadSample, parseCSV, rowsToItems, mergeGrades, parseTanzil, importJSON, exportBook, CSV_TEMPLATES, SOURCES };
 })();
