@@ -1,0 +1,52 @@
+{
+  "name": "maktaba-sunnah",
+  "productName": "Maktabat Al-Quran wa Al-Sunnah",
+  "version": "1.0.0",
+  "description": "مكتبة القرآن والسنة — القرآن والكتب الستة وشروحها والفقه المقارن والسيرة، تعمل بدون إنترنت",
+  "author": "gamalelsayed-hub",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "desktop/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.gamalelsayed.maktabasunnah",
+    "productName": "Maktabat Al-Quran wa Al-Sunnah",
+    "copyright": "وقف لله تعالى",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": [
+      "index.html",
+      "css/**",
+      "js/**",
+      "data/**",
+      "desktop/**",
+      "build/icon.png",
+      "package.json",
+      "دليل-البرنامج.md"
+    ],
+    "asar": true,
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "icon": "build/icon.ico",
+      "artifactName": "maktaba-sunnah-setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "مكتبة القرآن والسنة",
+      "uninstallDisplayName": "مكتبة القرآن والسنة",
+      "language": "1025",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    }
+  }
+}

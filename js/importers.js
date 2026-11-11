@@ -170,10 +170,16 @@
   const OPENITI_RAW = 'https://raw.githubusercontent.com/OpenITI/';
   async function downloadOpenITI(entry, onProgress) {
     onProgress && onProgress('جارٍ التحميل من GitHub…');
-    let res;
-    try { res = await fetch(OPENITI_RAW + entry.u); } catch (e) { throw new Error('تعذر الاتصال بالإنترنت أو بالمصدر'); }
-    if (!res.ok) throw new Error('المصدر رد بخطأ ' + res.status);
-    const raw = await res.text();
+    let raw;
+    if (window.desktop && window.desktop.fetchText) {
+      // نسخة سطح المكتب: التحميل من العملية الرئيسية
+      try { raw = await window.desktop.fetchText(OPENITI_RAW + entry.u); } catch (e) { throw new Error('تعذر التحميل: ' + (e.message || 'تحقق من الاتصال بالإنترنت')); }
+    } else {
+      let res;
+      try { res = await fetch(OPENITI_RAW + entry.u); } catch (e) { throw new Error('تعذر الاتصال بالإنترنت أو بالمصدر'); }
+      if (!res.ok) throw new Error('المصدر رد بخطأ ' + res.status);
+      raw = await res.text();
+    }
     onProgress && onProgress('جارٍ التجهيز والحفظ…');
     return importOpenITI(raw, entry, (d, t) => onProgress && onProgress('حفظ ' + d + ' / ' + t));
   }
