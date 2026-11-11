@@ -1,9 +1,12 @@
-"""يبني المكتبة المدمجة للبرنامج من الملفات التي أرسلها المستخدم.
-الاستخدام: python3 -I build_pack.py <quran.txt> <hadith-json db/by_book dir> <out data dir>
+"""يبني المكتبة المدمجة للبرنامج من ملفات المصادر.
+الاستخدام: python3 -I build_pack.py <quran.txt> <hadith-json db/by_book dir> <out data dir> [<hadith-api sqlite dir>]
+- hadith-api (ملفات ara-*.sqlite): المصدر الأساسي للكتب المتوفرة فيه — ترقيم مطبوع + أحكام المحدثين.
+- hadith-json: لباقي الكتب (مسند أحمد، الدارمي، رياض الصالحين، ...).
 """
-import json, re, sys, os
+import json, re, sys, os, sqlite3, hashlib
 
 quran_txt, hadith_dir, out = sys.argv[1], sys.argv[2], sys.argv[3]
+api_dir = sys.argv[4] if len(sys.argv) > 4 else None
 os.makedirs(out, exist_ok=True)
 
 TASHKEEL = re.compile(r'[ؐ-ًؚ-ٰٟۖ-ۭـ‎‏]')
@@ -36,9 +39,91 @@ def split_isnad(text):
 
 def write_pack(name, book, items):
     path = os.path.join(out, name + '.js')
+    body = json.dumps({'book': book, 'items': items}, ensure_ascii=False, separators=(',', ':'))
+    book['packVersion'] = hashlib.sha1(body.encode()).hexdigest()[:12]
+    body = json.dumps({'book': book, 'items': items}, ensure_ascii=False, separators=(',', ':'))
     with open(path, 'w', encoding='utf-8') as f:
-        f.write('window.PACK=' + json.dumps({'book': book, 'items': items}, ensure_ascii=False, separators=(',', ':')) + ';')
+        f.write('window.PACK=' + body + ';')
     return path, os.path.getsize(path)
+
+# ---- ترجمة أحكام hadith-api إلى العربية ----
+SCHOLARS = {'Al-Albani': 'الألباني', 'Shuaib Al Arnaut': 'شعيب الأرناؤوط', 'Zubair Ali Zai': 'زبير علي زئي',
+            'Muhammad Muhyi Al-Din Abdul Hamid': 'محمد محيي الدين عبد الحميد', 'Muhammad Fouad Abd al-Baqi': 'محمد فؤاد عبد الباقي',
+            'Abu Ghuddah': 'عبد الفتاح أبو غدة', 'Ahmad Muhammad Shakir': 'أحمد محمد شاكر', 'Bashar Awad Maarouf': 'بشار عواد معروف',
+            'Salim al-Hilali': 'سليم الهلالي'}
+WHOLE = {'Sahih - Agreed Upon': 'صحيح متفق عليه', 'Sahih - Bukhari And Muslim': 'صحيح، رواه البخاري ومسلم', 'Sahih Muslim': 'صحيح، رواه مسلم',
+         'Sahih Bukhari': 'صحيح، رواه البخاري', 'Isnaad Sahih Agreed Upon': 'إسناده صحيح، متفق عليه', 'Isnaad Sahih Sahih Muslim': 'إسناده صحيح، رواه مسلم',
+         'Isnaad Sahih Sahih Bukhari': 'إسناده صحيح، رواه البخاري', 'Sahih Hadith': 'حديث صحيح', '-': ''}
+WORDS = {'Sahih': 'صحيح', 'Hasan': 'حسن', 'Daif': 'ضعيف', 'Lighairihi': 'لغيره', 'Mauquf': 'موقوف', 'Muquf': 'موقوف', 'Maqtu': 'مقطوع',
+         'Shadh': 'شاذ', 'Munkar': 'منكر', 'Mawdu': 'موضوع', 'Mursal': 'مرسل', 'Batil': 'باطل', 'Mutawatir': 'متواتر', 'Malool': 'معلول',
+         'Matn': 'المتن', 'Hadith': 'حديث', 'Very': '', 'Agreed': 'متفق', 'Upon': 'عليه', 'And': 'و', 'Mudtarib': 'مضطرب', 'Muallaq': 'معلق',
+         'Jayyid': 'جيد', 'Qawi': 'قوي', 'Thabit': 'ثابت', 'Mutabaat': 'بالمتابعات', 'Shawahid': 'بالشواهد', 'Marfu': 'مرفوع', 'Gharib': 'غريب', 'Bukhari': 'البخاري', 'Muslim': 'مسلم', 'After': 'بعد'}
+unknown_words = {}
+
+def grade_ar(g):
+    g = re.sub(r'\s+', ' ', (g or '').strip())
+    if g in WHOLE: return WHOLE[g]
+    refs = re.findall(r'Sahih (Bukhari|Muslim) \((\d+)\)', g)
+    if refs:
+        return 'صحيح: ' + '، '.join(('البخاري' if b == 'Bukhari' else 'مسلم') + ' (' + n + ')' for b, n in refs)
+    toks = g.replace('-', ' ').split()
+    out_t, very = [], 'Very' in toks
+    for i, t in enumerate(toks):
+        if t in ('Isnaad', 'Sanad', 'Isnad'):
+            out_t.append('الإسناد' if i else 'إسناده'); continue
+        if t in WORDS: out_t.append(WORDS[t])
+        else: out_t.append(t); unknown_words[t] = unknown_words.get(t, 0) + 1
+    r = ' '.join(x for x in out_t if x)
+    if very: r = r.replace('ضعيف', 'ضعيف جداً', 1)
+    if r.startswith('صحيح الإسناد'): pass
+    return r.replace(' و ', ' و')
+
+API_BOOKS = [  # (ملف, معرف, العنوان, المؤلف, ملاحظة الترقيم, حكم ضمني)
+    ('ara-bukhari', 'bukhari', 'صحيح البخاري', 'محمد بن إسماعيل البخاري', 'الترقيم المطبوع المشهور (ترقيم فتح الباري)', 'البخاري'),
+    ('ara-muslim', 'muslim', 'صحيح مسلم', 'مسلم بن الحجاج النيسابوري', 'ترقيم موقع sunnah.com، ويختلف عن ترقيم محمد فؤاد عبد الباقي', 'مسلم'),
+    ('ara-abudawud', 'abudawud', 'سنن أبي داود', 'أبو داود السجستاني', 'الترقيم المطبوع المشهور', None),
+    ('ara-tirmidhi', 'tirmidhi', 'جامع الترمذي', 'محمد بن عيسى الترمذي', 'الترقيم المطبوع المشهور (ترقيم أحمد شاكر)', None),
+    ('ara-nasai', 'nasai', 'سنن النسائي', 'أحمد بن شعيب النسائي', 'الترقيم المطبوع المشهور (ترقيم أبي غدة)', None),
+    ('ara-ibnmajah', 'ibnmajah', 'سنن ابن ماجه', 'ابن ماجه القزويني', 'الترقيم المطبوع المشهور (ترقيم محمد فؤاد عبد الباقي) — المقدمة (1–266) غير موجودة في هذا المصدر', None),
+    ('ara-malik', 'malik', 'موطأ مالك', 'الإمام مالك بن أنس', 'ترقيم المصدر', None),
+    ('ara-nawawi', 'nawawi40', 'الأربعون النووية', 'النووي', 'الترقيم المطبوع', None),
+    ('ara-qudsi', 'qudsi40', 'الأربعون القدسية', 'تجميع', 'ترقيم المصدر', None),
+    ('ara-dehlawi', 'dehlawi40', 'الأربعون حديثاً', 'الشاه ولي الله الدهلوي', 'ترقيم المصدر', None),
+]
+
+def build_api(fname, bid, title, author, numbering, implicit):
+    c = sqlite3.connect(os.path.join(api_dir, fname + '.sqlite'))
+    # أسماء الكتب العربية في hadith-api غير دقيقة أحياناً (مثل «كتاب الصلاة» لكتاب الأذان)،
+    # فنأخذ الاسم العربي من hadith-json بمطابقة الاسم الإنجليزي
+    better = {}
+    hj = os.path.join(hadith_dir, 'the_9_books', bid + '.json')
+    if os.path.exists(hj):
+        for ch in json.load(open(hj, encoding='utf-8')).get('chapters', []):
+            if ch.get('english') and ch.get('arabic'): better[ch['english'].strip()] = ch['arabic'].strip()
+    sec = {i: better.get((en or '').strip(), (n or '').strip()) for i, en, n in c.execute('select id, section_name, section_name_native from sections')}
+    grades = {}
+    for hid, sch, g in c.execute('select hadith_id, scholar_name, grade from grades'):
+        ga = grade_ar(g)
+        if ga: grades.setdefault(hid, []).append({'grader': SCHOLARS.get(sch, sch), 'grade': ga, 'reason': '', 'source': ''})
+    items, split_ok = [], 0
+    for hid, num, text, sid in c.execute('select id, hadith_number, text, section_id from hadiths order by id'):
+        text = (text or '').strip()
+        if not text: continue
+        isnad, matn = split_isnad(text)
+        split_ok += bool(isnad)
+        gs = grades.get(hid, [])
+        if implicit: gs = [{'grader': 'الإمام ' + implicit, 'grade': 'صحيح', 'reason': 'أخرجه في صحيحه الذي التزم فيه الصحة: اتصال السند بنقل العدل الضابط عن مثله، مع السلامة من الشذوذ والعلة.', 'source': title}] + gs
+        it = {'id': f'{bid}:{num}', 'bookId': bid, 'type': 'hadith', 'num': num, 'kitab': sec.get(sid, ''), 'isnad': isnad, 'matn': matn}
+        if gs: it['grades'] = gs
+        items.append(it)
+    # أرقام مكررة (نادرة): نُبقي الأول ونميز الباقي
+    seen = {}
+    for it in items:
+        if it['id'] in seen:
+            seen[it['id']] += 1; it['id'] += '-' + str(seen[it['id']])
+        else: seen[it['id']] = 1
+    book = {'id': bid, 'title': title, 'type': 'hadith', 'author': author, 'source': 'hadith-api (fawazahmed0) — مفتوح المصدر', 'numbering': numbering}
+    return book, items, split_ok
 
 manifest = []
 
@@ -54,7 +139,7 @@ for line in open(quran_txt, encoding='utf-8-sig'):
 assert len(ayat) == 6236, len(ayat)
 book = {'id': 'quran', 'title': 'القرآن الكريم', 'type': 'quran', 'author': '', 'edition': 'الرسم العثماني — رواية حفص', 'source': 'مشروع تنزيل tanzil.net', 'license': '\n'.join(h for h in header if h)}
 p, sz = write_pack('quran', book, ayat)
-manifest.append({'file': 'quran', 'id': 'quran', 'title': book['title'], 'count': len(ayat), 'size': sz})
+manifest.append({'file': 'quran', 'id': 'quran', 'title': book['title'], 'count': len(ayat), 'size': sz, 'version': book['packVersion']})
 
 # ---- كتب الحديث ----
 BOOKS = [
@@ -76,7 +161,16 @@ BOOKS = [
     ('forties/qudsi40', 'qudsi40', 'الأربعون القدسية', 'تجميع'),
 ]
 stats = {}
+api_ids = set()
+if api_dir:
+    for args in API_BOOKS:
+        if not os.path.exists(os.path.join(api_dir, args[0] + '.sqlite')): continue
+        book, items, ok = build_api(*args)
+        p, sz = write_pack('hadith-' + book['id'], book, items)
+        manifest.append({'file': 'hadith-' + book['id'], 'id': book['id'], 'title': book['title'], 'count': len(items), 'size': sz, 'version': book['packVersion']})
+        stats[book['id']] = (len(items), ok); api_ids.add(book['id'])
 for rel, bid, title, author in BOOKS:
+    if bid in api_ids: continue
     d = json.load(open(os.path.join(hadith_dir, rel + '.json'), encoding='utf-8'))
     ch = {c['id']: (c.get('arabic') or c.get('english') or '').strip() for c in d.get('chapters', [])}
     items, split_ok = [], 0
@@ -90,7 +184,7 @@ for rel, bid, title, author in BOOKS:
     book = {'id': bid, 'title': title, 'type': 'hadith', 'author': author, 'source': 'hadith-json (AhmedBaset) — مأخوذ من sunnah.com',
             'numbering': 'ترقيم تسلسلي خاص بالمصدر، وقد يختلف عن الترقيم المطبوع'}
     p, sz = write_pack('hadith-' + bid, book, items)
-    manifest.append({'file': 'hadith-' + bid, 'id': bid, 'title': title, 'count': len(items), 'size': sz})
+    manifest.append({'file': 'hadith-' + bid, 'id': bid, 'title': title, 'count': len(items), 'size': sz, 'version': book['packVersion']})
     stats[bid] = (len(items), split_ok)
 
 with open(os.path.join(out, 'manifest.js'), 'w', encoding='utf-8') as f:
@@ -99,4 +193,5 @@ with open(os.path.join(out, 'manifest.js'), 'w', encoding='utf-8') as f:
 for m in manifest:
     s = stats.get(m['id'])
     print(f"{m['title']:<30} {m['count']:>6} نص  {m['size']/1e6:6.1f} MB" + (f"  فصل الإسناد آلياً: {s[1]*100//s[0]}%" if s else ''))
+print('كلمات أحكام لم تُترجم:', sorted(unknown_words.items(), key=lambda x: -x[1])[:30])
 print('الإجمالي', round(sum(m['size'] for m in manifest) / 1e6, 1), 'MB')

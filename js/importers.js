@@ -2,13 +2,17 @@
 (function () {
   const N = s => AR.normalize(s);
 
+  // درجة الحديث للتصفية: حكم الألباني إن وُجد، وإلا رأي أغلب المحدثين؛ مع علامة «مختلف»
+  function cls(g) { g = N(g); return /ضعيف|منكر|موضوع|باطل|شاذ|معلول/.test(g) ? 'daif' : /صحيح/.test(g) ? 'sahih' : /حسن/.test(g) ? 'hasan' : ''; }
   function gradeClass(it) {
-    const g = (it.grades || []).map(x => N(x.grade)).join(' ');
-    const set = new Set();
-    if (/صحيح/.test(g) || ['bukhari', 'muslim'].includes(it.bookId)) set.add('sahih');
-    if (/حسن/.test(g)) set.add('hasan');
-    if (/ضعيف|منكر|موضوع|باطل/.test(g)) set.add('daif');
-    return [...set].join(' ');
+    if (['bukhari', 'muslim'].includes(it.bookId)) return 'sahih';
+    const gs = (it.grades || []).map(g => ({ who: g.grader, c: cls(g.grade) })).filter(g => g.c);
+    if (!gs.length) return '';
+    const alb = gs.find(g => /الالباني/.test(N(g.who)));
+    let main = alb ? alb.c : null;
+    if (!main) { const n = {}; gs.forEach(g => n[g.c] = (n[g.c] || 0) + 1); main = Object.entries(n).sort((a, b) => b[1] - a[1])[0][0]; }
+    const mixed = gs.some(g => g.c === 'daif') && gs.some(g => g.c !== 'daif');
+    return main + (mixed ? ' mixed' : '');
   }
 
   // تجهيز العنصر: نص البحث المطبّع + الروابط
@@ -66,7 +70,13 @@
           const real = await DB.get('items', s.id);
           if (!real) continue; // لا نضيف نصاً تجريبياً لكتاب حقيقي
           const merged = Object.assign({}, real);
-          for (const [k, v] of Object.entries(s)) if (!KEEP_REAL.includes(k) && k !== 'sample') merged[k] = v;
+          for (const [k, v] of Object.entries(s)) if (!KEEP_REAL.includes(k) && k !== 'sample' && k !== 'grades') merged[k] = v;
+          // الأحكام: نُبقي أحكام المصدر ونضيف من العينة ما ليس فيها (مع تمييزه كتجريبي)
+          if (s.grades) {
+            const have = (real.grades || []).map(g => N(g.grader));
+            const extra = s.grades.filter(g => !have.some(h => h.includes(N(g.grader)) || N(g.grader).includes(h))).map(g => Object.assign({}, g, { sample: true }));
+            merged.grades = (real.grades || []).filter(g => !g.sample).concat(extra);
+          }
           merged.sampleOverlay = true;
           await DB.put('items', prepareItem(merged));
         }
@@ -86,11 +96,11 @@
     for (const m of list) {
       i++;
       const have = await DB.get('books', m.id);
-      if (have && have.count >= m.count && !have.sample) { onStep && onStep(i, list.length, m.title, 'مثبت'); continue; }
+      if (have && !have.sample && have.count >= m.count && (!m.version || have.packVersion === m.version)) { onStep && onStep(i, list.length, m.title, 'مثبت'); continue; }
       onStep && onStep(i, list.length, m.title, 'جارٍ التحميل…');
       await loadScript('data/' + m.file + '.js');
       const P = window.PACK; window.PACK = null;
-      if (have && have.sample) await DB.deleteBook(m.id); // نزيل العينة قبل الحقيقي
+      if (have) await DB.deleteBook(m.id); // نزيل العينة أو النسخة القديمة قبل الجديدة
       await saveBook(P.book, P.items, (d, t) => onStep && onStep(i, list.length, m.title, 'حفظ ' + d + ' / ' + t));
     }
     await DB.setting('packsInstalled', list.map(m => m.id + ':' + m.count).join(','));

@@ -1,7 +1,7 @@
 import asyncio, sys, time
 from playwright.async_api import async_playwright
 
-URL = 'file:///home/claude/maktaba/index.html'
+URL = 'file:///home/claude/maktaba-sunnah/index.html'
 OUT = '/home/claude/shots/'
 
 async def main():

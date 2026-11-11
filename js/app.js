@@ -56,8 +56,12 @@
     gradeSummary(it) {
       const gs = it.grades || [];
       if (!gs.length) return '<span class="tag g-none">لا يوجد حكم مسجل</span>';
-      const cls = new Set(gs.map(g => APP.gradeCls(g.grade)));
-      if (cls.size === 1) return `<span class="tag ${[...cls][0]}">${esc(gs[0].grade.split('—')[0])}</span>` + (gs.length > 1 ? ' <small class="muted">باتفاق ' + gs.length + ' أحكام</small>' : '');
+      const ok = gs.filter(g => APP.gradeCls(g.grade) !== 'g-daif' && APP.gradeCls(g.grade) !== 'g-none');
+      const bad = gs.filter(g => APP.gradeCls(g.grade) === 'g-daif');
+      const alb = gs.find(g => /الالباني/.test(AR.normalize(g.grader)));
+      const head = alb || gs[0];
+      if (!bad.length) return `<span class="tag ${APP.gradeCls(head.grade)}">${esc(head.grade)}</span>` + (gs.length > 1 ? ` <small class="muted">مقبول عند ${ok.length === gs.length ? 'جميع' : ok.length + ' من'} المحدثين المذكورين (${gs.length})</small>` : ' <small class="muted">— ' + esc(head.grader) + '</small>');
+      if (!ok.length) return `<span class="tag g-daif">${esc(head.grade)}</span> <small class="muted">ضعيف عند ${bad.length === gs.length ? 'جميع' : bad.length + ' من'} المحدثين المذكورين (${gs.length})</small>`;
       return '<span class="tag g-none">مختلف في الحكم عليه</span> ' + gs.map(g => `<span class="tag ${APP.gradeCls(g.grade)}">${esc(g.grader)}: ${esc(g.grade)}</span>`).join('');
     },
     // تمييز كلمات الغريب

@@ -123,7 +123,7 @@
 
     async hadith(it, L) {
       const chain = (it.narrators || []).map(r => `<a href="#/item/${encodeURIComponent(r)}">${esc(APP.state.names[r] || r)}</a>`).join('<span class="arrow">←</span>');
-      const grades = (it.grades || []).map((g, i) => `<tr><td><b>${esc(g.grader)}</b></td><td><span class="tag ${APP.gradeCls(g.grade)}">${esc(g.grade)}</span></td>
+      const grades = (it.grades || []).map((g, i) => `<tr><td><b>${esc(g.grader)}</b>${g.sample ? ' <small class="tag st-fix">تجريبي</small>' : ''}</td><td><span class="tag ${APP.gradeCls(g.grade)}">${esc(g.grade)}</span></td>
         <td>${g.reason ? `<details ${open()}><summary>لماذا؟</summary><div class="why">${esc(g.reason)}</div></details>` : '<span class="muted">—</span>'}</td><td class="muted">${esc(g.source || '')}</td></tr>`).join('');
       const takhrij = await Promise.all((it.takhrij || []).map(APP.linkFor));
       const bk = APP.state.books[it.bookId] || {};
@@ -137,7 +137,7 @@
           <div>${(it.topics || []).map(t => `<a class="tag" href="#/search?q=${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>
           ${APP.actionsBar(it)}</div>
         <h2>أحكام المحدثين عليه</h2>
-        ${grades ? `<table class="t"><tr><th>المحدّث</th><th>الحكم</th><th>وجه الحكم / العلة</th><th>المصدر</th></tr>${grades}</table>` : '<div class="muted">لا يوجد حكم مسجل بعد.</div>'}
+        ${grades ? `<table class="t"><tr><th>المحدّث</th><th>الحكم</th><th>وجه الحكم / العلة</th><th>المصدر</th></tr>${grades}</table>${(it.grades || []).some(g => !g.reason) ? '<div class="muted" style="font-size:13px;margin-top:4px">الأحكام منقولة عن مشروع hadith-api، ووجه الحكم والعلة يُضافان أثناء المراجعة العلمية.</div>' : ''}` : '<div class="muted">لا يوجد حكم مسجل بعد.</div>'}
         ${takhrij.length ? `<h2>التخريج (رواه أيضاً)</h2><div>${takhrij.join(' — ')}</div>` : ''}`
         + section('الشروح', byType(L, 'sharh')) + section('آيات مرتبطة', byType(L, 'ayah')) + section('مسائل فقهية استُدل به فيها', byType(L, 'fiqh')) + section('قواعد مؤصّلة به', byType(L, 'qaida'));
     },

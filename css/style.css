@@ -82,7 +82,7 @@ table.t td.text { font-size: calc(var(--fs) * .92); line-height: 1.8; }
 .btn.sm { padding: 3px 8px; font-size: 12px; }
 details { margin: 8px 0; }
 details > summary { cursor: pointer; color: var(--brand2); font-weight: 600; }
-.why { background: var(--bg); border-right: 3px solid var(--gold); padding: 8px 12px; margin-top: 6px; border-radius: 6px; }
+.why { font-family: var(--text); background: var(--bg); border-right: 3px solid var(--gold); padding: 8px 12px; margin-top: 6px; border-radius: 6px; }
 
 .warn { background: #fffbeb; border: 1px solid #fcd34d; color: #78350f; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
 body.dark .warn { background: #2a2208; color: #fcd34d; }

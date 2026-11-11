@@ -22,7 +22,7 @@
     if ((m = n.match(/^(\d{1,3})\s*[:\s]\s*(\d{1,3})$/))) return { item: 'quran:' + +m[1] + ':' + +m[2] };
     if ((m = n.match(/^(?:احداث\s*)?(?:سنه|عام)\s*(\d+)\s*(?:ه|هـ)?\s*(قبل الهجره)?$/)) || (m = n.match(/^(?:احداث\s*)?(\d+)\s*ه\s*(قبل الهجره)?$/))) return { hash: '#/sira?year=' + (m[2] ? -m[1] : +m[1]) };
     if (/^(ال)?غزوات$/.test(n) || /^(ال)?غزوات النبي/.test(n)) return { hash: '#/sira?cat=' + encodeURIComponent('غزوة') };
-    if ((m = n.match(/^(?:سوره\s*)?(.+?)\s+(\d{1,3})$/))) {
+    if ((m = n.match(/^(?:سوره\s*)?(.+?)\s+(\d{1,5})$/))) {
       const s = AR.surahByName(m[1]);
       if (s) return { item: 'quran:' + s + ':' + +m[2] };
       const hb = HADITH_BOOKS.find(([k]) => m[1].includes(k));
@@ -49,7 +49,9 @@
     for (const x of idx) {
       if (f.type && x.type !== f.type) continue;
       if (f.book && x.bookId !== f.book) continue;
-      if (f.grade === 'sahih' && x.type === 'hadith' && !/sahih|hasan/.test(x.grade)) continue;
+      if (f.grade === 'sahih' && x.type === 'hadith' && !/^(sahih|hasan)/.test(x.grade)) continue;
+      if (f.grade === 'daif' && x.type === 'hadith' && !/^daif/.test(x.grade)) continue;
+      if (f.grade === 'mixed' && x.type === 'hadith' && !/mixed/.test(x.grade)) continue;
       if (f.school && !x.schools.includes(f.school)) continue;
       if (hukm && !x.hukm.includes(hukm)) continue;
       if (!APP.visible(x.id)) continue;
@@ -90,7 +92,7 @@
       <form class="filters" id="sf">
         <input type="text" name="q" value="${esc(q)}" placeholder="كلمة البحث" style="flex:1;min-width:220px">
         ${sel('type', Object.entries(TYPE_LABEL), 'كل الأنواع')}
-        ${sel('grade', [['sahih', 'الصحيح والحسن فقط']], 'كل درجات الحديث')}
+        ${sel('grade', [['sahih', 'الصحيح والحسن فقط'], ['daif', 'الضعيف فقط'], ['mixed', 'المختلف في الحكم عليه']], 'كل درجات الحديث')}
         ${sel('hukm', Object.keys(HUKM_WORDS).map(h => [h, 'ما يدل على ' + h]), 'كل الأحكام')}
         ${sel('school', ['الحنفية', 'المالكية', 'الشافعية', 'الحنابلة', 'الظاهرية', 'أقوال الصحابة', 'أقوال التابعين'].map(s => [s, s]), 'كل المذاهب')}
         <select name="book"><option value="">كل الكتب</option>${bookOpts}</select>
