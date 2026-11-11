@@ -1,8 +1,8 @@
 // عامل الخدمة لنسخة الويب: يحفظ واجهة البرنامج ليفتح بدون إنترنت.
 // الكتب نفسها تُحفظ في قاعدة بيانات المتصفح عند التثبيت، فلا تحتاج تخزيناً هنا.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL = ['./', './index.html', './css/style.css', './manifest.webmanifest', './icons/icon-192.png', './icons/favicon.png',
-  './js/arabic.js', './js/db.js', './js/sample-data.js', './js/sample-sira.js', './js/sample-more.js', './js/importers.js', './js/mindmap.js',
+  './js/arabic.js', './js/db.js', './js/sample-data.js', './js/sample-sira.js', './js/sample-more.js', './js/fiqh-masail.js', './js/importers.js', './js/mindmap.js',
   './js/app.js', './js/views.js', './js/tools.js', './js/more.js', './js/curriculum.js', './js/talab.js', './data/manifest.js', './data/review.js'];
 
 self.addEventListener('install', e => {

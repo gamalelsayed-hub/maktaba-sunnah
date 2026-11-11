@@ -117,6 +117,22 @@
     const linked = await APP.linked(it);
     const R = RENDER[it.type] || RENDER.generic;
     el.innerHTML = sampleWarn(it) + (APP.state.reviewer ? '' : `<div class="row" style="margin-bottom:6px">${APP.userBadge(it.id, true)}</div>`) + await R(it, linked) + `<div style="margin-top:16px"><button class="btn" onclick="history.back()">← رجوع</button></div>`;
+    // مواضع المسألة في كتب الفقه المثبتة (بحث تلقائي بكلماتها المفتاحية)
+    const box = el.querySelector('#fiqhSrc');
+    if (box && APP.deepFind) {
+      const ids = ['bidayat', 'mughni', 'muhalla'].filter(b => (APP.state.books[b] || {}).count);
+      const words = AR.normalize(it.kw || it.title).split(' ').filter(w => w.length >= 2);
+      if (!ids.length) { box.innerHTML = 'ثبّت بداية المجتهد والمغني والمحلى من <a href="#/library">المكتبة</a>.'; return; }
+      const hits = await APP.deepFind(words, null, ids, {});
+      hits.sort((a, b) => b.score - a.score);
+      // نأخذ أفضل 8 من كل كتاب، ثم نقدّم ما طابقت كلماته عنوان الفصل، ونكتفي باثنين لكل كتاب
+      const per = {}; const cand = hits.filter(h => (per[h.bookId] = (per[h.bookId] || 0) + 1) <= 8);
+      const all = (await Promise.all(cand.map(h => DB.get('items', h.id)))).filter(Boolean);
+      const tHit = x => words.every(w => AR.wordRe(w).test(AR.normalize((x.title || '') + ' ' + (x.bab || ''))));
+      all.sort((a, b) => tHit(b) - tHit(a));
+      const per2 = {}; const items = all.filter(x => (per2[x.bookId] = (per2[x.bookId] || 0) + 1) <= 2);
+      box.outerHTML = items.length ? '<div>' + items.map(x => APP.mini(x, words.join(' '))).join('') + `<a class="btn sm" href="#/ask?q=${encodeURIComponent(it.kw || it.title)}">كل ما في المكتبة عن المسألة</a></div>` : '<div class="muted">لم يُعثر على موضع مطابق بالكلمات المفتاحية.</div>';
+    }
   };
 
   const section = (title, arr, q) => arr.length ? `<h2>${title} <small class="muted">(${arr.length})</small></h2>` + arr.map(x => APP.mini(x, q)).join('') : '';
@@ -168,7 +184,8 @@
         ${it.sabab ? `<h2>سبب الخلاف (فلسفة الأقوال)</h2><div class="card text">${esc(it.sabab)}</div>` : ''}
         ${qaida ? `<h2>القاعدة المؤثرة في المسألة</h2><div class="card">${qaida}</div>` : ''}
         ${(it.rajih || []).length ? `<h2>الترجيح عند العلماء</h2><table class="t"><tr><th>المرجِّح</th><th>القول الراجح عنده</th><th>وجه الترجيح</th></tr>${it.rajih.map(r => `<tr><td>${esc(r.by)}</td><td>${esc(r.qawl)}</td><td>${esc(r.why || '')}</td></tr>`).join('')}</table><div class="muted" style="margin-top:6px">الترجيح منسوب لقائله، والبرنامج لا يرجّح من عنده.</div>` : ''}
-        ${(it.refs || []).length ? `<h2>المراجع</h2><ul>${it.refs.map(r => '<li>' + esc(r) + '</li>').join('')}</ul>` : ''}`;
+        ${(it.refs || []).length ? `<h2>المراجع</h2><ul>${it.refs.map(r => '<li>' + esc(r) + '</li>').join('')}</ul>` : ''}
+        <h2>المسألة في كتب الفقه</h2><div id="fiqhSrc" class="muted">جارٍ جلب المواضع من بداية المجتهد والمغني والمحلى…</div>`;
     },
 
     async qaida(it, L) {

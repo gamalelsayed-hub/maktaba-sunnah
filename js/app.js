@@ -285,7 +285,9 @@
       await DB.open();
       const sig = IMPORT.coreSig();
       if (sig && (await DB.setting('packsInstalled')) !== sig) await APP.installScreen();
-      else if (!(await DB.setting('sampleLoaded'))) await IMPORT.loadSample();
+      // المحتوى المُعدّ (المسائل والقواعد والأحداث) يُحدَّث كلما زاد
+      const sv = window.SAMPLE_DATA.items.length + ':' + window.SAMPLE_DATA.books.length;
+      if ((await DB.setting('sampleVersion')) !== sv) { await IMPORT.loadSample(); await DB.setting('sampleVersion', sv); }
       await APP.loadMeta();
       const s = { fontSize: await DB.setting('fontSize'), dark: await DB.setting('dark') };
       APP.applyLook(s);
