@@ -48,17 +48,45 @@
   }
 
   // تمييز كلمات البحث في نص مشكول: نبني regex يسمح بالحركات بين الحروف
+  // ===== مطابقة الكلمة كاملة (لا أجزاء الكلمات): «الربا» تطابق الربا/بالربا/والربا، ولا تطابق الروابي أو قربان =====
+  const PRE = ['وال', 'فال', 'بال', 'كال', 'ولل', 'فلل', 'لل', 'ال'];
+  function core(w) {
+    w = normalize(w);
+    for (const p of PRE) if (w.startsWith(p) && w.length - p.length >= 2) return w.slice(p.length);
+    return w;
+  }
+  const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const SUF = '(?:هما|كما|هم|هن|كم|كن|ها|نا|ني|ون|ين|ان|ات|وا|ه|ي|ك)?';
+  function corePattern(c) {
+    // الكلمة المنتهية بتاء مربوطة تصير تاءً مع الضمير: الصلاة ← صلاته
+    if (c.endsWith('ه') && c.length > 2) return '(?:' + esc(c) + '|' + esc(c.slice(0, -1)) + 'ت(?:ه|ها|هم|هما|كم|نا|ي|ك|ين|ان))';
+    if (/[اوي]$/.test(c)) return esc(c); // الربا: بلا لواحق حتى لا تطابق «ربانا»
+    return esc(c) + SUF;
+  }
+  // للنص المطبّع (حقل البحث n)
+  function wordRe(w) {
+    return new RegExp('(?:^| )(?:[وف]?[بكل]?(?:ال)?|[وف]?لل)' + corePattern(core(w)) + '(?= |$)');
+  }
+  // للنص الأصلي المشكول (للتمييز وتحديد موضع المقتطف)
+  const MAP = { 'ا': '[اأإآٱٰ]', 'ي': '[يىئ]', 'ه': '[هة]', 'و': '[وؤ]', 'ت': '[تة]' };
+  const TK = '[\\u0610-\\u061A\\u064B-\\u065F\\u0670\\u0640]*';
+  function rawPattern(w) {
+    const c = core(w);
+    const letters = x => x.split('').map(ch => (MAP[ch] || esc(ch)) + TK).join('');
+    let body;
+    if (c.endsWith('ه') && c.length > 2) body = '(?:' + letters(c) + '|' + letters(c.slice(0, -1)) + '[تة]' + TK + '(?:' + ['هما', 'هم', 'ها', 'كم', 'نا', 'ه', 'ك', 'ي'].map(letters).join('|') + ')?)';
+    else if (/[اوي]$/.test(c)) body = letters(c);
+    else body = letters(c) + '(?:' + ['هما', 'كما', 'هم', 'هن', 'كم', 'ها', 'نا', 'ون', 'ين', 'ان', 'ات', 'وا', 'ه', 'ي', 'ك'].map(letters).join('|') + ')?';
+    const pre = '(?:(?:[وف]' + TK + ')?(?:[بكل]' + TK + ')?(?:' + MAP['ا'] + TK + 'ل' + TK + ')?|(?:[وف]' + TK + ')?ل' + TK + 'ل' + TK + ')';
+    return '(?<![\\u0621-\\u064A])' + pre + body + '(?![\\u0621-\\u064A])';
+  }
   function highlight(text, query) {
     const safe = escapeHtml(text);
     if (!query) return safe;
     const words = normalize(query).split(' ').filter(w => w.length >= 2).slice(0, 6);
     if (!words.length) return safe;
-    const map = { 'ا': '[وى]?[اأإآٱ\u0670]', 'ي': '[يىئ]', 'ه': '[هة]', 'و': '[وؤ]' };
-    const tk = '[\\u0610-\\u061A\\u064B-\\u065F\\u0670\\u0640]*';
-    const parts = words.map(w => w.split('').map(ch => (map[ch] || ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) + tk).join(''));
-    try {
-      return safe.replace(new RegExp('(' + parts.join('|') + ')', 'g'), '<mark>$1</mark>');
-    } catch (e) { return safe; }
+    try { return safe.replace(new RegExp('(' + words.map(rawPattern).join('|') + ')', 'g'), '<mark>$1</mark>'); }
+    catch (e) { return safe; }
   }
 
   // مقتطف حول أول موضع لكلمات البحث في نص طويل (مع التمييز)
@@ -66,11 +94,9 @@
     text = String(text || '');
     const words = normalize(query).split(' ').filter(w => w.length >= 2).slice(0, 6);
     if (!words.length || text.length <= len) return highlight(text.slice(0, len), query) + (text.length > len ? '…' : '');
-    const map = { 'ا': '[وى]?[اأإآٱ\u0670]', 'ي': '[يىئ]', 'ه': '[هة]', 'و': '[وؤ]' };
-    const tk = '[\u0610-\u061A\u064B-\u065F\u0670\u0640]*';
     let pos = -1;
     for (const w of words) {
-      try { const m = new RegExp(w.split('').map(ch => (map[ch] || ch) + tk).join('')).exec(text); if (m && (pos < 0 || m.index < pos)) pos = m.index; } catch (e) {}
+      try { const m = new RegExp(rawPattern(w)).exec(text); if (m && (pos < 0 || m.index < pos)) pos = m.index; } catch (e) {}
     }
     if (pos < 0) pos = 0;
     const a = Math.max(0, pos - Math.floor(len / 3)), b = Math.min(text.length, a + len);
@@ -87,9 +113,9 @@
   }
 
   // الرسم العثماني إلى قريب من الإملائي (لأجل البحث)
-  function uthmaniAlt(s) { return normalize(String(s || '').replace(/[وى]\u0670/g, 'ا').replace(/\u0640?\u0670/g, 'ا')); }
+  function uthmaniAlt(s) { return normalize(String(s || '').replace(/[وى]\u0670[\u064B-\u065F]*ا?/g, 'ا').replace(/\u0640?\u0670/g, 'ا')); }
 
   const toArabicDigits = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
-  window.AR = { snippetHtml, uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
+  window.AR = { wordRe, core, snippetHtml, uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
 })();

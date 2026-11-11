@@ -103,14 +103,16 @@
   // الأساسية تُثبَّت تلقائياً، والإضافية (الشروح والتفاسير والمطولات) عند طلب المستخدم
   async function installPacks(onStep, ids) {
     const chosen = (await DB.setting('optionalBooks')) || [];
-    const list = (window.PACK_MANIFEST || []).filter(m => ids ? ids.includes(m.id) : (!m.optional || chosen.includes(m.id)));
+    // كل الكتب المدمجة تُثبَّت افتراضياً (الأساسية والإضافية) — والمستخدم يقدر يحذف ما لا يريده من المكتبة
+    const removed = (await DB.setting('removedBooks')) || [];
+    const list = (window.PACK_MANIFEST || []).filter(m => ids ? ids.includes(m.id) : !removed.includes(m.id));
     let i = 0;
     for (const m of list) await installOne(m, onStep, ++i, list.length);
     if (!ids) await DB.setting('packsInstalled', coreSig());
     if (ids) await DB.setting('optionalBooks', [...new Set(chosen.concat(ids))]);
     await loadSample(); // إعادة تركيب الأحكام والروابط التجريبية فوق النصوص الحقيقية
   }
-  const coreSig = () => (window.PACK_MANIFEST || []).filter(m => !m.optional).map(m => m.id + ':' + (m.version || m.count)).join(',');
+  const coreSig = () => (window.PACK_MANIFEST || []).map(m => m.id + ':' + (m.version || m.count)).join(',');
 
   // ---------- نصوص OpenITI (المكتبة الشاملة) ----------
   function parseOpenITI(raw) {

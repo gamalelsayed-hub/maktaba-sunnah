@@ -4,7 +4,7 @@
   const V = APP.views;
   const talib = () => APP.state.profile === 'talib';
   const open = () => (talib() ? 'open' : '');
-  const sampleWarn = it => (!APP.state.reviewer && APP.reviewStatus(it.id) === 'ok') ? '' : (it.sampleOverlay ? `<div class="warn">⚠️ النص نفسه من المصدر، أما <b>الأحكام والروابط والموضوعات المضافة إليه فتجريبية</b> وتحتاج مراجعة.</div>` : '') + (it.sample ? `<div class="warn">⚠️ هذا من <b>العينة التجريبية</b> لعرض طريقة العمل — غير مراجع، ولا يُعتمد عليه قبل المراجعة من المصدر.</div>` : '') + (it.placeholder ? `<div class="warn">هذا النص ملخص مؤقت، ويُستبدل بنص الكتاب الأصلي عند استيراده.</div>` : '');
+  const sampleWarn = it => (!APP.state.reviewer && APP.reviewStatus(it.id) === 'ok') ? '' : (it.sampleOverlay ? `<div class="warn">⚠️ النص نفسه من المصدر، أما <b>الأحكام والروابط والموضوعات المضافة إليه فإعداد أولي</b> يحتاج مراجعة.</div>` : '') + (it.sample ? `<div class="warn">⚠️ <b>إعداد أولي غير مراجع</b> — يُتحقق منه من المصادر قبل الاعتماد.</div>` : '') + (it.placeholder ? `<div class="warn">هذا النص ملخص مؤقت، ويُستبدل بنص الكتاب الأصلي عند استيراده.</div>` : '');
   const byType = (arr, t) => arr.filter(x => x.type === t);
   const books = t => Object.values(APP.state.books).filter(b => b.type === t);
 
@@ -202,6 +202,7 @@
     },
 
     async sahabi(it, L) {
+      if (!it.name && it.text) return RENDER.generic(it, L);
       const rows = [['الاسم والنسب', it.name], ['اللقب والكنية', it.laqab], ['المولد', it.birth], ['إسلامه', it.islam], ['الخلافة', it.khilafa], ['الوفاة', it.death]].filter(r => r[1]);
       return `<h1>${esc(it.title)}</h1><div class="summary-box" data-card="${it.id}">${esc(it.summary || '')}</div>${APP.actionsBar(it)}
         <table class="t">${rows.map(r => `<tr><th style="width:140px">${r[0]}</th><td class="text">${esc(r[1])}</td></tr>`).join('')}</table>

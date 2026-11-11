@@ -90,7 +90,7 @@
       catch (e) { msg.textContent = 'تعذر: ' + e.message; return; }
       await APP.loadMeta(); DB.invalidate(); APP.toast('تم التثبيت'); APP.rerender();
     };
-    sec.querySelectorAll('[data-opt]').forEach(b => b.onclick = () => installIds([b.dataset.opt]));
+    sec.querySelectorAll('[data-opt]').forEach(b => b.onclick = async () => { await DB.setting('removedBooks', ((await DB.setting('removedBooks')) || []).filter(x => x !== b.dataset.opt)); installIds([b.dataset.opt]); });
     $('#optAll').onclick = () => installIds(opt.filter(m => st(m) !== 'ok').map(m => m.id));
     $('#catF').onsubmit = e => { e.preventDefault(); APP.catalogSearch(new FormData(e.target).get('cq'), $('#catR')); };
     if (p.cq) APP.catalogSearch(p.cq, $('#catR'));
@@ -143,6 +143,6 @@
   V.sahaba = async (el, parts, p) => {
     await origSahaba(el, parts, p);
     const b = APP.state.books.isaba;
-    el.querySelector('.sub').insertAdjacentHTML('afterend', b && b.count ? `<div class="info">📚 «الإصابة في تمييز الصحابة» مثبت — <a href="#/book/isaba">تصفح التراجم</a> أو ابحث باسم الصحابي في البحث المتقدم.</div>` : `<div class="info">ثبّت «الإصابة في تمييز الصحابة» من <a href="#/library">المكتبة</a> لتراجم آلاف الصحابة.</div>`);
+    el.querySelector('.sub').insertAdjacentHTML('afterend', b && b.count ? `<form class="filters" onsubmit="event.preventDefault();location.hash='#/search?type=sahabi&nodirect=1&q='+encodeURIComponent(this.q.value)"><input name="q" type="text" placeholder="ابحث باسم الصحابي في الإصابة (نحو 9800 ترجمة)…" style="flex:1"><button class="btn primary">بحث</button><a class="btn" href="#/book/isaba">تصفح الإصابة بالحروف</a></form><h2>تراجم مفصلة</h2>` : `<div class="info">ثبّت «الإصابة في تمييز الصحابة» من <a href="#/library">المكتبة</a> لتراجم آلاف الصحابة.</div>`);
   };
 })();

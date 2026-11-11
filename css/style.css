@@ -107,7 +107,7 @@ textarea { width: 100%; min-height: 80px; resize: vertical; }
 .tl-year { position: relative; margin: 18px 0 8px; font-weight: 700; color: var(--gold); }
 .tl-year::before { content: ''; position: absolute; right: -29px; top: 4px; width: 14px; height: 14px; background: var(--gold); border-radius: 50%; border: 3px solid var(--bg); }
 .cat { font-size: 12px; padding: 2px 8px; border-radius: 10px; color: #fff; background: #6b7280; }
-.cat-غزوة, .cat-معركة { background: #b91c1c; } .cat-حدث { background: #0f766e; } .cat-خلافة { background: #7c3aed; } .cat-صلح { background: #1d4ed8; } .cat-تشريع { background: #a16207; } .cat-وفاة { background: #374151; }
+.cat-غزوة, .cat-معركة { background: #b91c1c; } .cat-سرية { background: #c2410c; } .cat-حدث { background: #0f766e; } .cat-خلافة { background: #7c3aed; } .cat-صلح { background: #1d4ed8; } .cat-تشريع { background: #a16207; } .cat-وفاة { background: #374151; }
 
 .mindmap-wrap { overflow: auto; background: #fffdf7; border: 1px solid var(--line); border-radius: 12px; padding: 8px; max-height: 75vh; }
 .mindmap-wrap svg { display: block; }

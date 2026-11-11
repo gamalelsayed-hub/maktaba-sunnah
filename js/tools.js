@@ -33,14 +33,22 @@
   }
 
   // درجة تطابق نص طويل: كل الكلمات لازمة، ومكافأة للعنوان ولتقارب الكلمات في موضع واحد
-  function scoreText(n, t, words, rootRe) {
+  // الوضع الافتراضي: الكلمة نفسها بسوابقها ولواحقها فقط. ومع loose: أي نص يحتوي الحروف (أوسع وأقل دقة)
+  const reCache = new Map();
+  const wre = w => { if (!reCache.has(w)) reCache.set(w, AR.wordRe(w)); return reCache.get(w); };
+  function scoreText(n, t, words, rootRe, loose) {
     if (rootRe) return rootRe.test(n) ? 1 : 0;
     let sc = 0; const pos = [];
     for (const w of words) {
-      let i = n.indexOf(w);
-      if (i < 0) { const st = AR.stem(w); if (st.length < 3 || (i = n.indexOf(st)) < 0) return 0; sc += 1; } else sc += 2;
+      let i;
+      if (loose) {
+        i = n.indexOf(w);
+        if (i < 0) { const st = AR.stem(w); if (st.length < 3 || (i = n.indexOf(st)) < 0) return 0; sc += 1; } else sc += 2;
+      } else {
+        const m = wre(w).exec(n); if (!m) return 0; i = m.index; sc += 2;
+      }
       pos.push(i);
-      if (t.includes(w)) sc += 6;
+      if (loose ? t.includes(w) : wre(w).test(t)) sc += 6;
     }
     if (pos.length > 1 && Math.max(...pos) - Math.min(...pos) < 400) sc += 5;
     return sc;
@@ -50,7 +58,7 @@
     const seen = f.seen || new Set();
     return DB.deepScan(bookIds, it => {
       if (!DB.HEAVY.includes(it.type) || seen.has(it.id) || (f.type && it.type !== f.type) || !APP.visible(it.id)) return 0;
-      return scoreText(it.n || '', N((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.chapter || '')), words, rootRe);
+      return scoreText(it.n || '', N((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.chapter || '')), words, rootRe, f.loose);
     }, onBook);
   }
   APP.deepFind = deepFind; APP.scoreText = scoreText;
@@ -84,10 +92,11 @@
       else if (words.length) {
         let ok = true;
         for (const w of words) {
-          const st = AR.stem(w);
-          const inT = x.t.includes(w) || x.t.includes(st), inN = x.n.includes(w) || (st.length >= 3 && x.n.includes(st));
+          let inT, inN;
+          if (f.loose) { const st = AR.stem(w); inT = x.t.includes(w) || x.t.includes(st); inN = x.n.includes(w) || (st.length >= 3 && x.n.includes(st)); }
+          else { inT = wre(w).test(x.t); inN = wre(w).test(x.n); }
           if (!inT && !inN) { ok = false; break; }
-          score += (inT ? 6 : 0) + (inN ? 1 + Math.min(5, x.n.split(w).length - 1) : 0);
+          score += (inT ? 6 : 0) + (inN ? 2 : 0);
         }
         if (!ok) continue;
         if (x.topics.some(t => N(t) === n)) score += 15;
@@ -125,6 +134,7 @@
         ${sel('school', ['الحنفية', 'المالكية', 'الشافعية', 'الحنابلة', 'الظاهرية', 'أقوال الصحابة', 'أقوال التابعين'].map(s => [s, s]), 'كل المذاهب')}
         <select name="book"><option value="">كل الكتب</option>${bookOpts}</select>
         <label class="row" style="gap:4px"><input type="checkbox" name="deep" value="1" ${p.deep ? 'checked' : ''}> بحث عميق داخل الشروح والتفاسير والمطولات</label>
+        <label class="row" style="gap:4px" title="الافتراضي: الكلمة نفسها فقط (الربا، بالربا، والربا). هذا الخيار يوسّع البحث لكل كلمة تحتوي الحروف"><input type="checkbox" name="loose" value="1" ${p.loose ? 'checked' : ''}> بحث موسّع (أجزاء الكلمات)</label>
         <button class="btn primary">بحث</button>
       </form><div id="sr"></div>`;
     $('#sf').onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); const sp = new URLSearchParams([...f].filter(([, v]) => v)); sp.set('nodirect', '1'); location.hash = '#/search?' + sp.toString(); };
@@ -301,7 +311,12 @@
     $('#imBook').onchange = e => $('#imNew').classList.toggle('hidden', e.target.value !== '__new');
     $('#imTpl').onclick = () => { const k = $('#imKind').value; APP.download('قالب-' + k + '.csv', '﻿' + IMPORT.CSV_TEMPLATES[k].join(',') + '\r\n', 'text/csv'); };
     el.querySelectorAll('[data-exp]').forEach(b => b.onclick = async () => APP.download(b.dataset.exp + '.json', JSON.stringify(await IMPORT.exportBook(b.dataset.exp))));
-    el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('حذف هذا الكتاب من المكتبة؟')) return; await DB.deleteBook(b.dataset.del); await APP.loadMeta(); APP.rerender(); });
+    el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (!confirm('حذف هذا الكتاب من المكتبة؟')) return;
+      await DB.deleteBook(b.dataset.del);
+      if ((window.PACK_MANIFEST || []).some(m => m.id === b.dataset.del)) await DB.setting('removedBooks', [...new Set(((await DB.setting('removedBooks')) || []).concat(b.dataset.del))]);
+      await APP.loadMeta(); APP.rerender();
+    });
     $('#delSample').onclick = async () => { if (!confirm('حذف كل العينة التجريبية؟')) return; for (const b of inst.filter(b => b.sample)) { const items = await DB.byIndex('items', 'bookId', b.id); for (const i of items.filter(i => i.sample)) await DB.del('items', i.id); const left = await DB.count('items', 'bookId', b.id); if (left) { b.count = left; delete b.sample; await DB.put('books', b); } else { b.count = 0; await DB.put('books', b); } } DB.invalidate(); await APP.loadMeta(); APP.rerender(); APP.toast('حُذفت العينة'); };
     $('#reSample').onclick = async () => { await IMPORT.loadSample(); await APP.loadMeta(); APP.rerender(); APP.toast('أعيد تحميل العينة'); };
     $('#imGo').onclick = async () => {

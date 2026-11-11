@@ -83,22 +83,39 @@ def write_pack(name, book, items):
     return os.path.getsize(os.path.join(OUT, name + '.js'))
 
 # ---------- أقسام عامة (للمقدمات وكتب الفقه والسيرة) ----------
+def clean_head(t):
+    t = re.sub(r'\s*\[\s*\(\d+\)\s*\]', '', t or '')          # أرقام الحواشي مثل «[ (4) ]»
+    t = re.sub(r'[\s:،,]+$', '', t)
+    t = re.sub(r'\s*\[\s*\(?\s*\d*\s*\)?\s*\]?\s*$', '', t)   # بقايا ترقيم مكسور
+    t = re.sub(r'^\$\s*', '', t)
+    return re.sub(r'^[\s\[\(\-:–ـ]+|[\]\)\s،,:]+$', '', t).strip()
+
 def sections(bid, blocks, prefix='', maxlen=12000, start=0):
     items, chapter, title, buf, page = [], '', '', [], ''
+    bab = ['']
     seq = [start]
     def emit():
+        nonlocal title
         text = '\n'.join(buf).strip()
         if len(text) < 2: return
+        if re.fullmatch(r'\d+\s*-?', (title or '').strip()):  # تراجم مرقمة بلا اسم في العنوان (مثل الإصابة): الاسم أول النص
+            title = title.rstrip('- ') + '- ' + re.split(r'[،,.:(]', text, 1)[0][:90]
         parts = [text[i:i + maxlen] for i in range(0, len(text), maxlen)] if len(text) > maxlen * 1.3 else [text]
         for k, t in enumerate(parts):
             seq[0] += 1
-            items.append({'id': f'{bid}:{prefix}{seq[0]}', 'bookId': bid, 'type': 'section', 'seq': seq[0], 'chapter': chapter[:120] or 'مقدمة',
-                          'title': ((title or chapter or 'مقدمة')[:140] + (f' ({k + 1})' if len(parts) > 1 else '')), 'page': page, 'text': t})
+            it = {'id': f'{bid}:{prefix}{seq[0]}', 'bookId': bid, 'type': 'section', 'seq': seq[0], 'chapter': chapter[:120] or 'مقدمة',
+                  'title': ((title or chapter or 'مقدمة')[:140] + (f' ({k + 1})' if len(parts) > 1 else '')), 'page': page, 'text': t}
+            if bab[0]: it['bab'] = bab[0][:160]
+            items.append(it)
     for kind, lvl, text, pg in blocks:
         if kind == 'h':
             emit(); buf = []; page = pg
-            if lvl == 1: chapter = text; title = text
-            else: title = text
+            h = clean_head(text)
+            # الكتب والأبواب تُعرف من نص العنوان (لا من مستواه) لأن الشاملة تضعها كلها في مستوى واحد أحياناً
+            if re.match(r'^(كتاب|حرف|المجلد|الجزء)\b', h): chapter = h; bab[0] = ''; title = h
+            elif re.match(r'^(باب|أبواب|ابواب)\b', h): bab[0] = h; title = h
+            elif lvl == 1 and not chapter and not re.fullmatch(r'\d+\s*-?', h): chapter = h; title = h
+            else: title = h
         else:
             if not buf: page = page or pg
             buf.append(text)
@@ -286,6 +303,10 @@ for stem, bid, title, author, btype, method, linked in BOOKS:
     elif method in ('ibnkathir', 'tabari', 'qurtubi'): items = tafsir(bid, blocks, method)
     elif method == 'taqrib': items = taqrib(bid, blocks)
     else: items = sections(bid, blocks)
+    if bid == 'isaba':  # تراجم الصحابة تصير صفحات صحابة يُبحث فيها بالاسم
+        for it in items:
+            if re.match(r'^\d+\s*-', it['title']):
+                it['type'] = 'sahabi'; it['summary'] = it['text'][:300]
     md = meta(path)
     book = {'id': bid, 'title': title, 'type': btype, 'author': author, 'source': 'المكتبة الشاملة (' + md['shamela'].replace('Shamela_', 'رقم ').lstrip('0') + ') عبر مشروع OpenITI',
             'edition': md['publisher'], 'optional': True}
