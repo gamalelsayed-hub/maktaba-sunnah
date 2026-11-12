@@ -21,8 +21,15 @@
     if (cur) out.push(cur);
     return out.flatMap(c => c.length <= 300 ? [c] : c.match(/.{1,260}(\s|$)/g));
   }
+  const NT = window.NATIVE_TTS;
   function speakNext() {
     if (!S.on || S.i >= S.chunks.length) { stop(); return; }
+    if (NT) { // تطبيق الجوال: محرك القراءة في الجهاز
+      const my = S.gen = (S.gen || 0) + 1;
+      NT.speak(S.chunks[S.i], S.rate).then(() => { if (!S.on || my !== S.gen) return; S.i++; bar(); speakNext(); })
+        .catch(e => { if (S.on) { APP.toast('تعذرت القراءة الصوتية — ثبّت صوتاً عربياً من إعدادات «تحويل النص إلى كلام» في جهازك', 7000); NT.openInstall(); stop(); } });
+      return;
+    }
     const u = new SpeechSynthesisUtterance(S.chunks[S.i]);
     const v = pickVoice(); if (v) u.voice = v; u.lang = v ? v.lang : 'ar-SA'; u.rate = S.rate;
     u.onend = () => { if (!S.on) return; S.i++; bar(); speakNext(); };
@@ -30,22 +37,25 @@
     synth.speak(u);
   }
   function read(text, title) {
-    if (!synth) { APP.toast('القراءة الصوتية غير مدعومة في هذا المتصفح'); return; }
+    if (!synth && !NT) { APP.toast('القراءة الصوتية غير مدعومة في هذا المتصفح'); return; }
     if (window.QA) QA.stop();
-    synth.cancel();
+    if (NT) NT.stop(); else synth.cancel();
     S.chunks = split(text); S.i = 0; S.on = true; S.title = title || '';
-    if (!voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
+    if (!NT && !voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
     bar(); speakNext();
   }
-  function stop() { S.on = false; if (synth) synth.cancel(); bar(); }
-  const pause = () => { if (synth.paused) synth.resume(); else synth.pause(); bar(); };
-  const jump = d => { S.i = Math.max(0, Math.min(S.chunks.length - 1, S.i + d)); synth.cancel(); setTimeout(speakNext, 50); bar(); };
+  function stop() { S.on = false; S.paused = false; if (NT) NT.stop(); else if (synth) synth.cancel(); bar(); }
+  const pause = () => {
+    if (NT) { if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; NT.stop(); } bar(); return; }
+    if (synth.paused) synth.resume(); else synth.pause(); bar();
+  };
+  const jump = d => { S.i = Math.max(0, Math.min(S.chunks.length - 1, S.i + d)); if (NT) { S.gen++; NT.stop(); S.paused = false; setTimeout(speakNext, 80); } else { synth.cancel(); setTimeout(speakNext, 50); } bar(); };
 
   function bar() {
     let b = document.getElementById('ttsBar');
     if (!S.on) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('div'); b.id = 'ttsBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
-    b.innerHTML = `<button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${synth.paused ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
+    b.innerHTML = `<button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${(NT ? S.paused : synth.paused) ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
       <span class="qa-now">🗣️ ${esc(S.title.slice(0, 40))} — ${AR.toArabicDigits(S.i + 1)}/${AR.toArabicDigits(S.chunks.length)}</span>
       <label class="muted">السرعة <select data-a="r">${[0.7, 0.85, 1, 1.15, 1.3, 1.5].map(r => `<option value="${r}" ${r == S.rate ? 'selected' : ''}>${r}×</option>`).join('')}</select></label>
       <button class="btn sm" data-a="x">✕</button>`;
@@ -58,6 +68,7 @@
 
   // إعدادات الصوت (تُعرض في شاشة الإعدادات)
   function settingsHtml() {
+    if (NT) return `<div class="card"><h2 style="margin-top:0">🗣️ القراءة الصوتية للنصوص</h2><div class="sub">تستعمل محرك «تحويل النص إلى كلام» في جهازك. لأوضح صوت: إعدادات الجهاز ← تحويل النص إلى كلام ← محرك Google ← ثبّت بيانات اللغة العربية.</div><button class="btn sm" id="ttsTest">جرّب</button></div>`;
     const vs = voices();
     return `<div class="card"><h2 style="margin-top:0">🗣️ القراءة الصوتية للنصوص</h2>
       <div class="sub">تقرأ الأحاديث والشروح والكتب بصوت عربي من أصوات جهازك. القرآن يُسمع بتلاوات القرّاء لا بالصوت الآلي.</div>

@@ -30,52 +30,88 @@
   V.home = async el => {
     const bs = Object.values(APP.state.books);
     const total = bs.reduce((s, b) => s + (b.count || 0), 0);
-    const srs = await DB.all('srs'); const due = srs.filter(s => new Date(s.due) <= new Date()).length;
     const sampleOnly = bs.every(b => b.sample || !b.count);
+    const me = (await DB.setting('me')) || null;
+    const h = new Date().getHours(), greet = h < 12 ? 'صباح الخير' : h < 17 ? 'طاب يومك' : 'مساء الخير';
+    let hijri = ''; try { hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date()); } catch (e) { }
+    // آية اليوم: آية متوسطة الطول تتغير كل يوم
+    let ayah = null;
+    try {
+      const ay = (await DB.byIndex('items', 'bookId', 'quran')).filter(x => x.text.length > 70 && x.text.length < 230);
+      if (ay.length) { const d = Math.floor(Date.now() / 864e5); ayah = ay[(d * 7919) % ay.length]; }
+    } catch (e) { }
     const dash = APP.homeDashboard ? await APP.homeDashboard() : '';
-    el.innerHTML = dash + `
-      <h1${dash.includes('me-hello') ? ' style="font-size:20px;margin-top:18px"' : ''}>مكتبة القرآن والسنة</h1>
-      <div class="sub">مرجع يجمع القرآن الكريم والكتب الستة وشروحها، والفقه المقارن وأدلته، والقواعد، والسيرة وسير الصحابة — ويعمل بدون إنترنت.</div>
+    const Q = (href, ic, c, t) => `<a href="${href}"><span class="ic ${c}">${ic}</span>${t}</a>`;
+    el.innerHTML = `
+      <section class="hero">
+        <h1>${me && me.name ? greet + ' يا ' + esc(me.name) : 'السلام عليكم ورحمة الله'}</h1>
+        <div class="date">${esc(hijri)}</div>
+        ${ayah ? `<div class="ayah-day">﴿${esc(ayah.text)}﴾ <a href="#/item/${ayah.id}">[${esc(AR.SURAHS[ayah.surah - 1])}: ${AR.toArabicDigits(ayah.ayah)}]</a></div>` : ''}
+        <div class="row" style="margin-top:14px;position:relative;z-index:1">
+          ${ayah ? `<button class="btn sm" id="heroPlay">🔊 استمع للآية</button><a class="btn sm" href="#/item/${ayah.id}">📖 تفسيرها</a>` : ''}
+          <a class="btn sm gold" href="#/wird">☀️ وردي اليوم</a></div>
+      </section>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
-      <div class="grid">
-        <a class="tile" href="#/quran"><b>📖 القرآن والتفسير</b><small>تصفح بالسورة والآية، مع التفاسير والأحاديث والأحكام المرتبطة</small></a>
-        <a class="tile" href="#/hadith"><b>📜 الحديث وشروحه</b><small>الكتب الستة بأحكام المحدثين وعللها، والإسناد ورجاله</small></a>
-        <a class="tile" href="#/fiqh"><b>⚖️ الفقه المقارن</b><small>المذاهب الأربعة والظاهرية وأقوال الصحابة والتابعين بأدلتها</small></a>
-        <a class="tile" href="#/qawaid"><b>🧩 القواعد الفقهية</b><small>القاعدة وتأصيلها وفروعها</small></a>
-        <a class="tile" href="#/sira"><b>🕌 السيرة والتاريخ</b><small>الخط الزمني، الغزوات، أحداث كل سنة هجرية، الخلفاء</small></a>
-        <a class="tile" href="#/sahaba"><b>👥 سير الصحابة</b><small>نسبهم وإسلامهم وفضائلهم ومشاهدهم</small></a>
-        <a class="tile" href="#/hifz"><b>🧠 مراجعة الحفظ</b><small>${due ? '<span class="badge">' + due + '</span> بطاقة مستحقة اليوم' : srs.length + ' بطاقة في حفظك'}</small></a>
-        <a class="tile" href="#/saved"><b>⭐ محفوظاتي</b><small>${APP.state.bookmarks.length} محفوظ، ${APP.state.comments.length} هامش</small></a>
+      ${dash}
+      <h2>ابدأ من هنا</h2>
+      <div class="quick">
+        ${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
+        ${Q('#/hadith', '📜', 'c8', 'الحديث')}${Q('#/ask', '❓', 'c5', 'اسأل عن حكم')}${Q('#/fiqh', '⚖️', 'c6', 'الفقه المقارن')}${Q('#/talab', '🎓', 'c7', 'طلب العلم')}
+        ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}
       </div>
       <h2>جرّب البحث</h2>
-      <div class="row">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'تحريم'].map(s => `<a class="tag" href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
-      <h2>المكتبة</h2><div class="muted">${bs.filter(b => b.count).length} كتاباً مستورداً — ${total.toLocaleString('ar')} نصاً. ${bs.filter(b => !b.count).length} رفاً بانتظار الاستيراد.</div>`;
+      <div class="chips">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'صلاة المسافر'].map(s => `<a href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
+      <h2>مكتبتك</h2>
+      <div class="stats"><div><b>${AR.toArabicDigits(bs.filter(b => b.count).length)}</b>كتاباً مثبتاً</div><div><b>${total.toLocaleString('ar')}</b>نصاً</div><div><b>+١٢٬٠٠٠</b>كتاب للتحميل</div><div><a href="#/library" class="btn sm">📚 المكتبة</a></div></div>`;
     if (APP.bindHomeDashboard) APP.bindHomeDashboard(el);
+    const hp = el.querySelector('#heroPlay'); if (hp && window.QA) hp.onclick = () => QA.play([[ayah.surah, ayah.ayah]], { noBasmala: true });
   };
+
 
   // ===== القرآن =====
   V.quran = async (el, [s], params = {}) => {
     if (!s) {
       const ayat = await DB.byIndex('items', 'bookId', 'quran');
       const cnt = {}; ayat.forEach(a => cnt[a.surah] = (cnt[a.surah] || 0) + 1);
-      el.innerHTML = `<h1>القرآن الكريم والتفسير</h1><div class="sub">${ayat.length} آية مستوردة. التفاسير المتاحة: ${books('tafsir').map(b => esc(b.title + ' (' + b.author + ')') + (b.count ? '' : ' <small class="muted">— لم يُستورد</small>')).join('، ')}</div>
-        <div class="grid">${AR.SURAHS.map((n, i) => `<a class="tile" href="#/quran/${i + 1}"><b>${AR.toArabicDigits(i + 1)}. سورة ${esc(n)}</b><small>${cnt[i + 1] ? cnt[i + 1] + ' آية متاحة' : 'غير مستوردة'}</small></a>`).join('')}</div>`;
+      const MAKKI = new Set([1,6,7,10,11,12,14,15,16,17,18,19,20,21,23,25,26,27,28,29,30,31,32,34,35,36,37,38,39,40,41,42,43,44,45,46,50,51,52,53,54,56,67,68,69,70,71,72,73,74,75,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,100,101,102,103,104,105,106,107,108,109,111,112,113,114]);
+      el.innerHTML = `<div class="row"><h1>المصحف الشريف</h1><span class="spacer"></span><a class="btn sm" href="#/listen">🎧 الاستماع</a><a class="btn sm" href="#/wird">☀️ وردي</a></div>
+        <div class="sub">${AR.toArabicDigits(ayat.length)} آية برواية حفص، مع ${AR.toArabicDigits(books('tafsir').filter(b => b.count).length)} تفاسير — اختر سورة أو اكتب اسمها.</div>
+        <input type="search" id="sFilter" placeholder="ابحث عن سورة…" style="width:100%;max-width:360px;margin-bottom:14px">
+        <div class="surah-list">${AR.SURAHS.map((n, i) => `<a class="surah-item" href="#/quran/${i + 1}" data-n="${esc(AR.normalize(n))}"><span class="sn">${AR.toArabicDigits(i + 1)}</span><span class="st"><b>${esc(n)}</b><small>${MAKKI.has(i + 1) ? 'مكية' : 'مدنية'} — ${AR.toArabicDigits(cnt[i + 1] || 0)} آية</small></span></a>`).join('')}</div>`;
+      el.querySelector('#sFilter').oninput = e => { const q = AR.normalize(e.target.value).replace(/^سوره /, ''); el.querySelectorAll('.surah-item').forEach(x => { x.style.display = !q || x.dataset.n.includes(q) || x.textContent.includes(e.target.value) ? '' : 'none'; }); };
       return;
     }
     s = +s;
     const ayat = (await DB.byIndex('items', 'bookId', 'quran')).filter(a => a.surah === s && APP.visible(a.id)).sort((a, b) => a.ayah - b.ayah);
-    el.innerHTML = `<div class="row"><h1>سورة ${esc(AR.SURAHS[s - 1])}</h1><span class="spacer"></span>${s > 1 ? `<a class="btn" href="#/quran/${s - 1}">السابقة</a>` : ''}${s < 114 ? `<a class="btn" href="#/quran/${s + 1}">التالية</a>` : ''}</div>
-      ${ayat.length ? `<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><span class="muted" style="font-size:13px">أو اضغط 🔊 بجوار أي آية لتبدأ منها</span><span class="spacer"></span><a class="btn sm" href="#/tasmee?new=1">📝 اختبر حفظك</a></div>` : ''}
+    const juz = window.QA ? QA.juzOf(s, 1) : '';
+    el.innerHTML = `<div class="surah-nav">${s > 1 ? `<a class="btn sm" href="#/quran/${s - 1}">→ ${esc(AR.SURAHS[s - 2])}</a>` : '<span></span>'}<a class="btn sm" href="#/quran">فهرس السور</a>${s < 114 ? `<a class="btn sm" href="#/quran/${s + 1}">${esc(AR.SURAHS[s])} ←</a>` : '<span></span>'}</div>
       ${ayat.length ? '' : '<div class="warn">هذه السورة لم تُستورد بعد.</div>'}
-      ${ayat.map(a => `<div class="card ${APP.hlClass(a.id)}" data-card="${a.id}"><div class="quran-text">${APP.withGharib(esc(a.text))} <a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> <button class="ayah-play" data-play="${a.ayah}" title="استمع من هنا">🔊</button></div>${APP.actionsBar(a)}</div>`).join('')}`;
+      <div class="mushaf">
+        <div class="surah-head"><span>الجزء ${AR.toArabicDigits(juz)}</span><b>سورة ${esc(AR.SURAHS[s - 1])}</b><span>${AR.toArabicDigits(ayat.length)} آية</span></div>
+        ${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}
+        <div class="mushaf-text quran-text">${ayat.map(a => `<span class="ay ${APP.hlClass(a.id)}" data-card="${a.id}" data-ay="${a.ayah}">${APP.withGharib(esc(s !== 1 && a.ayah === 1 && a.text.startsWith('بِسْمِ') ? a.text.split(' ').slice(4).join(' ') : a.text))}</span><a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> `).join('')}</div>
+      </div>
+      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
     if (window.QA && ayat.length) {
       const from = k => QA.surahAyat(s).slice(k - 1);
-      const pb = el.querySelector('#qPlayAll'); if (pb) pb.onclick = () => QA.play(from(1));
-      el.querySelectorAll('[data-play]').forEach(b => b.onclick = () => QA.play(from(+b.dataset.play)));
-      // شارة المتشابهات بجوار كل آية لها نظائر
-      if (window.MUT) MUT.countsForSurah(s).then(c => Object.entries(c).forEach(([a, n]) => { const card = el.querySelector(`[data-card="quran:${s}:${a}"] .quran-text`); if (card && !card.querySelector('.mt-badge')) card.insertAdjacentHTML('beforeend', ` <a class="mt-badge" href="#/item/quran:${s}:${a}" title="لها ${n} نظائر متشابهة — اضغط لرؤية الخريطة وحكمة الاختلاف">🔁${AR.toArabicDigits(n)}</a>`); }));
+      el.querySelector('#qPlayAll').onclick = () => QA.play(from(1));
+      // الضغط على آية: ورقة خيارات
+      el.querySelector('.mushaf-text').onclick = e => {
+        const sp = e.target.closest('.ay'); if (!sp || e.target.closest('a')) return;
+        const it = ayat.find(x => x.id === sp.dataset.card); if (!it) return;
+        el.querySelectorAll('.ay.sel').forEach(x => x.classList.remove('sel')); sp.classList.add('sel');
+        APP.modal(`<div class="row"><b>سورة ${esc(AR.SURAHS[s - 1])} — الآية ${AR.toArabicDigits(it.ayah)}</b><span class="spacer"></span><button class="icon-btn" onclick="APP.closeModal()" style="color:var(--muted)">✕</button></div>
+          <div class="quran-text" style="margin:8px 0">${esc(it.text)}</div>
+          <div class="row" style="gap:8px"><button class="btn primary" id="mPlay1">🔊 استمع للآية</button><button class="btn" id="mPlayFrom">▶ من هنا إلى آخر السورة</button><a class="btn" href="#/item/${it.id}" onclick="APP.closeModal()">📖 التفسير والمتشابهات</a></div>
+          ${APP.actionsBar(it)}`, box => {
+          box.querySelector('#mPlay1').onclick = () => { APP.closeModal(); QA.play([[s, it.ayah]], { noBasmala: true }); };
+          box.querySelector('#mPlayFrom').onclick = () => { APP.closeModal(); QA.play(from(it.ayah)); };
+        });
+      };
+      // شارة المتشابهات بعد رقم كل آية لها نظائر
+      if (window.MUT) MUT.countsForSurah(s).then(c => Object.entries(c).forEach(([a, n]) => { const sp = el.querySelector(`[data-card="quran:${s}:${a}"]`); const num = sp && sp.nextElementSibling; if (num && !(num.nextElementSibling && num.nextElementSibling.classList.contains('mt-badge'))) num.insertAdjacentHTML('afterend', `<a class="mt-badge" href="#/item/quran:${s}:${a}" title="لها ${n} نظائر متشابهة">🔁${AR.toArabicDigits(n)}</a>`); }));
+      if (params.a) { const c = el.querySelector(`[data-card="quran:${s}:${params.a}"]`); if (c) { c.classList.add('sel'); setTimeout(() => c.scrollIntoView({ block: 'center' }), 60); } }
       if (QA.P.pending) { const pd = QA.P.pending; QA.P.pending = null; QA.play(pd.list, pd); }
-      else if (params.a) { const c = el.querySelector(`[data-card="quran:${s}:${params.a}"]`); if (c) setTimeout(() => c.scrollIntoView({ block: 'center' }), 50); }
     }
   };
 

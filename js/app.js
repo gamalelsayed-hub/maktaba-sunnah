@@ -233,7 +233,9 @@
       APP.state.route = hash;
       const name = parts[0] || 'home';
       $$('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.nav === name || (name === 'item' && false)));
-      $('#sidebar').classList.remove('open');
+      APP.closeMenu && APP.closeMenu();
+      const tab = ['quran', 'listen', 'tajweed'].includes(name) ? 'quran' : ['tasmee', 'hifz'].includes(name) ? 'tasmee' : name;
+      $$('#tabbar [data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
       const view = APP.views[name] || APP.views.notfound;
       const el = $('#view');
       el.innerHTML = '<div class="muted">جارٍ التحميل…</div>';
@@ -360,7 +362,11 @@
       $('#globalSearch').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (q) location.hash = '#/search?q=' + encodeURIComponent(q); };
       $('#profileBtn').onclick = () => APP.chooseProfile(false);
       $('#reviewerBtn').onclick = () => { APP.setReviewer(!APP.state.reviewer); APP.rerender(); };
-      $('#menuBtn').onclick = () => $('#sidebar').classList.toggle('open');
+      APP.closeMenu = () => { $('#sidebar').classList.remove('open'); $('#scrim').classList.add('hidden'); };
+      const openMenu = () => { $('#sidebar').classList.add('open'); $('#scrim').classList.remove('hidden'); };
+      $('#menuBtn').onclick = () => $('#sidebar').classList.contains('open') ? APP.closeMenu() : openMenu();
+      $('#tabMore').onclick = openMenu;
+      $('#scrim').onclick = APP.closeMenu;
       $('#modal').onclick = e => { if (e.target.id === 'modal') APP.closeModal(); };
       $('#notesFab').onclick = () => { $('#notesPanel').classList.toggle('hidden'); APP.renderNotes(); };
       $('#notesClose').onclick = () => $('#notesPanel').classList.add('hidden');

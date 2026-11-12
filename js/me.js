@@ -44,14 +44,13 @@
     const tj = (await DB.setting('tajweed')) || {}, tjDone = window.TAJWEED ? TAJWEED.LESSONS.filter(l => tj[l.id] && tj[l.id].passed).length : 0;
     const hist = (await DB.setting('tasmee-history')) || [], last = hist[hist.length - 1];
     const cards = [];
-    cards.push(`<a class="tile ${done ? 'hl-green' : ''}" href="#/wird"><b>📖 وردك اليوم</b><small>${done ? '✔ أتممته اليوم — بارك الله فيك' : `${por.length} آية من ${esc(posName(por[0]))}`}${st ? `<br>🔥 ${st === 1 ? 'يوم واحد — استمر' : st === 2 ? 'يومان متتاليان' : AR.toArabicDigits(st) + (st < 11 ? ' أيام' : ' يوماً') + ' متتالية'}` : ''}</small></a>`);
-    if (me.goal === 'hifz' || due) cards.push(`<a class="tile" href="#/hifz"><b>🧠 مراجعة الحفظ</b><small>${due ? `<span class="badge">${due}</span> مستحقة اليوم` : 'لا شيء مستحق اليوم'}</small></a>`);
-    if (me.goal === 'hifz' || me.goal === 'tilawa') cards.push(`<a class="tile" href="#/tasmee?new=1"><b>📝 سمّع حفظك</b><small>${last ? 'آخر اختبار: ' + esc(last.scope) + ' — ' + last.pct + '٪' : 'اختبر نفسك في سورة أو جزء'}</small></a>`);
-    if (me.goal === 'talab' || talab.track) cards.push(`<a class="tile" href="#/talab"><b>🎓 منهجك</b><small>${talab.track ? Object.values(talab.status || {}).filter(x => x === 'done').length + ' كتاب أنهيته — تابع من حيث وقفت' : 'اختر مسارك وابدأ'}</small></a>`);
-    if (tjDone < (window.TAJWEED ? TAJWEED.LESSONS.length : 0)) cards.push(`<a class="tile" href="#/tajweed"><b>🎙️ التجويد</b><small>${tjDone ? tjDone + ' دروس اجتزتها — تابع' : 'صحّح تلاوتك من الصفر'}</small></a>`);
-    if (me.goal === 'general') cards.push(`<a class="tile" href="#/ask"><b>❓ اسأل عن مسألة</b><small>ابحث عن حكم بأدلته وأقوال العلماء</small></a>`);
-    return `<div class="me-hello"><h1 style="margin:0">${greet()} يا ${esc(me.name || 'أخي')} 👋</h1><span class="spacer"></span><a class="btn sm" href="#/me">👤 ملفي</a></div>
-      <div class="grid" style="margin-bottom:6px">${cards.join('')}</div>`;
+    cards.push(`<a class="tile ${done ? 'hl-green' : ''}" href="#/wird"><span class="ic c2">☀️</span><b>وردك اليوم</b><small>${done ? '✔ أتممته اليوم — بارك الله فيك' : `${por.length} آية من ${esc(posName(por[0]))}`}${st ? `<br>🔥 ${st === 1 ? 'يوم واحد — استمر' : st === 2 ? 'يومان متتاليان' : AR.toArabicDigits(st) + (st < 11 ? ' أيام' : ' يوماً') + ' متتالية'}` : ''}</small></a>`);
+    if (me.goal === 'hifz' || due) cards.push(`<a class="tile" href="#/hifz"><span class="ic c4">🧠</span><b>مراجعة الحفظ</b><small>${due ? `<span class="badge">${due}</span> مستحقة اليوم` : 'لا شيء مستحق اليوم'}</small></a>`);
+    if (me.goal === 'hifz' || me.goal === 'tilawa') cards.push(`<a class="tile" href="#/tasmee?new=1"><span class="ic c2">📝</span><b>سمّع حفظك</b><small>${last ? 'آخر اختبار: ' + esc(last.scope) + ' — ' + last.pct + '٪' : 'اختبر نفسك في سورة أو جزء'}</small></a>`);
+    if (me.goal === 'talab' || talab.track) cards.push(`<a class="tile" href="#/talab"><span class="ic c7">🎓</span><b>منهجك</b><small>${talab.track ? Object.values(talab.status || {}).filter(x => x === 'done').length + ' كتاب أنهيته — تابع من حيث وقفت' : 'اختر مسارك وابدأ'}</small></a>`);
+    if (tjDone < (window.TAJWEED ? TAJWEED.LESSONS.length : 0)) cards.push(`<a class="tile" href="#/tajweed"><span class="ic c5">🎙️</span><b>التجويد</b><small>${tjDone ? tjDone + ' دروس اجتزتها — تابع' : 'صحّح تلاوتك من الصفر'}</small></a>`);
+    if (me.goal === 'general') cards.push(`<a class="tile" href="#/ask"><span class="ic c5">❓</span><b>اسأل عن مسألة</b><small>ابحث عن حكم بأدلته وأقوال العلماء</small></a>`);
+    return `<h2>يومك</h2><div class="grid">${cards.join('')}</div>`;
   };
   APP.bindHomeDashboard = el => { const b = el.querySelector('#meSkip'); if (b) b.onclick = async () => { await DB.setting('me-skip', true); APP.rerender(); }; };
 

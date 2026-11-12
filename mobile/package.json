@@ -1,0 +1,15 @@
+{
+  "name": "maktaba-sunnah-mobile",
+  "version": "1.5.0",
+  "private": true,
+  "description": "تطبيق أندرويد لمكتبة القرآن والسنة (Capacitor)",
+  "license": "MIT",
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/app": "latest",
+    "@capacitor/cli": "latest",
+    "@capacitor/core": "latest",
+    "@capacitor-community/speech-recognition": "latest",
+    "@capacitor-community/text-to-speech": "latest"
+  }
+}

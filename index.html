@@ -2,51 +2,57 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>مكتبة القرآن والسنة</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.png">
-<meta name="theme-color" content="#14532d">
+<meta name="theme-color" content="#0d5c3f">
 </head>
 <body>
 <header class="topbar">
-  <button class="icon-btn" id="menuBtn" title="القائمة">☰</button>
-  <a href="#/" class="brand"><span class="brand-mark">۞</span> مكتبة القرآن والسنة</a>
-  <form id="globalSearch" class="global-search" autocomplete="off">
-    <input id="q" type="search" placeholder="ابحث: كلمة، موضوع، «البقرة 255»، «البخاري 1»، «أحداث سنة 2 هـ»، «جذر: ق ت ل»…">
-    <button type="submit">بحث</button>
+  <button class="icon-btn" id="menuBtn" title="القائمة" aria-label="القائمة">☰</button>
+  <a href="#/" class="brand"><img src="icons/icon-192.png" alt=""><span>مكتبة القرآن والسنة<small>مرجع الطالب والمسلم — وقف لله</small></span></a>
+  <form id="globalSearch" class="global-search" autocomplete="off" role="search">
+    <input id="q" type="search" placeholder="ابحث في القرآن والحديث والفقه والكتب…" aria-label="بحث">
+    <button type="submit" aria-label="بحث">🔍</button>
   </form>
-  <button class="pill" id="profileBtn" title="تغيير نوع المستخدم"></button>
+  <button class="pill" id="profileBtn" title="تغيير نوع العرض"></button>
   <button class="pill hidden" id="reviewerBtn" title="وضع المراجعة العلمية">وضع المراجع: إيقاف</button>
 </header>
 
 <div class="shell">
-  <nav class="sidebar" id="sidebar">
-    <a href="#/" data-nav="home">🏠 الرئيسية</a>
-    <a href="#/wird" data-nav="wird">📖 وردي اليومي</a>
-    <div class="nav-group">المصادر</div>
-    <a href="#/quran" data-nav="quran">📖 القرآن والتفسير</a>
-    <a href="#/listen" data-nav="listen">🎧 الاستماع للقرآن</a>
-    <a href="#/tajweed" data-nav="tajweed">🎙️ تعلّم التجويد</a>
-    <a href="#/hadith" data-nav="hadith">📜 الحديث وشروحه</a>
-    <a href="#/fiqh" data-nav="fiqh">⚖️ الفقه المقارن</a>
-    <a href="#/qawaid" data-nav="qawaid">🧩 القواعد الفقهية</a>
-    <a href="#/sira" data-nav="sira">🕌 السيرة والتاريخ</a>
-    <a href="#/sahaba" data-nav="sahaba">👥 سير الصحابة</a>
-    <a href="#/rijal" data-nav="rijal">🔗 الرواة</a>
-    <div class="nav-group">أدواتي</div>
-    <a href="#/ask" data-nav="ask">❓ اسأل عن مسألة</a>
-    <a href="#/search" data-nav="search">🔎 البحث المتقدم</a>
-    <a href="#/talab" data-nav="talab">🎓 طلب العلم</a>
-    <a href="#/saved" data-nav="saved">⭐ محفوظاتي وهوامشي</a>
-    <a href="#/tasmee?new=1" data-nav="tasmee">📝 اختبار التسميع</a>
-    <a href="#/hifz" data-nav="hifz">🧠 مراجعة الحفظ <span class="badge" id="dueBadge"></span></a>
-    <div class="nav-group">الإدارة</div>
-    <a href="#/review" data-nav="review" class="hidden">✔️ المراجعة العلمية</a>
-    <a href="#/library" data-nav="library">📚 المكتبة وتحميل الكتب</a>
-    <a href="#/me" data-nav="me">👤 ملفي</a>
-    <a href="#/settings" data-nav="settings">⚙️ الإعدادات</a>
+  <nav class="sidebar" id="sidebar" aria-label="القائمة الرئيسية">
+    <div class="side-head"><img src="icons/icon-192.png" alt=""><div><b>مكتبة القرآن والسنة</b><br><small>وقف لله تعالى</small></div></div>
+    <a href="#/" data-nav="home"><i class="ni c1">🏠</i><span>الرئيسية</span></a>
+    <a href="#/wird" data-nav="wird"><i class="ni c2">☀️</i><span>وردي اليومي</span></a>
+    <details class="nav-sec" open><summary>القرآن الكريم</summary>
+    <a href="#/quran" data-nav="quran"><i class="ni c1">📖</i><span>المصحف والتفسير</span></a>
+    <a href="#/listen" data-nav="listen"><i class="ni c3">🎧</i><span>الاستماع للقرآن</span></a>
+    <a href="#/tajweed" data-nav="tajweed"><i class="ni c5">🎙️</i><span>تعلّم التجويد</span></a>
+    <a href="#/tasmee?new=1" data-nav="tasmee"><i class="ni c2">📝</i><span>اختبار الحفظ</span></a>
+    <a href="#/hifz" data-nav="hifz"><i class="ni c4">🧠</i><span>مراجعة الحفظ</span><span class="badge" id="dueBadge"></span></a>
+    </details>
+    <details class="nav-sec" open><summary>السنة والعلوم</summary>
+    <a href="#/hadith" data-nav="hadith"><i class="ni c2">📜</i><span>الحديث وشروحه</span></a>
+    <a href="#/fiqh" data-nav="fiqh"><i class="ni c6">⚖️</i><span>الفقه المقارن</span></a>
+    <a href="#/qawaid" data-nav="qawaid"><i class="ni c7">🧩</i><span>القواعد الفقهية</span></a>
+    <a href="#/sira" data-nav="sira"><i class="ni c1">🕌</i><span>السيرة والتاريخ</span></a>
+    <a href="#/sahaba" data-nav="sahaba"><i class="ni c3">👥</i><span>سير الصحابة</span></a>
+    <a href="#/rijal" data-nav="rijal"><i class="ni c8">🔗</i><span>الرواة</span></a>
+    </details>
+    <details class="nav-sec" open><summary>أدواتي</summary>
+    <a href="#/ask" data-nav="ask"><i class="ni c5">❓</i><span>اسأل عن مسألة</span></a>
+    <a href="#/search" data-nav="search"><i class="ni c3">🔎</i><span>البحث المتقدم</span></a>
+    <a href="#/talab" data-nav="talab"><i class="ni c7">🎓</i><span>طلب العلم</span></a>
+    <a href="#/saved" data-nav="saved"><i class="ni c2">⭐</i><span>محفوظاتي وهوامشي</span></a>
+    </details>
+    <details class="nav-sec" open><summary>الإدارة</summary>
+    <a href="#/review" data-nav="review" class="hidden"><i class="ni c1">✔️</i><span>المراجعة العلمية</span></a>
+    <a href="#/library" data-nav="library"><i class="ni c6">📚</i><span>المكتبة وتحميل الكتب</span></a>
+    <a href="#/me" data-nav="me"><i class="ni c4">👤</i><span>ملفي</span></a>
+    <a href="#/settings" data-nav="settings"><i class="ni c8">⚙️</i><span>الإعدادات</span></a>
+    </details>
   </nav>
   <main id="view" class="view"></main>
 </div>
@@ -62,9 +68,18 @@
 <div id="selTool" class="sel-tool hidden"><button id="selComment">✍️ إضافة هامش على المحدد</button></div>
 <div id="modal" class="modal hidden"><div class="modal-box" id="modalBox"></div></div>
 <div id="toast" class="toast hidden"></div>
+<div id="scrim" class="scrim hidden"></div>
+<nav class="tabbar" id="tabbar" aria-label="تنقل سريع">
+  <a href="#/" data-tab="home"><span class="ti">🏠</span>الرئيسية</a>
+  <a href="#/quran" data-tab="quran"><span class="ti">📖</span>المصحف</a>
+  <a href="#/ask" data-tab="ask"><span class="ti">❓</span>اسأل</a>
+  <a href="#/tasmee?new=1" data-tab="tasmee"><span class="ti">📝</span>حفظي</a>
+  <button type="button" id="tabMore"><span class="ti">☰</span>المزيد</button>
+</nav>
 
 <script src="data/manifest.js" onerror="window.PACK_MANIFEST=[]"></script>
 <script src="data/review.js" onerror="window.PACK_REVIEW=[]"></script>
+<script src="js/native.js"></script>
 <script src="js/arabic.js"></script>
 <script src="js/db.js"></script>
 <script src="js/sample-data.js"></script>

@@ -1,0 +1,54 @@
+name: تطبيق أندرويد
+on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'css/**', 'js/**', 'data/**', 'fonts/**', 'icons/**', 'mobile/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - name: تجهيز ملفات التطبيق
+        run: |
+          cd mobile
+          mkdir -p www
+          cp -r ../index.html ../css ../js ../data ../fonts ../icons ../manifest.webmanifest www/
+          npm install --no-audit --no-fund --legacy-peer-deps
+          npx cap add android
+      - name: الأيقونات والصلاحيات
+        run: |
+          cd mobile/android/app/src/main
+          rm -rf res/mipmap-anydpi-v26
+          cp -r ../../../../res/* res/
+          # الميكروفون للتسميع وتسجيل التلاوة، والاستعلام عن خدمة التعرف على الكلام
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <queries><intent><action android:name="android.speech.RecognitionService" /></intent><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>#' AndroidManifest.xml
+          grep -n "RECORD_AUDIO" AndroidManifest.xml
+      - name: بناء APK
+        run: |
+          cd mobile
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -q
+          VER=$(node -p "require('../package.json').version")
+          cp app/build/outputs/apk/debug/app-debug.apk "../../maktaba-sunnah-$VER.apk"
+          ls -la ../../*.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: maktaba-sunnah-android, path: '*.apk', compression-level: 0 }
+      - name: نشر في صفحة الإصدارات (رابط تحميل مباشر)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: تطبيق أندرويد — آخر نسخة
+          body: |
+            تطبيق «مكتبة القرآن والسنة» لأندرويد — يعمل بدون إنترنت بعد التثبيت.
+            طريقة التثبيت: نزّل ملف APK، افتحه، واسمح بالتثبيت من مصادر غير معروفة إذا طُلب منك.
+          files: '*.apk'
+          make_latest: true

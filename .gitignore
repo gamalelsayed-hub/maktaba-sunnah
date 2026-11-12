@@ -1,7 +1,10 @@
-__pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
-node_modules/
+__pycache__/
 dist/
+mobile/android/
+mobile/node_modules/
+mobile/www/
+node_modules/
 package-lock.json
