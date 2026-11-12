@@ -243,6 +243,17 @@ window.PACK_MANIFEST=[
   "type": "tafsir"
  },
  {
+  "file": "book-tafsir-saadi",
+  "id": "tafsir-saadi",
+  "title": "تيسير الكريم الرحمن في تفسير كلام المنان",
+  "author": "عبد الرحمن بن ناصر السعدي",
+  "count": 1756,
+  "size": 5546530,
+  "version": "eb7621cc720e",
+  "optional": true,
+  "type": "tafsir"
+ },
+ {
   "file": "book-ahkam-jassas",
   "id": "ahkam-jassas",
   "title": "أحكام القرآن",

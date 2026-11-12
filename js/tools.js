@@ -288,9 +288,10 @@
     const all = Object.values(APP.state.books);
     const inst = all.filter(b => b.count), shelf = all.filter(b => !b.count);
     el.innerHTML = `<h1>📚 المكتبة وتحميل الكتب</h1>
-      <h2>١. تحميل الكتب من مصادرها</h2>
-      <div class="sub">نزّل الملف من المصدر (يحتاج إنترنت وقت التحميل فقط)، ثم استورده من القسم التالي. بعد الاستيراد يعمل كل شيء بدون إنترنت.</div>
-      ${IMPORT.SOURCES.map(s => `<div class="card"><b>${esc(s.title)}</b><div><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></div><div class="text" style="font-size:14px">${esc(s.how)}</div><small class="muted">الترخيص: ${esc(s.license)}</small></div>`).join('')}
+      <h2>١. المصادر الأساسية — مستوردة تلقائياً</h2>
+      <div class="info">✔ القرآن (تنزيل)، والكتب التسعة بأحكام المحدثين (hadith-api وhadith-json)، والشروح والتفاسير وكتب الفقه والسيرة — كلها مدمجة في البرنامج وتُثبَّت وحدها، لا تحتاج تنزيل شيء يدوياً.
+        <div style="margin-top:8px"><button class="btn primary" id="reinstAll">تثبيت/تحديث كل الكتب المدمجة الآن</button> <span id="reinstLog" class="muted"></span></div></div>
+      <details><summary class="muted">المصادر وتراخيصها</summary>${IMPORT.SOURCES.map(s => `<div class="card"><b>${esc(s.title)}</b><div><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url)}</a></div><small class="muted">الترخيص: ${esc(s.license)}</small></div>`).join('')}</details>
       <h2>٢. استيراد ملف</h2>
       <div class="card">
         <div class="row"><input type="file" id="imFile" multiple accept=".json,.txt,.csv,.tsv"></div>
@@ -305,9 +306,35 @@
       <h2>٣. الكتب المستوردة (${inst.length})</h2>
       <table class="t"><tr><th>الكتاب</th><th>النوع</th><th>عدد النصوص</th><th></th></tr>${inst.map(b => `<tr><td>${esc(b.title)} ${b.sample ? '<span class="tag st-fix">عينة</span>' : ''}<br><small class="muted">${esc(b.author || '')}</small></td><td>${TYPE_AR[b.type] || b.type}</td><td>${b.count}</td><td><a class="btn sm" href="#/book/${b.id}">تصفح</a> <button class="btn sm" data-exp="${b.id}">تصدير</button> <button class="btn sm" data-del="${b.id}">حذف</button></td></tr>`).join('')}</table>
       <div class="row" style="margin-top:8px"><button class="btn" id="delSample">حذف العينة التجريبية كلها</button><button class="btn" id="reSample">إعادة تحميل العينة</button></div>
-      <h2>٤. رفوف بانتظار الاستيراد (${shelf.length})</h2>
-      <div class="grid">${shelf.map(b => `<div class="tile"><b>${esc(b.title)}</b><small>${esc(b.author || '')} — ${TYPE_AR[b.type] || ''}</small>${b.rights ? '<br><small style="color:var(--red)">' + esc(b.rights) + '</small>' : ''}</div>`).join('')}</div>`;
+      ${shelf.length ? `<h2>٤. كتب لم تُحمَّل بعد (${shelf.length})</h2>
+      <div class="row" style="margin-bottom:8px"><button class="btn primary" id="shelfAll">⬇ حمّل المتاح منها كلها تلقائياً</button> <span id="shelfLog" class="muted"></span></div>
+      <div class="grid">${shelf.map(b => `<div class="tile"><b>${esc(b.title)}</b><small>${esc(b.author || '')} — ${TYPE_AR[b.type] || ''}</small>${b.rights ? '<br><small style="color:var(--red)">' + esc(b.rights) + '</small>' : ''}<div style="margin-top:6px"><button class="btn sm" data-shelf="${b.id}">⬇ تحميل</button></div></div>`).join('')}</div>` : ''}`;
 
+    $('#reinstAll').onclick = async e => {
+      e.target.disabled = true;
+      try { await IMPORT.installPacks((i, n, title, msg) => { $('#reinstLog').textContent = '(' + i + ' من ' + n + ') ' + (title || '') + ' — ' + (msg || ''); }); await APP.loadMeta(); APP.toast('✔ تم تثبيت/تحديث كل الكتب المدمجة'); APP.rerender(); }
+      catch (er) { $('#reinstLog').textContent = 'تعذر: ' + er.message; e.target.disabled = false; }
+    };
+    // تحميل كتاب رف فارغ من فهرس التراث: أقرب نسخة أساسية بالعنوان والمؤلف
+    const shelfMatch = async b => {
+      const cat = await APP.loadCatalog(), N = AR.normalize, tw = N(b.title).split(' ').filter(w => w.length > 2), aw = N(b.author || '').split(' ').filter(w => w.length > 2);
+      const sc = c => { const t = N(c.t), a = N(c.a); return tw.filter(w => t.includes(w)).length * 2 + aw.filter(w => a.includes(w)).length + (c.s === 'p' ? 1 : 0); };
+      const best = cat.map(c => [sc(c), c]).sort((x, y) => y[0] - x[0])[0];
+      return best && best[0] >= tw.length * 2 ? best[1] : null;
+    };
+    const shelfDl = async (b, btn, log) => {
+      const c = await shelfMatch(b);
+      if (!c) { log('«' + b.title + '» غير موجود في الفهرس المفتوح (قد يكون محفوظ الحقوق)'); if (btn) { btn.textContent = 'غير متاح'; btn.disabled = true; } return false; }
+      const r = await APP.downloadBook({ ...c, id: b.id, t: b.title, a: b.author || c.a }, btn);
+      return !!r;
+    };
+    el.querySelectorAll('[data-shelf]').forEach(btn => btn.onclick = () => shelfDl(shelf.find(b => b.id === btn.dataset.shelf), btn, t => APP.toast(t, 4000)));
+    if ($('#shelfAll')) $('#shelfAll').onclick = async e => {
+      e.target.disabled = true; let ok = 0; const miss = [];
+      for (const b of shelf) { $('#shelfLog').textContent = 'جارٍ: ' + b.title; if (await shelfDl(b, el.querySelector(`[data-shelf="${b.id}"]`), () => miss.push(b.title))) ok++; }
+      $('#shelfLog').textContent = `تم تحميل ${ok}` + (miss.length ? ` — غير متاح: ${miss.join('، ')}` : '');
+      await APP.loadMeta();
+    };
     $('#imBook').onchange = e => $('#imNew').classList.toggle('hidden', e.target.value !== '__new');
     $('#imTpl').onclick = () => { const k = $('#imKind').value; APP.download('قالب-' + k + '.csv', '﻿' + IMPORT.CSV_TEMPLATES[k].join(',') + '\r\n', 'text/csv'); };
     el.querySelectorAll('[data-exp]').forEach(b => b.onclick = async () => APP.download(b.dataset.exp + '.json', JSON.stringify(await IMPORT.exportBook(b.dataset.exp))));

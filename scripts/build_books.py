@@ -185,6 +185,9 @@ def tafsir(bid, blocks, method):
     surah_ctx = 1
     for kind, lvl, text, pg in blocks:
         hit = None
+        if method == 'saadi' and kind == 'h':
+            m = re.search(r'\[(\d{1,3})\.(\d{1,3})(?:-(\d{1,3}))?\]', text)
+            if m: hit = (int(m[1]), int(m[2]), int(m[3] or m[2]))
         if method == 'qurtubi':
             m = re.search(r'\[\s*سورة\s+([^\(\]]+?)\s*\((\d+)\)\s*:\s*(?:الآيات|آية|الآية|آيه)\s*(\d+)(?:\s*(?:الى|إلى|-)\s*(\d+))?', text)
             if m: hit = (int(m[2]), int(m[3]), int(m[4] or m[3]))
@@ -279,6 +282,7 @@ BOOKS = [
     ('0774IbnKathir.TafsirQuran', 'tafsir-ibnkathir', 'تفسير القرآن العظيم', 'ابن كثير', 'tafsir', 'ibnkathir', 'quran'),
     ('0310Tabari.JamicBayan', 'tafsir-tabari', 'جامع البيان عن تأويل آي القرآن', 'ابن جرير الطبري', 'tafsir', 'tabari', 'quran'),
     ('0671AbuCabdAllahQurtubi.JamicLiAhkamQuran', 'tafsir-qurtubi', 'الجامع لأحكام القرآن', 'القرطبي', 'tafsir', 'qurtubi', 'quran'),
+    ('1376CabdRahmanSacdi.TaysirKarimRahman', 'tafsir-saadi', 'تيسير الكريم الرحمن في تفسير كلام المنان', 'عبد الرحمن بن ناصر السعدي', 'tafsir', 'saadi', 'quran'),
     ('0370IbnCaliJassas.AhkamQuran', 'ahkam-jassas', 'أحكام القرآن', 'الجصاص', 'fiqhbook', 'sections', None),
     ('0543IbnCarabiIshbili.AhkamQuran', 'ahkam-ibnalarabi', 'أحكام القرآن', 'ابن العربي', 'fiqhbook', 'sections', None),
     ('0595IbnRushdHafid.BidayatMujtahid', 'bidayat', 'بداية المجتهد ونهاية المقتصد', 'ابن رشد الحفيد', 'fiqhbook', 'sections', None),
@@ -293,14 +297,16 @@ BOOKS = [
 
 files = os.listdir(TXT)
 manifest, muslim_groups = [], {}
+ONLY = os.environ.get('ONLY')
 for stem, bid, title, author, btype, method, linked in BOOKS:
+    if ONLY and bid not in ONLY.split(','): continue
     fn = next((f for f in files if f.startswith(stem + '.')), None)
     if not fn: print('!! غير موجود', stem); continue
     path = os.path.join(TXT, fn)
     blocks = parse(path)
     if method == 'sharh': items = sharh(bid, linked, blocks)
     elif method == 'sharh-dash': items = sharh(bid, linked, blocks, marker=r'^(\d{1,5})\s*-\s*')
-    elif method in ('ibnkathir', 'tabari', 'qurtubi'): items = tafsir(bid, blocks, method)
+    elif method in ('ibnkathir', 'tabari', 'qurtubi', 'saadi'): items = tafsir(bid, blocks, method)
     elif method == 'taqrib': items = taqrib(bid, blocks)
     else: items = sections(bid, blocks)
     if bid == 'isaba':  # تراجم الصحابة تصير صفحات صحابة يُبحث فيها بالاسم
@@ -329,9 +335,15 @@ for stem, bid, title, author, btype, method, linked in BOOKS:
     print(f'{title[:28]:<30} {len(items):>6} نص {size / 1e6:6.1f}MB {kinds}{extra}')
     manifest.append({'file': 'book-' + bid, 'id': bid, 'title': title, 'author': author, 'count': len(items), 'size': size, 'version': book['packVersion'], 'optional': True, 'type': btype})
 
-json.dump(manifest, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data', '_books_manifest.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+MP = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data', '_books_manifest.json')
+if ONLY and os.path.exists(MP):  # بناء جزئي: ادمج مع البيان السابق
+    prev = json.load(open(MP, encoding='utf-8')); ids = {m['id'] for m in manifest}
+    order = [b[1] for b in BOOKS]
+    manifest = sorted([m for m in prev if m['id'] not in ids] + manifest, key=lambda m: order.index(m['id']) if m['id'] in order else 999)
+json.dump(manifest, open(MP, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 # ترقيم عبد الباقي لمسلم: {رقم sunnah.com: رقم عبد الباقي}
 inv = {}
+if ONLY and not muslim_groups: sys.exit(0)
 for abd, lst in muslim_groups.items():
     for x in lst: inv.setdefault(x, abd)
 json.dump(inv, open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data', '_muslim_abdulbaqi.json'), 'w'), indent=0)

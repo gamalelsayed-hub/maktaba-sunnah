@@ -73,16 +73,22 @@
     const opt = (window.PACK_MANIFEST || []).filter(m => m.optional);
     const st = m => { const b = APP.state.books[m.id]; return b && b.count && !b.sample && b.packVersion === m.version ? 'ok' : (b && b.count && !b.sample ? 'old' : 'no'); };
     const TYPE = { sharh: 'شرح حديث', tafsir: 'تفسير', fiqhbook: 'فقه', sirabook: 'سيرة وتاريخ وتراجم', rijal: 'رجال' };
+    // الأقسام القديمة (المصادر والاستيراد اليدوي) تُطوى تحت «خيارات متقدمة» لتبسيط الشاشة
+    const adv = document.createElement('details');
+    adv.innerHTML = '<summary>⚙️ خيارات متقدمة: الاستيراد اليدوي، والمصادر، والكتب المثبتة</summary>';
+    [...el.children].slice(1).forEach(c => adv.appendChild(c));
+    el.appendChild(adv);
     const sec = document.createElement('div');
-    sec.innerHTML = `<h2>الكتب الإضافية المدمجة (بدون إنترنت) — ${opt.filter(m => st(m) === 'ok').length} من ${opt.length} مثبت</h2>
+    sec.innerHTML = `<h2>🔎 ابحث عن أي كتاب وحمّله بضغطة</h2>
+      <div class="sub">أكثر من 12 ألف كتاب من كتب التراث (نصوص المكتبة الشاملة). اكتب اسم الكتاب أو المؤلف أو اختر فناً، ثم اضغط «تحميل» — يُحفظ في مكتبتك ويعمل بعدها بدون إنترنت.</div>
+      <form id="catF" class="filters"><input type="text" name="cq" placeholder="مثال: الموطأ، ابن تيمية، رياض الصالحين، أصول الفقه" style="flex:1;min-width:240px;font-size:16px" value="${esc(p.cq || '')}"><button class="btn primary">بحث</button></form>
+      <div id="catCats" class="row" style="margin-bottom:10px"></div>
+      <div id="catR"></div>
+      <h2>📚 الكتب المدمجة في البرنامج — ${opt.filter(m => st(m) === 'ok').length} من ${opt.length} مثبت</h2>
       <div class="sub">الشروح مربوطة بأحاديثها، والتفاسير بآياتها، وكتب الفقه مقسمة على أبوابها. ثبّت ما تحتاجه — كل كتاب يُثبَّت مرة واحدة.</div>
       <div class="row" style="margin-bottom:8px"><button class="btn primary" id="optAll">تثبيت الكل (${Math.round(opt.reduce((s, m) => s + m.size, 0) / 1e6)} ميجا)</button><span id="optMsg" class="muted"></span></div>
       <table class="t"><tr><th>الكتاب</th><th>النوع</th><th>الحجم</th><th></th></tr>${opt.map(m => `<tr><td>${esc(m.title)}<br><small class="muted">${esc(m.author || '')}</small></td><td>${TYPE[(window.PACK_MANIFEST.find(x => x.id === m.id) || {}).type] || ''}</td><td>${(m.size / 1e6).toFixed(1)} ميجا</td>
-        <td>${st(m) === 'ok' ? '<span class="tag st-ok">✔ مثبت</span> <a class="btn sm" href="#/book/' + m.id + '">تصفح</a>' : `<button class="btn sm primary" data-opt="${m.id}">${st(m) === 'old' ? 'تحديث' : 'تثبيت'}</button>`}</td></tr>`).join('')}</table>
-      <h2>🔎 فهرس كتب التراث (أكثر من 12 ألف كتاب)</h2>
-      <div class="sub">ابحث عن أي كتاب بالعنوان أو المؤلف أو الفن، واضغط «تحميل» — يحتاج إنترنت وقت التحميل فقط، ثم يُحفظ في مكتبتك ويعمل بدون إنترنت. المصدر: نصوص المكتبة الشاملة عبر مشروع OpenITI المفتوح.</div>
-      <form id="catF" class="filters"><input type="text" name="cq" placeholder="اسم الكتاب أو المؤلف أو الفن (مثل: الموطأ، ابن تيمية، أصول الفقه)" style="flex:1;min-width:260px" value="${esc(p.cq || '')}"><button class="btn primary">بحث في الفهرس</button></form>
-      <div id="catR"></div>`;
+        <td>${st(m) === 'ok' ? '<span class="tag st-ok">✔ مثبت</span> <a class="btn sm" href="#/book/' + m.id + '">تصفح</a>' : `<button class="btn sm primary" data-opt="${m.id}">${st(m) === 'old' ? 'تحديث' : 'تثبيت'}</button>`}</td></tr>`).join('')}</table>`;
     el.insertBefore(sec, el.children[1] || null);
     const installIds = async ids => {
       const msg = $('#optMsg');
@@ -94,6 +100,14 @@
     $('#optAll').onclick = () => installIds(opt.filter(m => st(m) !== 'ok').map(m => m.id));
     $('#catF').onsubmit = e => { e.preventDefault(); APP.catalogSearch(new FormData(e.target).get('cq'), $('#catR')); };
     if (p.cq) APP.catalogSearch(p.cq, $('#catR'));
+    // تصفح بالفنون بدل الكتابة
+    APP.loadCatalog().then(cat => {
+      const cnt = {}; cat.forEach(c => { if (c.g && c.s === 'p') cnt[c.g] = (cnt[c.g] || 0) + 1; });
+      const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 24);
+      const box = $('#catCats'); if (!box) return;
+      box.innerHTML = '<span class="muted">تصفح حسب الفن:</span> ' + top.map(([g, n]) => `<button class="tag" data-cat="${esc(g)}" style="cursor:pointer">${esc(g)} (${n})</button>`).join('');
+      box.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => APP.catalogSearch('', $('#catR'), b.dataset.cat));
+    }).catch(() => {});
   };
 
   // فهرس OpenITI يُحمَّل عند أول استخدام (4 ميجا)
@@ -103,14 +117,15 @@
     window.CATALOG.forEach(c => { c._n = N(c.t + ' ' + c.a + ' ' + c.g); });
     return window.CATALOG;
   };
-  APP.catalogSearch = async (q, box) => {
+  APP.catalogSearch = async (q, box, catName) => {
     box.innerHTML = '<div class="muted">جارٍ البحث في الفهرس…</div>';
     const cat = await APP.loadCatalog();
     const ws = N(q || '').split(' ').filter(w => w.length >= 2);
-    if (!ws.length) { box.innerHTML = ''; return; }
-    const hits = cat.filter(c => ws.every(w => c._n.includes(w))).sort((a, b) => (a.s !== 'p') - (b.s !== 'p') || (N(b.t).startsWith(ws[0]) - N(a.t).startsWith(ws[0])) || a.d - b.d).slice(0, 80);
+    if (!ws.length && !catName) { box.innerHTML = ''; return; }
+    const hits = (catName ? cat.filter(c => c.g === catName && c.s === 'p') : cat.filter(c => ws.every(w => c._n.includes(w))))
+      .sort((a, b) => (a.s !== 'p') - (b.s !== 'p') || (ws[0] ? N(b.t).startsWith(ws[0]) - N(a.t).startsWith(ws[0]) : 0) || a.d - b.d).slice(0, catName ? 300 : 80);
     const have = id => (APP.state.books[id] || {}).count;
-    box.innerHTML = `<div class="muted">${hits.length >= 80 ? 'أول 80 نتيجة' : hits.length + ' نتيجة'}</div>` + (hits.length ? `<table class="t"><tr><th>الكتاب</th><th>المؤلف</th><th>الفن</th><th>الحجم</th><th></th></tr>${hits.map(c => {
+    box.innerHTML = `<div class="muted">${catName ? '«' + esc(catName) + '»: ' : ''}${hits.length >= 80 ? 'أول ' + hits.length + ' نتيجة' : hits.length + ' نتيجة'}</div>` + (hits.length ? `<table class="t"><tr><th>الكتاب</th><th>المؤلف</th><th>الفن</th><th>الحجم</th><th></th></tr>${hits.map(c => {
       const id = IMPORT.slug(c.v);
       return `<tr><td>${esc(c.t)}${c.s === 's' ? ' <small class="muted">(نسخة أخرى)</small>' : ''}</td><td>${esc(c.a)}${c.d ? ' <small class="muted">ت ' + c.d + 'هـ</small>' : ''}</td><td><small>${esc(c.g)}</small></td><td><small>${c.c > 1e6 ? (c.c / 1e6).toFixed(1) + ' م حرف' : Math.round(c.c / 1e3) + ' ألف حرف'}</small></td>
         <td>${have(id) ? `<a class="btn sm" href="#/book/${id}">فتح</a>` : `<button class="btn sm primary" data-dl="${esc(c.v)}">تحميل</button>`}</td></tr>`; }).join('')}</table>` : '<div class="muted">لا توجد نتائج. جرّب كلمة واحدة من العنوان أو اسم المؤلف.</div>');
