@@ -30,9 +30,10 @@
         .catch(e => { if (S.on) { APP.toast('تعذرت القراءة الصوتية — ثبّت صوتاً عربياً من إعدادات «تحويل النص إلى كلام» في جهازك', 7000); NT.openInstall(); stop(); } });
       return;
     }
-    const u = new SpeechSynthesisUtterance(S.chunks[S.i]);
+    const u = S.u = new SpeechSynthesisUtterance(S.chunks[S.i]); // الاحتفاظ بالمرجع: سفاري يُسقط الجملة فلا يكمل
+    const my = S.gen = (S.gen || 0) + 1;
     const v = pickVoice(); if (v) u.voice = v; u.lang = v ? v.lang : 'ar-SA'; u.rate = S.rate;
-    u.onend = () => { if (!S.on) return; S.i++; bar(); speakNext(); };
+    u.onend = () => { if (!S.on || my !== S.gen) return; S.i++; bar(); speakNext(); };
     u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') { APP.toast(voices().length ? 'تعذرت القراءة الصوتية: ' + e.error : 'لا يوجد صوت عربي في جهازك — راجع «الإعدادات ← القراءة الصوتية» لطريقة إضافته', 7000); stop(); } };
     synth.speak(u);
   }
@@ -44,18 +45,19 @@
     if (!NT && !voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
     bar(); speakNext();
   }
-  function stop() { S.on = false; S.paused = false; if (NT) NT.stop(); else if (synth) synth.cancel(); bar(); }
+  function stop() { S.on = false; S.paused = false; S.gen = (S.gen || 0) + 1; if (NT) NT.stop(); else if (synth) { synth.cancel(); setTimeout(() => synth.cancel(), 120); } bar(); }
   const pause = () => {
     if (NT) { if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; NT.stop(); } bar(); return; }
-    if (synth.paused) synth.resume(); else synth.pause(); bar();
+    // الإيقاف المؤقت غير موثوق في سفاري: نوقف ونستأنف من الجملة نفسها
+    if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; synth.cancel(); } bar();
   };
-  const jump = d => { S.i = Math.max(0, Math.min(S.chunks.length - 1, S.i + d)); if (NT) { S.gen++; NT.stop(); S.paused = false; setTimeout(speakNext, 80); } else { synth.cancel(); setTimeout(speakNext, 50); } bar(); };
+  const jump = d => { S.i = Math.max(0, Math.min(S.chunks.length - 1, S.i + d)); S.gen++; S.paused = false; S.on = true; if (NT) NT.stop(); else synth.cancel(); setTimeout(speakNext, 120); bar(); };
 
   function bar() {
     let b = document.getElementById('ttsBar');
-    if (!S.on) { if (b) b.remove(); return; }
+    if (!S.on && !S.paused) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('div'); b.id = 'ttsBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
-    b.innerHTML = `<button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${(NT ? S.paused : synth.paused) ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
+    b.innerHTML = `<button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${S.paused ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
       <span class="qa-now">🗣️ ${esc(S.title.slice(0, 40))} — ${AR.toArabicDigits(S.i + 1)}/${AR.toArabicDigits(S.chunks.length)}</span>
       <label class="muted">السرعة <select data-a="r">${[0.7, 0.85, 1, 1.15, 1.3, 1.5].map(r => `<option value="${r}" ${r == S.rate ? 'selected' : ''}>${r}×</option>`).join('')}</select></label>
       <button class="btn sm" data-a="x">✕</button>`;

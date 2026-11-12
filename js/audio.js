@@ -91,30 +91,40 @@
     const b = await getBlob(P.r, s, a);
     if (b) { P.url = URL.createObjectURL(b); audio.src = P.url; tryList = []; }
     else { tryList = order(P.r); tryIdx = 0; audio.src = srcUrl(rec(P.r).src[tryList[0]], s, a); }
+    if (P.stopped) return;
     highlight(isBasmala ? null : [s, a]); bar();
   }
   audio.onerror = () => {
+    if (P.stopped || !P.q.length || (audio.src || '').startsWith('data:')) return;
     if (tryList.length && ++tryIdx < tryList.length) { const [s, a] = P.q[P.i]; audio.src = srcUrl(rec(P.r).src[tryList[tryIdx]], s, a); audio.play().catch(() => { }); return; }
     P.playing = false; bar(); APP.toast('تعذر تشغيل الصوت — تحقق من الإنترنت أو نزّل السورة للاستماع بدون إنترنت', 5000);
   };
   audio.onplaying = () => { if (tryList.length) remember(P.r, tryList[tryIdx]); };
+  audio.onplay = () => { P.playing = true; bar(); };
+  audio.onpause = () => { P.playing = false; bar(); };
   audio.onended = async () => {
+    if (P.stopped || !P.q.length || (audio.src || '').startsWith('data:')) return;
     if (--P.repLeft > 0 && !P.q[P.i][2]) { audio.currentTime = 0; audio.play(); return; }
-    if (P.i + 1 < P.q.length) { P.i++; P.repLeft = P.rep; await loadCur(); audio.play().catch(() => { }); }
+    if (P.i + 1 < P.q.length) { P.i++; P.repLeft = P.rep; await loadCur(); if (!P.stopped) audio.play().catch(() => { }); }
     else { P.playing = false; bar(); highlight(null); const f = P.onEnd; P.onEnd = null; f && f(); }
   };
   // تشغيل قائمة آيات؛ تُسبق السورة بالبسملة إن بدأت من أولها (عدا الفاتحة والتوبة)
+  // ملف صامت قصير: يُشغَّل فوراً عند اللمس ليسمح آيفون بالتشغيل بعد ذلك
+  const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  function unlock() { if (P.unlocked) return; P.unlocked = true; try { audio.src = SILENT; const p = audio.play(); if (p) p.catch(() => { }); } catch (e) { } }
   async function play(list, opts = {}) {
+    unlock(); // يجب أن يسبق أي await
     P.r = opts.reciter || P.r || (await DB.setting('reciter')) || 'husary';
     P.rep = opts.rep || P.rep || 1; P.repLeft = P.rep; P.onEnd = opts.onEnd || null;
     P.q = []; list.forEach(([s, a]) => { if (a === 1 && s !== 1 && s !== 9 && !opts.noBasmala) P.q.push([1, 1, true]); P.q.push([s, a]); });
-    P.i = 0; P.playing = true; await loadCur();
-    try { await audio.play(); } catch (e) { }
+    P.i = 0; P.playing = true; P.stopped = false; await loadCur();
+    if (P.stopped) return;
+    try { await audio.play(); } catch (e) { P.playing = false; }
     bar();
   }
-  const stop = () => { audio.pause(); P.playing = false; P.onEnd = null; highlight(null); bar(); };
-  const toggle = () => { if (!P.q.length) return; if (audio.paused) { audio.play(); P.playing = true; } else { audio.pause(); P.playing = false; } bar(); };
-  const step = async d => { const j = P.i + d; if (j < 0 || j >= P.q.length) return; P.i = j; P.repLeft = P.rep; await loadCur(); audio.play().catch(() => { }); };
+  const stop = () => { P.stopped = true; audio.pause(); try { audio.removeAttribute('src'); audio.load(); } catch (e) { } P.playing = false; P.onEnd = null; P.unlocked = false; highlight(null); bar(); };
+  const toggle = () => { if (!P.q.length) return; if (audio.paused) { const p = audio.play(); if (p) p.catch(() => { }); P.playing = true; } else { audio.pause(); P.playing = false; } bar(); };
+  const step = async d => { const j = P.i + d; if (j < 0 || j >= P.q.length) return; P.i = j; P.repLeft = P.rep; P.stopped = false; await loadCur(); audio.play().catch(() => { }); };
 
   function highlight(sa) {
     document.querySelectorAll('.ayah-playing').forEach(e => e.classList.remove('ayah-playing'));
@@ -136,7 +146,7 @@
     b.querySelector('[data-a=prev]').onclick = () => step(-1);
     b.querySelector('[data-a=next]').onclick = () => step(1);
     b.querySelector('[data-a=tog]').onclick = toggle;
-    b.querySelector('[data-a=x]').onclick = () => { stop(); P.q = []; bar(); };
+    b.querySelector('[data-a=x]').onclick = () => { P.q = []; stop(); };
     b.querySelector('[data-a=rep]').onchange = e => { P.rep = P.repLeft = +e.target.value; };
   }
 

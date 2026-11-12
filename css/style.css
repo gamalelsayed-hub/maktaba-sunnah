@@ -342,3 +342,25 @@ body.dark .surah-item .st b { color: var(--brand); }
 .mushaf-text .mt-badge { font-size: 10px; padding: 0 4px; vertical-align: super; opacity: .6; background: none; }
 .mushaf-text .mt-badge:hover { opacity: 1; background: #ede9fe; }
 html.native .fab { display: none; }
+
+/* ---------- حواف الشاشة (آيفون والجوالات ذات النتوء) ---------- */
+.topbar { padding-top: env(safe-area-inset-top); height: calc(var(--top-h) + env(safe-area-inset-top)); padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+.sidebar { top: calc(var(--top-h) + env(safe-area-inset-top)); }
+@media (max-width: 860px) {
+  .sidebar { top: 0; }
+  .side-head { padding-top: calc(18px + env(safe-area-inset-top)); }
+  /* شريط التشغيل: سطر واحد مضغوط فوق الشريط السفلي */
+  .qa-bar, #ttsBar { flex-wrap: nowrap; gap: 6px; padding: 6px 10px; justify-content: flex-start; }
+  .qa-bar .qa-now { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+  .qa-bar label { font-size: 0; display: flex; align-items: center; } .qa-bar label select { font-size: 12px; padding: 2px 4px; }
+  .qa-bar .btn.sm { padding: 5px 9px; }
+}
+/* اللمس لا يُبقي حالة «المرور» على الأزرار */
+@media (hover: none) {
+  .btn:hover { border-color: var(--line2); color: var(--ink); }
+  .btn.primary:hover { background: var(--brand); color: #fff; }
+  .tile:hover, .quick a:hover, .surah-item:hover { transform: none; box-shadow: var(--sh); }
+}
+.hero .btn, .hero .btn:hover { color: #fff; }
+.hero .btn:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.35); }
+.hero .btn.gold:hover { background: var(--gold); }
