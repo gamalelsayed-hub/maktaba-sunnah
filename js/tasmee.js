@@ -39,6 +39,23 @@
     : x.t === 'miss' ? `<span class="tw-miss" title="ناقصة أو خطأ">${esc(x.w)}</span>`
     : `<span class="tw-extra" title="زائدة">${esc(x.u)}</span>`).join(' ');
 
+  // دمج نص التعرف على الكلام دون تكرار: متصفح الجوال يعيد إرسال الكلمات السابقة مع كل نتيجة جديدة،
+  // فنُسقط الجزء المتداخل بين نهاية ما سبق وبداية الجديد
+  function mergeText(a, b) {
+    a = (a || '').trim(); b = (b || '').trim();
+    if (!a) return b; if (!b) return a;
+    const A = a.split(/\s+/), B = b.split(/\s+/), ka = A.map(skel), kb = B.map(skel);
+    if (kb.length >= ka.length && ka.every((k, i) => k === kb[i])) return b;      // الجديد يحتوي القديم كاملاً
+    for (let k = Math.min(A.length, B.length); k > 0; k--) {                         // أطول تداخل
+      let ok = true; for (let i = 0; i < k; i++) if (ka[A.length - k + i] !== kb[i]) { ok = false; break; }
+      if (ok) return A.concat(B.slice(k)).join(' ');
+    }
+    if (kb.length < ka.length && kb.join(' ') && ka.join(' ').endsWith(kb.join(' '))) return a;
+    return a + ' ' + b;
+  }
+  // يعيد بناء النص من كل نتائج الجلسة في كل مرة (لا يُلحق فوق ما كُتب)
+  const sessionText = e => { let t = ''; for (let i = 0; i < e.results.length; i++) t = mergeText(t, e.results[i][0].transcript); return t; };
+
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const voiceOK = !!SR && !(window.desktop && window.desktop.isDesktop);
 
@@ -152,8 +169,8 @@
     if ($('#tsMic')) $('#tsMic').onclick = () => {
       if (recog) { recog.stop(); return; }
       recog = new SR(); recog.lang = 'ar-SA'; recog.continuous = true; recog.interimResults = true;
-      finalTxt = $('#tsA').value ? $('#tsA').value + ' ' : '';
-      recog.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) finalTxt += t + ' '; else interim += t; } $('#tsA').value = finalTxt + interim; };
+      finalTxt = $('#tsA').value;
+      recog.onresult = e => { $('#tsA').value = mergeText(finalTxt, sessionText(e)); };
       recog.onerror = e => { $('#tsMicSt').textContent = e.error === 'not-allowed' ? 'اسمح للمتصفح باستعمال الميكروفون' : e.error === 'network' ? 'التعرف على الصوت يحتاج إنترنت' : 'تعذر: ' + e.error; };
       recog.onend = () => { recog = null; $('#tsMic').textContent = '🎙️ تابع التسميع'; $('#tsMic').classList.add('primary'); $('#tsMicSt').textContent = 'توقف الاستماع — اضغط «انتهيت» للتصحيح أو تابع'; };
       recog.start(); $('#tsMic').textContent = '⏹ إيقاف'; $('#tsMic').classList.remove('primary'); $('#tsMicSt').textContent = '… أستمع إليك';
@@ -237,14 +254,14 @@
     let recog = null, listening = false, finalTxt = '';
     const startRec = () => {
       recog = new SR(); recog.lang = 'ar-SA'; recog.continuous = true; recog.interimResults = true;
-      recog.onresult = e => { let interim = ''; for (let i = e.resultIndex; i < e.results.length; i++) { const t = e.results[i][0].transcript; if (e.results[i].isFinal) finalTxt += t + ' '; else interim += t; } $('#tsA').value = finalTxt + interim; st.draft = $('#tsA').value; };
+      recog.onresult = e => { $('#tsA').value = mergeText(finalTxt, sessionText(e)); st.draft = $('#tsA').value; };
       recog.onerror = e => { if (e.error === 'not-allowed') { listening = false; $('#tsMicSt').textContent = 'اسمح للمتصفح باستعمال الميكروفون'; } else if (e.error === 'network') { listening = false; $('#tsMicSt').textContent = 'التعرف على الصوت يحتاج إنترنت'; } };
-      recog.onend = () => { if (listening) { try { startRec(); } catch (e) { } } else { $('#tsMic').textContent = '🎙️ تابع التسميع'; $('#tsMicSt').textContent = 'توقف الاستماع'; } };
+      recog.onend = () => { if (listening) { finalTxt = $('#tsA').value; try { startRec(); } catch (e) { } } else { $('#tsMic').textContent = '🎙️ تابع التسميع'; $('#tsMicSt').textContent = 'توقف الاستماع'; } };
       recog.start();
     };
     if ($('#tsMic')) $('#tsMic').onclick = () => {
       if (listening) { listening = false; recog && recog.stop(); return; }
-      listening = true; finalTxt = $('#tsA').value ? $('#tsA').value + ' ' : '';
+      listening = true; finalTxt = $('#tsA').value;
       startRec(); $('#tsMic').textContent = '⏹ إيقاف'; $('#tsMicSt').textContent = '… أستمع إليك';
     };
     $('#tsDone').onclick = () => {
