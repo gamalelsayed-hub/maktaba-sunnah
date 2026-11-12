@@ -393,6 +393,7 @@
     el.innerHTML = `<h1>⚙️ الإعدادات</h1>
       <div class="card"><h3>نوع العرض</h3><div class="row"><button class="btn ${APP.state.profile === 'aam' ? 'on' : ''}" data-p="aam">🙂 مسلم (مبسط)</button><button class="btn ${APP.state.profile === 'talib' ? 'on' : ''}" data-p="talib">🎓 طالب علم / باحث</button></div></div>
       <div class="card"><h3>القراءة</h3><div class="row">حجم الخط: <input type="range" id="fs" min="14" max="28" value="${fs}"> <span id="fsv">${fs}</span></div><label><input type="checkbox" id="dark" ${dark ? 'checked' : ''}> الوضع الليلي</label></div>
+      ${window.UPDATER && UPDATER.native ? `<div class="card"><div class="row"><h2 style="margin:0">⬆️ تحديث التطبيق</h2><span class="spacer"></span><span class="muted" id="appVer"></span></div><div class="sub" style="margin:6px 0">يتحقق التطبيق يومياً من وجود نسخة أحدث ويخبرك بها.</div><button class="btn primary" id="chkUp">تحقّق الآن</button></div>` : ''}
       ${window.TTS ? TTS.settingsHtml() : ''}
       <div class="card"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
         ? `<div class="row"><span class="tag st-ok">وضع المراجع مفتوح على هذا الجهاز</span><button class="btn" id="rvLock">قفل وضع المراجع</button><button class="btn" id="rvPass">تغيير كلمة السر</button></div>
@@ -409,6 +410,7 @@
     if ($('#rvPass')) $('#rvPass').onclick = async () => { const r = await APP.ask('كلمة سر جديدة', [{ key: 'p', label: 'كلمة السر الجديدة' }]); if (r && r.p) { await DB.setting('reviewerPass', await APP.hash(r.p)); APP.toast('تم تغيير كلمة السر'); } };
     if ($('#hideUn')) $('#hideUn').onchange = e => { APP.state.hideUnreviewed = e.target.checked; DB.setting('hideUnreviewed', e.target.checked); };
     if (window.TTS) TTS.bindSettings(el);
+    if (el.querySelector('#chkUp')) { el.querySelector('#chkUp').onclick = () => UPDATER.check(true); UPDATER.current().then(v => { const n = el.querySelector('#appVer'); if (n) n.textContent = 'نسختك: ' + v; }); }
     $('#bkExp').onclick = async () => APP.download('نسخة-احتياطية-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(await DB.exportUserData()));
     $('#bkImp').onchange = async e => { const f = e.target.files[0]; if (!f) return; await DB.importUserData(JSON.parse(await f.text())); await APP.refreshUser(); APP.toast('تمت الاستعادة'); };
     $('#reset').onclick = () => { if (!confirm('سيُحذف كل شيء: الكتب المستوردة وبياناتك. متأكد؟')) return; indexedDB.deleteDatabase('maktaba-sunnah'); setTimeout(() => location.reload(), 400); };
