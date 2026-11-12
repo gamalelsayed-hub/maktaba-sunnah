@@ -72,6 +72,8 @@
       const from = k => QA.surahAyat(s).slice(k - 1);
       const pb = el.querySelector('#qPlayAll'); if (pb) pb.onclick = () => QA.play(from(1));
       el.querySelectorAll('[data-play]').forEach(b => b.onclick = () => QA.play(from(+b.dataset.play)));
+      // شارة المتشابهات بجوار كل آية لها نظائر
+      if (window.MUT) MUT.countsForSurah(s).then(c => Object.entries(c).forEach(([a, n]) => { const card = el.querySelector(`[data-card="quran:${s}:${a}"] .quran-text`); if (card && !card.querySelector('.mt-badge')) card.insertAdjacentHTML('beforeend', ` <a class="mt-badge" href="#/item/quran:${s}:${a}" title="لها ${n} نظائر متشابهة — اضغط لرؤية الخريطة وحكمة الاختلاف">🔁${AR.toArabicDigits(n)}</a>`); }));
       if (QA.P.pending) { const pd = QA.P.pending; QA.P.pending = null; QA.play(pd.list, pd); }
       else if (params.a) { const c = el.querySelector(`[data-card="quran:${s}:${params.a}"]`); if (c) setTimeout(() => c.scrollIntoView({ block: 'center' }), 50); }
     }
@@ -154,6 +156,7 @@
         <div class="card ${APP.hlClass(it.id)}" data-card="${it.id}"><div class="quran-text">﴿${APP.withGharib(esc(it.text))}﴾</div>
         <div>${(it.topics || []).map(t => `<a class="tag" href="#/search?q=${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>${APP.actionsBar(it)}</div>
         <div class="row"><a class="btn" href="#/item/quran:${it.surah}:${it.ayah - 1}">الآية السابقة</a><a class="btn" href="#/item/quran:${it.surah}:${it.ayah + 1}">الآية التالية</a><a class="btn" href="#/quran/${it.surah}">السورة كاملة</a></div>`
+        + (window.MUT ? await MUT.sectionHtml(it.surah, it.ayah) : '')
         + section('التفسير', byType(L, 'tafsir')) + section('الأحاديث المرتبطة', byType(L, 'hadith')) + section('المسائل الفقهية (أحكام القرآن)', byType(L, 'fiqh')) + section('القواعد المؤصّلة بها', byType(L, 'qaida'));
     },
 

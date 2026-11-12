@@ -283,7 +283,7 @@
   };
 
   // ================= المكتبة والاستيراد =================
-  const TYPE_AR = { quran: 'قرآن', tafsir: 'تفسير', hadith: 'حديث', sharh: 'شرح', fiqh: 'مسائل فقهية', fiqhbook: 'كتاب فقه', qawaid: 'قواعد', rijal: 'رجال', gharib: 'غريب', sira: 'أحداث السيرة', sirabook: 'كتاب سيرة/تاريخ', sahaba: 'صحابة', other: 'أخرى' };
+  const TYPE_AR = { quran: 'قرآن', tafsir: 'تفسير', hadith: 'حديث', sharh: 'شرح', fiqh: 'مسائل فقهية', fiqhbook: 'كتاب فقه', qawaid: 'قواعد', rijal: 'رجال', gharib: 'غريب', sira: 'أحداث السيرة', sirabook: 'كتاب سيرة/تاريخ', sahaba: 'صحابة', mutash: 'متشابه القرآن', other: 'أخرى' };
   V.library = async el => {
     const all = Object.values(APP.state.books);
     const inst = all.filter(b => b.count), shelf = all.filter(b => !b.count);

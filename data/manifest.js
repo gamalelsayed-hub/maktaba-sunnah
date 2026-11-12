@@ -362,5 +362,49 @@ window.PACK_MANIFEST=[
   "version": "c52dc9201b05",
   "optional": true,
   "type": "rijal"
+ },
+ {
+  "file": "book-mutash-kirmani",
+  "id": "mutash-kirmani",
+  "title": "البرهان في توجيه متشابه القرآن (أسرار التكرار)",
+  "author": "تاج القراء الكرماني (ت 505هـ)",
+  "count": 589,
+  "size": 395872,
+  "version": "9524f1d6007a",
+  "optional": true,
+  "type": "mutash"
+ },
+ {
+  "file": "book-mutash-iskafi",
+  "id": "mutash-iskafi",
+  "title": "درة التنزيل وغرة التأويل",
+  "author": "الخطيب الإسكافي (ت 420هـ)",
+  "count": 190,
+  "size": 992751,
+  "version": "392378b9fcc2",
+  "optional": true,
+  "type": "mutash"
+ },
+ {
+  "file": "book-mutash-ansari",
+  "id": "mutash-ansari",
+  "title": "فتح الرحمن بكشف ما يلتبس في القرآن",
+  "author": "زكريا الأنصاري (ت 926هـ)",
+  "count": 1149,
+  "size": 836165,
+  "version": "19eb85ad318d",
+  "optional": true,
+  "type": "mutash"
+ },
+ {
+  "file": "book-mutash-gharnati",
+  "id": "mutash-gharnati",
+  "title": "ملاك التأويل في توجيه المتشابه اللفظ من آي التنزيل",
+  "author": "ابن الزبير الغرناطي (ت 708هـ)",
+  "count": 381,
+  "size": 1713705,
+  "version": "6c88019a9511",
+  "optional": true,
+  "type": "mutash"
  }
 ];

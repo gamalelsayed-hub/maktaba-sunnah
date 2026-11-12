@@ -180,3 +180,12 @@ body.dark .quiz-opt.opt-ok { background: #0f2a1a; } body.dark .quiz-opt.opt-bad 
 .me-card { border-right: 4px solid var(--brand2); }
 .fld { display: block; margin: 10px 0; }
 .fld input:not([type=number]), .fld select { display: block; margin-top: 4px; min-width: 260px; max-width: 100%; }
+
+/* المتشابهات */
+mark.mt-diff { background: #fde68a; color: inherit; border-radius: 4px; padding: 0 2px; }
+body.dark mark.mt-diff { background: #713f12; }
+.mt-badge { font-size: 13px; text-decoration: none; background: #ede9fe; color: #5b21b6; border-radius: 10px; padding: 1px 7px; margin-right: 4px; white-space: nowrap; }
+body.dark .mt-badge { background: #2e1065; color: #ddd6fe; }
+.tw-hint { color: #1d4ed8; background: #dbeafe; border-radius: 4px; padding: 0 3px; }
+.hint-box { font-size: 22px; background: #eff6ff; border: 1px dashed #60a5fa; border-radius: 10px; padding: 8px 12px; margin-top: 8px; }
+body.dark .hint-box { background: #0c1a33; }
