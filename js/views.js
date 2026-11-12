@@ -32,8 +32,9 @@
     const total = bs.reduce((s, b) => s + (b.count || 0), 0);
     const srs = await DB.all('srs'); const due = srs.filter(s => new Date(s.due) <= new Date()).length;
     const sampleOnly = bs.every(b => b.sample || !b.count);
-    el.innerHTML = `
-      <h1>مكتبة القرآن والسنة</h1>
+    const dash = APP.homeDashboard ? await APP.homeDashboard() : '';
+    el.innerHTML = dash + `
+      <h1${dash.includes('me-hello') ? ' style="font-size:20px;margin-top:18px"' : ''}>مكتبة القرآن والسنة</h1>
       <div class="sub">مرجع يجمع القرآن الكريم والكتب الستة وشروحها، والفقه المقارن وأدلته، والقواعد، والسيرة وسير الصحابة — ويعمل بدون إنترنت.</div>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
       <div class="grid">
@@ -49,6 +50,7 @@
       <h2>جرّب البحث</h2>
       <div class="row">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'تحريم'].map(s => `<a class="tag" href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
       <h2>المكتبة</h2><div class="muted">${bs.filter(b => b.count).length} كتاباً مستورداً — ${total.toLocaleString('ar')} نصاً. ${bs.filter(b => !b.count).length} رفاً بانتظار الاستيراد.</div>`;
+    if (APP.bindHomeDashboard) APP.bindHomeDashboard(el);
   };
 
   // ===== القرآن =====

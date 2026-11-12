@@ -174,3 +174,9 @@ body.dark .quiz-opt.opt-ok { background: #0f2a1a; } body.dark .quiz-opt.opt-bad 
 .lesson table.t td { vertical-align: top; }
 .lesson p { line-height: 2; }
 #ttsBar { bottom: 70px; }
+
+/* ملفي */
+.me-hello { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.me-card { border-right: 4px solid var(--brand2); }
+.fld { display: block; margin: 10px 0; }
+.fld input:not([type=number]), .fld select { display: block; margin-top: 4px; min-width: 260px; max-width: 100%; }
