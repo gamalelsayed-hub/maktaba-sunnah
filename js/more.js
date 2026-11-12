@@ -79,7 +79,10 @@
     [...el.children].slice(1).forEach(c => adv.appendChild(c));
     el.appendChild(adv);
     const sec = document.createElement('div');
-    sec.innerHTML = `<h2>🔎 ابحث عن أي كتاب وحمّله بضغطة</h2>
+    sec.innerHTML = `<h2>📦 حزم جاهزة — حمّل كتب الفن كله بضغطة</h2>
+      <div class="sub">مجموعات مختارة من الكتب المعتمدة في كل فن. بعد تحميلها تدخل في البحث العميق و«اسأل عن مسألة» وصفحة كل مسألة فقهية.</div>
+      <div class="grid" id="packsBox"><div class="muted">جارٍ التحميل…</div></div>
+      <h2>🔎 ابحث عن أي كتاب وحمّله بضغطة</h2>
       <div class="sub">أكثر من 12 ألف كتاب من كتب التراث (نصوص المكتبة الشاملة). اكتب اسم الكتاب أو المؤلف أو اختر فناً، ثم اضغط «تحميل» — يُحفظ في مكتبتك ويعمل بعدها بدون إنترنت.</div>
       <form id="catF" class="filters"><input type="text" name="cq" placeholder="مثال: الموطأ، ابن تيمية، رياض الصالحين، أصول الفقه" style="flex:1;min-width:240px;font-size:16px" value="${esc(p.cq || '')}"><button class="btn primary">بحث</button></form>
       <div id="catCats" class="row" style="margin-bottom:10px"></div>
@@ -100,6 +103,36 @@
     $('#optAll').onclick = () => installIds(opt.filter(m => st(m) !== 'ok').map(m => m.id));
     $('#catF').onsubmit = e => { e.preventDefault(); APP.catalogSearch(new FormData(e.target).get('cq'), $('#catR')); };
     if (p.cq) APP.catalogSearch(p.cq, $('#catR'));
+    // الحزم الجاهزة
+    APP.loadCatalog().then(cat => {
+      const box = $('#packsBox'); if (!box) return;
+      const byV = new Map(cat.map(c => [c.v, c])), have = v => (APP.state.books[IMPORT.slug(v)] || {}).count;
+      const draw = () => {
+        box.innerHTML = (window.BOOK_PACKS || []).map(pk => {
+          const bs = pk.books.map(v => byV.get(v)).filter(Boolean), done = bs.filter(c => have(c.v)).length;
+          const mb = Math.max(1, Math.round(bs.filter(c => !have(c.v)).reduce((s, c) => s + c.c, 0) * 2 / 1e6));
+          return `<div class="tile"><b>${esc(pk.title)}</b>
+            <small style="display:block;margin:6px 0;line-height:1.8">${bs.map(c => (have(c.v) ? '✔ ' : '• ') + esc(c.t.split(/[=(]/)[0].trim()) + ' <span class="muted">— ' + esc((c.a || '').split(/[،(]/)[0].slice(0, 30)) + '</span>').join('<br>')}</small>
+            ${done === bs.length ? '<span class="tag st-ok">✔ الحزمة مثبتة</span>' : `<button class="btn sm primary" data-pack="${pk.id}">⬇ تحميل ${bs.length - done} كتب (نحو ${mb} ميجا)</button>`}
+            <div class="muted" data-plog="${pk.id}" style="font-size:12px;margin-top:4px">${done && done < bs.length ? 'مثبت ' + done + ' من ' + bs.length : ''}</div></div>`;
+        }).join('');
+        box.querySelectorAll('[data-pack]').forEach(b => b.onclick = async () => {
+          const pk = window.BOOK_PACKS.find(x => x.id === b.dataset.pack), log = box.querySelector(`[data-plog="${pk.id}"]`);
+          const todo = pk.books.map(v => byV.get(v)).filter(c => c && !have(c.v));
+          box.querySelectorAll('[data-pack]').forEach(x => { x.disabled = true; });
+          let ok = 0; const bad = [];
+          for (let i = 0; i < todo.length; i++) {
+            const c = todo[i];
+            try { await IMPORT.downloadOpenITI(c, t => { log.textContent = `(${i + 1} من ${todo.length}) ${c.t.slice(0, 40)} — ${t}`; }); ok++; await APP.loadMeta(); }
+            catch (e) { bad.push(c.t); }
+          }
+          APP.toast(`✔ تم تحميل ${ok} من ${todo.length}` + (bad.length ? ` — تعذر ${bad.length}` : ''), 5000);
+          draw();
+          if (bad.length) box.querySelector(`[data-plog="${pk.id}"]`).textContent = 'تعذر: ' + bad.join('، ') + ' — أعد المحاولة';
+        });
+      };
+      draw();
+    }).catch(() => { const b = $('#packsBox'); if (b) b.innerHTML = '<div class="muted">تعذر تحميل الفهرس</div>'; });
     // تصفح بالفنون بدل الكتابة
     APP.loadCatalog().then(cat => {
       const cnt = {}; cat.forEach(c => { if (c.g && c.s === 'p') cnt[c.g] = (cnt[c.g] || 0) + 1; });
