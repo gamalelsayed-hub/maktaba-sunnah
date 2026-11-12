@@ -367,3 +367,35 @@ html.native .fab { display: none; }
 .hero .btn, .hero .btn:hover { color: #fff; }
 .hero .btn:hover { background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.35); }
 .hero .btn.gold:hover { background: var(--gold); }
+
+/* ---------- الأذكار ---------- */
+.dk { transition: opacity .2s, background .2s; }
+.dk-text { font-family: var(--text); line-height: 2.15; white-space: pre-line; }
+.dk-fadl { margin-top: 8px; font-size: 13.5px; color: var(--gold); background: var(--gold-l); border-radius: 8px; padding: 6px 10px; }
+.dk-bar { margin-top: 10px; }
+.dk-count { width: 66px; height: 66px; border-radius: 50%; border: 3px solid var(--brand); background: var(--brand-l); color: var(--brand); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-family: var(--ui); transition: transform .08s; -webkit-user-select: none; user-select: none; }
+.dk-count:active { transform: scale(.93); }
+.dk-count b { font-size: 22px; line-height: 1; } .dk-count small { font-size: 10.5px; }
+.dk-count.fin { background: var(--brand); color: #fff; }
+.dk-done { opacity: .62; }
+.dk-src { margin-top: 8px; font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 8px; padding: 8px 10px; line-height: 1.9; }
+.dk-notes { font-size: 13px; color: var(--muted); line-height: 1.9; padding-right: 18px; }
+/* ---------- المواقيت ---------- */
+.next-pr { padding: 18px 22px; } .next-pr h1 { font-size: 24px; }
+.pr-list { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--sh); overflow: hidden; margin-bottom: 14px; }
+.pr-row { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.pr-row:last-child { border-bottom: 0; }
+.pr-row.now { background: var(--brand-l); } .pr-row.now .pr-n, .pr-row.now .pr-t { color: var(--brand); font-weight: 700; }
+.pr-n { flex: 1; font-size: 16px; } .pr-t { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pr-bell { border: 0; background: var(--bg); border-radius: 10px; width: 40px; height: 36px; font-size: 18px; cursor: pointer; opacity: .55; }
+.pr-bell.on { opacity: 1; background: var(--gold-l); }
+.switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: var(--line2); border-radius: 999px; transition: .2s; cursor: pointer; }
+.switch span::before { content: ''; position: absolute; width: 22px; height: 22px; right: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.switch input:checked + span { background: var(--brand); } .switch input:checked + span::before { transform: translateX(-22px); }
+.compass { position: relative; width: 130px; height: 130px; border-radius: 50%; border: 3px solid var(--gold); background: radial-gradient(circle, var(--panel) 60%, var(--gold-l)); flex-shrink: 0; transition: transform .3s; }
+.compass .needle { position: absolute; inset: 0; display: flex; justify-content: center; }
+.compass .needle::before { content: ''; position: absolute; top: 14px; bottom: 50%; width: 3px; background: var(--brand); border-radius: 2px; }
+.compass .needle span { position: absolute; top: -6px; font-size: 22px; }
+.compass .cN { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); color: var(--red); font-size: 12px; }

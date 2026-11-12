@@ -19,7 +19,7 @@ jobs:
         run: |
           cd mobile
           mkdir -p www
-          cp -r ../index.html ../css ../js ../data ../fonts ../icons ../manifest.webmanifest www/
+          cp -r ../index.html ../css ../js ../data ../fonts ../icons ../audio ../manifest.webmanifest www/
           npm install --no-audit --no-fund --legacy-peer-deps
           npx cap add android
       - name: الأيقونات والصلاحيات
@@ -28,7 +28,7 @@ jobs:
           rm -rf res/mipmap-anydpi-v26
           cp -r ../../../../res/* res/
           # الميكروفون للتسميع وتسجيل التلاوة، والاستعلام عن خدمة التعرف على الكلام
-          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <queries><intent><action android:name="android.speech.RecognitionService" /></intent><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>#' AndroidManifest.xml
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />\n    <uses-permission android:name="android.permission.WAKE_LOCK" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n    <queries><intent><action android:name="android.speech.RecognitionService" /></intent><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>#' AndroidManifest.xml
           grep -n "RECORD_AUDIO" AndroidManifest.xml
           # رقم إصدار يزيد مع كل بناء، واسم الإصدار من package.json
           VER=$(node -p "require('../../../../package.json').version")

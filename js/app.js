@@ -406,6 +406,7 @@
   };
 
   window.APP = APP;
+  window.addEventListener('load', () => setTimeout(() => { if (window.NOTIFY) NOTIFY.rescheduleAll(); }, 4000));
   document.addEventListener('DOMContentLoaded', () => APP.init());
   // نسخة الويب: تفعيل العمل بدون إنترنت وإمكانية التثبيت كتطبيق
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !window.desktop) navigator.serviceWorker.register('sw.js').catch(() => {});

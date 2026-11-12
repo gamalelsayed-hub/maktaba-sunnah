@@ -41,6 +41,8 @@
       if (ay.length) { const d = Math.floor(Date.now() / 864e5); ayah = ay[(d * 7919) % ay.length]; }
     } catch (e) { }
     const dash = APP.homeDashboard ? await APP.homeDashboard() : '';
+    const prTile = APP.nextPrayerTile ? await APP.nextPrayerTile() : '';
+    const hr = new Date().getHours(), dkTile = `<a class="tile" href="#/adhkar/${hr >= 3 && hr < 14 ? 'sabah' : 'masa'}"><span class="ic c2">📿</span><b>أذكار ${hr >= 3 && hr < 14 ? 'الصباح' : 'المساء'}</b><small>بعدّاد وتسجيل صوتي — وحصن المسلم كاملاً</small></a>`;
     const Q = (href, ic, c, t) => `<a href="${href}"><span class="ic ${c}">${ic}</span>${t}</a>`;
     el.innerHTML = `
       <section class="hero">
@@ -52,10 +54,11 @@
           <a class="btn sm gold" href="#/wird">☀️ وردي اليوم</a></div>
       </section>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
+      <div class="grid" style="margin-bottom:6px">${prTile}${dkTile}</div>
       ${dash}
       <h2>ابدأ من هنا</h2>
       <div class="quick">
-        ${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
+        ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
         ${Q('#/hadith', '📜', 'c8', 'الحديث')}${Q('#/ask', '❓', 'c5', 'اسأل عن حكم')}${Q('#/fiqh', '⚖️', 'c6', 'الفقه المقارن')}${Q('#/talab', '🎓', 'c7', 'طلب العلم')}
         ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}
       </div>
