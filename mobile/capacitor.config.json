@@ -2,6 +2,18 @@
   "appId": "org.waqf.maktabasunnah",
   "appName": "مكتبة القرآن والسنة",
   "webDir": "www",
-  "android": { "backgroundColor": "#0d5c3f", "allowMixedContent": false },
-  "plugins": { "CapacitorHttp": { "enabled": false } }
+  "android": {
+    "backgroundColor": "#0d5c3f",
+    "allowMixedContent": false,
+    "adjustMarginsForEdgeToEdge": "disable"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK"
+    }
+  }
 }

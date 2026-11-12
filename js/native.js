@@ -5,7 +5,23 @@
   const C = window.Capacitor;
   if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
   const P = C.Plugins || {};
-  document.documentElement.classList.add('native');
+  const root = document.documentElement;
+  root.classList.add('native', 'native-' + (C.getPlatform ? C.getPlatform() : ''));
+
+  // ===== حواف الشاشة في أندرويد 15+ (التطبيق يُرسم تحت شريط الحالة) =====
+  // Capacitor 8 يحقن --safe-area-inset-*؛ وإن لم يصل منه شيء ولا من env() نضع ارتفاع شريط الحالة المعتاد
+  const insetFix = () => {
+    const cs = getComputedStyle(root);
+    if (cs.getPropertyValue('--safe-area-inset-top').trim()) return;
+    const probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;top:0;height:env(safe-area-inset-top,0px);visibility:hidden';
+    document.body.appendChild(probe); const h = probe.offsetHeight; probe.remove();
+    if (!h && C.getPlatform && C.getPlatform() === 'android') { root.style.setProperty('--native-sat', '28px'); root.style.setProperty('--native-sab', '16px'); }
+  };
+  if (document.body) setTimeout(insetFix, 300); else document.addEventListener('DOMContentLoaded', () => setTimeout(insetFix, 300));
+  // أيقونات شريط الحالة فاتحة فوق الأخضر
+  if (P.SystemBars && P.SystemBars.setStyle) P.SystemBars.setStyle({ style: 'DARK' }).catch(() => { });
+  else if (P.StatusBar && P.StatusBar.setStyle) P.StatusBar.setStyle({ style: 'DARK' }).catch(() => { });
 
   // ===== تنزيل النصوص والملفات عبر الطبقة الأصلية (بلا قيود CORS) =====
   const b64ToU8 = b64 => { const s = atob(b64), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };

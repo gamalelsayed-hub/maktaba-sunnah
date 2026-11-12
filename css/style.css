@@ -17,6 +17,9 @@
   --sh: 0 1px 2px rgba(31, 41, 35, .05), 0 4px 14px rgba(31, 41, 35, .06);
   --sh-h: 0 2px 4px rgba(31, 41, 35, .06), 0 10px 26px rgba(31, 41, 35, .10);
   --top-h: 60px;
+  /* حواف الشاشة: متغيرات Capacitor في تطبيق أندرويد، وإلا قيم المتصفح (آيفون) */
+  --sat: var(--safe-area-inset-top, var(--native-sat, env(safe-area-inset-top, 0px)));
+  --sab: var(--safe-area-inset-bottom, var(--native-sab, env(safe-area-inset-bottom, 0px)));
 }
 body.dark {
   --bg: #0e1412; --bg2: #141c19; --panel: #17201c; --ink: #e8ece9; --muted: #9aa5a0; --line: #26332d; --line2: #33443b;
@@ -238,13 +241,13 @@ body.dark .summary-box { background: #0f2a1a; border-color: #14532d; }
   .side-head img { width: 40px; height: 40px; border-radius: 10px; }
   .side-head b { font-size: 16px; }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 44; }
-  .view { padding: 16px 14px calc(110px + env(safe-area-inset-bottom)); }
+  .view { padding: 16px 14px calc(110px + var(--sab)); }
   h1 { font-size: 21px; }
   html, body { overflow-x: hidden; }
   .global-search, .global-search input { min-width: 0; }
   table.t { display: block; overflow-x: auto; }
   .notes-panel { width: calc(100vw - 24px); left: 12px; bottom: 140px; }
-  .fab { bottom: calc(80px + env(safe-area-inset-bottom)); left: 14px; width: 46px; height: 46px; font-size: 19px; border-radius: 14px; }
+  .fab { bottom: calc(80px + var(--sab)); left: 14px; width: 46px; height: 46px; font-size: 19px; border-radius: 14px; }
   .timeline { margin-right: 10px; }
   .choice { grid-template-columns: 1fr; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
@@ -256,12 +259,12 @@ body.dark .summary-box { background: #0f2a1a; border-color: #14532d; }
   .hero h1 { font-size: 21px; }
   .hero .ayah-day { font-size: 19px; }
   .card { padding: 14px; }
-  .tabbar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 35; background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(0,0,0,.06); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+  .tabbar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 35; background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -4px 20px rgba(0,0,0,.06); padding: 6px 4px calc(6px + var(--sab)); }
   .tabbar a, .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--muted); background: none; border: 0; font-family: var(--ui); padding: 4px 0; text-decoration: none; cursor: pointer; }
   .tabbar .ti { font-size: 21px; width: 48px; height: 28px; display: grid; place-items: center; border-radius: 999px; transition: .2s; }
   .tabbar .on { color: var(--brand); font-weight: 600; }
   .tabbar .on .ti { background: var(--brand-l); }
-  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(84px + var(--sab)); }
   .filters select, .filters input[type=text] { max-width: 100%; }
 }
 @media (min-width: 861px) { #menuBtn { display: none; } }
@@ -279,7 +282,7 @@ body.dark .summary-box { background: #0f2a1a; border-color: #14532d; }
 body.dark .tw-miss { background: #3b0d0d; color: #fca5a5; }
 .ayah-play { border: 0; background: none; cursor: pointer; font-size: 16px; padding: 0 4px; opacity: .75; }
 .ayah-play:hover { opacity: 1; }
-@media (max-width: 860px) { .qa-bar { max-width: calc(100vw - 16px); bottom: calc(76px + env(safe-area-inset-bottom)); border-radius: 18px; } #ttsBar { bottom: calc(140px + env(safe-area-inset-bottom)) !important; } }
+@media (max-width: 860px) { .qa-bar { max-width: calc(100vw - 16px); bottom: calc(76px + var(--sab)); border-radius: 18px; } #ttsBar { bottom: calc(140px + var(--sab)) !important; } }
 
 /* ---------- الاختبارات ---------- */
 .quiz-opt { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; margin: 6px 0; border: 1px solid var(--line); border-radius: var(--r-sm); cursor: pointer; transition: .12s; line-height: 1.8; }
@@ -344,11 +347,11 @@ body.dark .surah-item .st b { color: var(--brand); }
 html.native .fab { display: none; }
 
 /* ---------- حواف الشاشة (آيفون والجوالات ذات النتوء) ---------- */
-.topbar { padding-top: env(safe-area-inset-top); height: calc(var(--top-h) + env(safe-area-inset-top)); padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
-.sidebar { top: calc(var(--top-h) + env(safe-area-inset-top)); }
+.topbar { padding-top: var(--sat); height: calc(var(--top-h) + var(--sat)); padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+.sidebar { top: calc(var(--top-h) + var(--sat)); }
 @media (max-width: 860px) {
   .sidebar { top: 0; }
-  .side-head { padding-top: calc(18px + env(safe-area-inset-top)); }
+  .side-head { padding-top: calc(18px + var(--sat)); }
   /* شريط التشغيل: سطر واحد مضغوط فوق الشريط السفلي */
   .qa-bar, #ttsBar { flex-wrap: nowrap; gap: 6px; padding: 6px 10px; justify-content: flex-start; }
   .qa-bar .qa-now { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
