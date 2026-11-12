@@ -30,15 +30,29 @@ jobs:
           # الميكروفون للتسميع وتسجيل التلاوة، والاستعلام عن خدمة التعرف على الكلام
           sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.RECORD_AUDIO" />\n    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />\n    <queries><intent><action android:name="android.speech.RecognitionService" /></intent><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>#' AndroidManifest.xml
           grep -n "RECORD_AUDIO" AndroidManifest.xml
+          # رقم إصدار يزيد مع كل بناء، واسم الإصدار من package.json
+          VER=$(node -p "require('../../../../package.json').version")
+          sed -i "s/versionCode [0-9]*/versionCode ${{ github.run_number }}/; s/versionName \"[^\"]*\"/versionName \"$VER\"/" ../../build.gradle
+          grep -n "versionCode\|versionName" ../../build.gradle
       - name: بناء APK
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
         run: |
           cd mobile
           npx cap sync android
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon -q
+          ./gradlew assembleRelease --no-daemon -q
+          # توقيع ثابت حتى تُثبَّت التحديثات فوق النسخة القديمة دون فقد البيانات
+          # (يُفضَّل نقل المفتاح إلى أسرار المستودع: ANDROID_KEYSTORE_B64 و ANDROID_KEYSTORE_PASS)
+          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > ks.jks; PASS="$KS_PASS"; else cp ../release.keystore ks.jks; PASS=$(cat ../keystore-password.txt); fi
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          $BT/zipalign -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
           VER=$(node -p "require('../package.json').version")
-          cp app/build/outputs/apk/debug/app-debug.apk "../../maktaba-sunnah-$VER.apk"
+          $BT/apksigner sign --ks ks.jks --ks-key-alias maktaba --ks-pass pass:$PASS --key-pass pass:$PASS --out "../../maktaba-sunnah-$VER.apk" aligned.apk
+          rm -f ks.jks
+          $BT/apksigner verify "../../maktaba-sunnah-$VER.apk"
           ls -la ../../*.apk
       - uses: actions/upload-artifact@v4
         with: { name: maktaba-sunnah-android, path: '*.apk', compression-level: 0 }
@@ -46,6 +60,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: android-latest
+          overwrite_files: true
           name: تطبيق أندرويد — آخر نسخة
           body: |
             تطبيق «مكتبة القرآن والسنة» لأندرويد — يعمل بدون إنترنت بعد التثبيت.
