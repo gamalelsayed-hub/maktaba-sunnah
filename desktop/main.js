@@ -42,6 +42,15 @@ ipcMain.handle('fetch-text', async (_e, url) => {
   return res.text();
 });
 
+// تنزيل ملفات الصوت (تلاوات القرآن) من مصادرها المعروفة فقط
+const AUDIO_OK = ['https://everyayah.com/data/', 'https://cdn.islamic.network/quran/audio/'];
+ipcMain.handle('fetch-bin', async (_e, url) => {
+  if (typeof url !== 'string' || !AUDIO_OK.some(p => url.startsWith(p))) throw new Error('رابط غير مسموح');
+  const res = await net.fetch(url);
+  if (!res.ok) throw new Error('المصدر رد بخطأ ' + res.status);
+  return new Uint8Array(await res.arrayBuffer());
+});
+
 function buildMenu() {
   const go = hash => () => win && win.webContents.executeJavaScript(`location.hash = ${JSON.stringify(hash)}`);
   Menu.setApplicationMenu(Menu.buildFromTemplate([

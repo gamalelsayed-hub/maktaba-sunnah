@@ -393,6 +393,7 @@
     el.innerHTML = `<h1>⚙️ الإعدادات</h1>
       <div class="card"><h3>نوع العرض</h3><div class="row"><button class="btn ${APP.state.profile === 'aam' ? 'on' : ''}" data-p="aam">🙂 مسلم (مبسط)</button><button class="btn ${APP.state.profile === 'talib' ? 'on' : ''}" data-p="talib">🎓 طالب علم / باحث</button></div></div>
       <div class="card"><h3>القراءة</h3><div class="row">حجم الخط: <input type="range" id="fs" min="14" max="28" value="${fs}"> <span id="fsv">${fs}</span></div><label><input type="checkbox" id="dark" ${dark ? 'checked' : ''}> الوضع الليلي</label></div>
+      ${window.TTS ? TTS.settingsHtml() : ''}
       <div class="card"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
         ? `<div class="row"><span class="tag st-ok">وضع المراجع مفتوح على هذا الجهاز</span><button class="btn" id="rvLock">قفل وضع المراجع</button><button class="btn" id="rvPass">تغيير كلمة السر</button></div>
            <label style="display:block;margin-top:8px"><input type="checkbox" id="hideUn" ${APP.state.hideUnreviewed ? 'checked' : ''}> إظهار النصوص المعتمدة فقط للمستخدم (عند إغلاق وضع المراجع)</label>`
@@ -407,6 +408,7 @@
     if ($('#rvLock')) $('#rvLock').onclick = () => APP.lockReviewer();
     if ($('#rvPass')) $('#rvPass').onclick = async () => { const r = await APP.ask('كلمة سر جديدة', [{ key: 'p', label: 'كلمة السر الجديدة' }]); if (r && r.p) { await DB.setting('reviewerPass', await APP.hash(r.p)); APP.toast('تم تغيير كلمة السر'); } };
     if ($('#hideUn')) $('#hideUn').onchange = e => { APP.state.hideUnreviewed = e.target.checked; DB.setting('hideUnreviewed', e.target.checked); };
+    if (window.TTS) TTS.bindSettings(el);
     $('#bkExp').onclick = async () => APP.download('نسخة-احتياطية-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(await DB.exportUserData()));
     $('#bkImp').onchange = async e => { const f = e.target.files[0]; if (!f) return; await DB.importUserData(JSON.parse(await f.text())); await APP.refreshUser(); APP.toast('تمت الاستعادة'); };
     $('#reset').onclick = () => { if (!confirm('سيُحذف كل شيء: الكتب المستوردة وبياناتك. متأكد؟')) return; indexedDB.deleteDatabase('maktaba-sunnah'); setTimeout(() => location.reload(), 400); };

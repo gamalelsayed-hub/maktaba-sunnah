@@ -52,7 +52,7 @@
   };
 
   // ===== القرآن =====
-  V.quran = async (el, [s]) => {
+  V.quran = async (el, [s], params = {}) => {
     if (!s) {
       const ayat = await DB.byIndex('items', 'bookId', 'quran');
       const cnt = {}; ayat.forEach(a => cnt[a.surah] = (cnt[a.surah] || 0) + 1);
@@ -63,8 +63,16 @@
     s = +s;
     const ayat = (await DB.byIndex('items', 'bookId', 'quran')).filter(a => a.surah === s && APP.visible(a.id)).sort((a, b) => a.ayah - b.ayah);
     el.innerHTML = `<div class="row"><h1>سورة ${esc(AR.SURAHS[s - 1])}</h1><span class="spacer"></span>${s > 1 ? `<a class="btn" href="#/quran/${s - 1}">السابقة</a>` : ''}${s < 114 ? `<a class="btn" href="#/quran/${s + 1}">التالية</a>` : ''}</div>
+      ${ayat.length ? `<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><span class="muted" style="font-size:13px">أو اضغط 🔊 بجوار أي آية لتبدأ منها</span><span class="spacer"></span><a class="btn sm" href="#/tasmee?new=1">📝 اختبر حفظك</a></div>` : ''}
       ${ayat.length ? '' : '<div class="warn">هذه السورة لم تُستورد بعد.</div>'}
-      ${ayat.map(a => `<div class="card ${APP.hlClass(a.id)}" data-card="${a.id}"><div class="quran-text">${APP.withGharib(esc(a.text))} <a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a></div>${APP.actionsBar(a)}</div>`).join('')}`;
+      ${ayat.map(a => `<div class="card ${APP.hlClass(a.id)}" data-card="${a.id}"><div class="quran-text">${APP.withGharib(esc(a.text))} <a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> <button class="ayah-play" data-play="${a.ayah}" title="استمع من هنا">🔊</button></div>${APP.actionsBar(a)}</div>`).join('')}`;
+    if (window.QA && ayat.length) {
+      const from = k => QA.surahAyat(s).slice(k - 1);
+      const pb = el.querySelector('#qPlayAll'); if (pb) pb.onclick = () => QA.play(from(1));
+      el.querySelectorAll('[data-play]').forEach(b => b.onclick = () => QA.play(from(+b.dataset.play)));
+      if (QA.P.pending) { const pd = QA.P.pending; QA.P.pending = null; QA.play(pd.list, pd); }
+      else if (params.a) { const c = el.querySelector(`[data-card="quran:${s}:${params.a}"]`); if (c) setTimeout(() => c.scrollIntoView({ block: 'center' }), 50); }
+    }
   };
 
   // ===== الحديث =====

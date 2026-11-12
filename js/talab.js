@@ -41,10 +41,22 @@
           <div class="tile"><b>🎯 التخصص</b>تعمّق في علم واحد من أوله إلى مطولاته:
             <div class="row" style="margin-top:8px">${Object.entries(C.sciences).map(([k, v]) => `<a class="btn sm" href="#/talab?track=special&science=${k}">${esc(v.name)}</a>`).join('')}<a class="btn sm" href="#/talab?track=special&science=fiqh">الفقه وأصوله</a></div></div>
         </div>
+        <a class="tile" href="#/tajweed" style="display:block;margin:12px 0"><b>🎙️ ابدأ بتصحيح التلاوة: تعلّم التجويد من الصفر</b> دروس قصيرة بأمثلة صوتية من المصحف واختبار لكل درس — يُستحسن قبل أي مسار.</a>
         <div class="warn">هذا منهج مقترح مبني على المتون المشهورة في التدرج، ويُستحسن أن يكون الطلب على يد شيخ أو عبر شروح أهل العلم المسموعة. والمراجع العلمي يقدر يعدّله.</div>`;
       return;
     }
+    if (p.exam) {
+      const lv = +p.exam, qs = EXAMS.examFor(lv, s.track, s.science);
+      el.innerHTML = `<div class="row"><h1>📝 اختبار ${esc(C.levels[lv - 1])}</h1><span class="spacer"></span><a class="btn" href="#/talab">رجوع للمنهج</a></div><div id="exBox"></div>`;
+      if (!qs.length) { $('#exBox').innerHTML = '<div class="info">لا توجد أسئلة لهذا المستوى في هذا التخصص بعد.</div>'; return; }
+      EXAMS.runQuiz($('#exBox'), {
+        sub: `${qs.length} سؤالاً من كتب هذا المستوى. النجاح من 70٪. <span class="muted">(أسئلة مقترحة تحت المراجعة العلمية)</span>`, qs,
+        onDone: async r => { s.exams = s.exams || {}; const k = (s.track === 'general' ? 'g' : s.science) + '-' + lv, old = s.exams[k]; if (!old || r.pct >= old.pct) s.exams[k] = { pct: r.pct, at: Date.now(), passed: r.passed }; await save(s); }
+      });
+      return;
+    }
     const books = booksFor(s);
+    const exKey = lv => (s.track === 'general' ? 'g' : s.science) + '-' + lv, exRes = lv => (s.exams || {})[exKey(lv)];
     const done = books.filter(b => s.status[b.id] === 'done').length;
     const pct = books.length ? Math.round(done / books.length * 100) : 0;
     const current = C.levels.findIndex((_, i) => books.some(b => b.level === i + 1 && s.status[b.id] !== 'done'));
@@ -58,7 +70,10 @@
         const arr = books.filter(b => b.level === i + 1);
         if (!arr.length) return '';
         const d = arr.filter(b => s.status[b.id] === 'done').length;
-        return `<h2>${esc(lv)} <small class="muted">(${d}/${arr.length})</small></h2>` + arr.map(b => {
+        const ex = exRes(i + 1);
+        return `<div class="row" style="margin-top:18px"><h2 style="margin:0">${esc(lv)} <small class="muted">(${d}/${arr.length})</small></h2><span class="spacer"></span>
+          ${ex ? `<span class="tag ${ex.passed ? 'st-ok' : 'st-fix'}">${ex.passed ? '✔ ناجح' : 'آخر محاولة'} ${ex.pct}٪</span>` : ''}
+          <a class="btn sm ${d === arr.length && !(ex && ex.passed) ? 'primary' : ''}" href="#/talab?exam=${i + 1}">📝 ${ex ? 'أعد ' : ''}اختبار المستوى</a></div>` + arr.map(b => {
           const st = s.status[b.id] || 'no', inst = installed(b);
           const act = inst ? `<a class="btn sm primary" href="#/book/${libId(b)}">📖 افتح الكتاب</a>`
             : b.lib ? `<a class="btn sm" href="#/library">ثبّته من المكتبة</a>`

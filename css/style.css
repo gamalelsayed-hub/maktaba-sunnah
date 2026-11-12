@@ -149,3 +149,28 @@ textarea { width: 100%; min-height: 80px; resize: vertical; }
 }
 @media (min-width: 801px) { #menuBtn { display: none; } }
 @media print { .topbar, .sidebar, .fab, .actions, .notes-panel { display: none !important; } .view { max-width: none; } }
+
+/* سماع القرآن واختبار التسميع */
+.qa-bar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 40; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; box-shadow: 0 6px 24px rgba(0,0,0,.18); max-width: calc(100vw - 120px); }
+.qa-now { font-size: 14px; }
+.ayah-playing { outline: 3px solid var(--brand2); background: #ecfdf5; }
+body.dark .ayah-playing { background: #0f2a1a; }
+.tw-ok { color: #15803d; }
+.tw-near { color: #15803d; border-bottom: 2px dotted #ca8a04; }
+.tw-miss { color: #b91c1c; background: #fee2e2; border-radius: 4px; padding: 0 3px; }
+.tw-extra { color: #c2410c; text-decoration: line-through; }
+body.dark .tw-miss { background: #3b0d0d; color: #fca5a5; }
+.ayah-play { border: 0; background: none; cursor: pointer; font-size: 16px; padding: 0 4px; }
+@media (max-width: 800px) { .qa-bar { max-width: calc(100vw - 20px); bottom: 84px; } }
+/* الاختبارات */
+.quiz-opt { display: block; padding: 7px 10px; margin: 5px 0; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.quiz-opt:hover { background: rgba(0,0,0,.03); }
+.quiz-opt.opt-ok { border-color: #16a34a; background: #dcfce7; }
+.quiz-opt.opt-bad { border-color: #dc2626; background: #fee2e2; }
+body.dark .quiz-opt.opt-ok { background: #0f2a1a; } body.dark .quiz-opt.opt-bad { background: #3b0d0d; }
+.quiz-why { margin-top: 6px; font-size: 14px; color: var(--muted); }
+
+.rec-on { background: #dc2626 !important; color: #fff !important; }
+.lesson table.t td { vertical-align: top; }
+.lesson p { line-height: 2; }
+#ttsBar { bottom: 70px; }

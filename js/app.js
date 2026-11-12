@@ -114,7 +114,8 @@
         <button class="btn sm" data-act="comment">✍️ هامش</button>
         ${canHifz ? '<button class="btn sm" data-act="hifz">🧠 أضف لحفظي</button>' : ''}
         <button class="btn sm" data-act="mindmap">🗺 خريطة ذهنية</button>
-        <button class="btn sm" data-act="copy">📋 نسخ مع التوثيق</button>`;
+        <button class="btn sm" data-act="copy">📋 نسخ مع التوثيق</button>
+        <button class="btn sm" data-act="listen">${it.type === 'ayah' ? '🔊 استمع للتلاوة' : '🗣️ اقرأ لي'}</button>`;
       if (APP.state.reviewer) h += `<span class="spacer"></span>${APP.statusTag(it.id)}
         <button class="btn sm" data-act="rv-ok">✔ اعتماد</button><button class="btn sm" data-act="rv-fix">✎ تصحيح</button><button class="btn sm" data-act="rv-reject">✗ رفض</button><button class="btn sm" data-act="edit">تعديل النص</button>`;
       return h + '</div>' + APP.commentsHtml(it.id);
@@ -156,6 +157,12 @@
         }
         case 'mindmap': location.hash = '#/mindmap/' + encodeURIComponent(id); return;
         case 'copy': APP.copy(APP.cite(it)); return;
+        case 'listen': {
+          if (it.type === 'ayah' && window.QA) { QA.play([[it.surah, it.ayah]], { noBasmala: true }); return; }
+          const parts = [it.title, it.isnad, it.matn || it.text, it.sharh, it.body].filter(x => typeof x === 'string' && x.trim());
+          if (window.TTS) TTS.read([...new Set(parts)].join('. '), APP.titleOf ? APP.titleOf(it) : '');
+          return;
+        }
         case 'rv-ok': case 'rv-fix': case 'rv-reject': {
           const status = act.slice(3);
           let note = (APP.state.review[id] || {}).note || '';
