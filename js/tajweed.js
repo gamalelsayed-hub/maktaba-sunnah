@@ -170,6 +170,12 @@
 
   // ===== التسجيل للمقارنة (يعمل بدون إنترنت) =====
   let rec = null, chunks = [], recUrl = null;
+  // مغادرة الدرس: إيقاف التسجيل وتشغيله وحذفه
+  window.addEventListener('hashchange', () => {
+    if (rec && rec.state === 'recording') { rec.onstop = null; try { rec.stop(); rec.stream && rec.stream.getTracks().forEach(t => t.stop()); } catch (e) { } }
+    document.querySelectorAll('audio').forEach(x => { if (x.src && x.src.startsWith('blob:')) x.pause(); });
+    if (recUrl) { URL.revokeObjectURL(recUrl); recUrl = null; }
+  });
   async function toggleRecord(btn, box) {
     if (rec && rec.state === 'recording') { rec.stop(); return; }
     try {
@@ -181,7 +187,8 @@
         if (recUrl) URL.revokeObjectURL(recUrl);
         recUrl = URL.createObjectURL(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }));
         btn.textContent = '🎙️ سجّل مرة أخرى'; btn.classList.remove('rec-on');
-        box.innerHTML = `<audio controls src="${recUrl}"></audio> <span class="muted">قارن قراءتك بقراءة الشيخ 🔊</span>`;
+        box.innerHTML = `<div class="row" style="gap:8px"><audio controls src="${recUrl}"></audio><button class="btn sm" data-del>🗑 حذف التسجيل</button></div><span class="muted" style="font-size:12.5px">قارن قراءتك بقراءة الشيخ 🔊 — التسجيل لا يُحفظ ويُحذف عند مغادرة الدرس</span>`;
+        box.querySelector('[data-del]').onclick = () => { const a = box.querySelector('audio'); if (a) a.pause(); if (recUrl) URL.revokeObjectURL(recUrl); recUrl = null; box.innerHTML = ''; btn.textContent = '🎙️ سجّل قراءتك'; };
       };
       rec.start(); btn.textContent = '⏹ إيقاف التسجيل'; btn.classList.add('rec-on');
     } catch (e) { APP.toast('تعذر الوصول إلى الميكروفون — اسمح للبرنامج باستعماله', 4000); }

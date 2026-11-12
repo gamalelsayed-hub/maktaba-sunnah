@@ -13,10 +13,25 @@
 
   // الاستماع: التسجيل الصوتي إن وُجد، وإلا القراءة الصوتية
   const player = new Audio();
+  let queue = [], qi = 0;
+  function bar() {
+    let b = document.getElementById('dkBar');
+    if (!queue.length) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('div'); b.id = 'dkBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
+    b.innerHTML = `<button class="btn sm primary" data-a="t">${player.paused ? '▶' : '⏸'}</button>${queue.length > 1 ? '<button class="btn sm" data-a="n">⏭</button>' : ''}
+      <span class="qa-now">📿 ${queue.length > 1 ? `الذكر ${AR.toArabicDigits(qi + 1)} من ${AR.toArabicDigits(queue.length)}` : 'ذكر'}</span><button class="btn sm" data-a="x" title="إيقاف">✕</button>`;
+    b.querySelector('[data-a=t]').onclick = () => { if (player.paused) player.play().catch(() => { }); else player.pause(); };
+    const n = b.querySelector('[data-a=n]'); if (n) n.onclick = () => playAt(qi + 1);
+    b.querySelector('[data-a=x]').onclick = stop;
+  }
+  function playAt(i) { if (i >= queue.length) { stop(); return; } qi = i; player.src = queue[i]; player.play().catch(() => { }); bar(); }
+  function stop() { queue = []; qi = 0; player.onended = null; try { player.pause(); player.removeAttribute('src'); player.load(); } catch (e) { } bar(); }
+  player.onplay = player.onpause = () => bar();
+  player.onended = () => playAt(qi + 1);
+  function play(urls) { if (window.QA) QA.stop(); if (window.TTS) TTS.stop(); queue = urls; playAt(0); }
   function listen(item) {
-    if (window.QA) QA.stop();
-    if (item.a && navigator.onLine !== false) { player.src = item.a; player.play().catch(() => { if (window.TTS) TTS.read(item.t, 'ذكر'); }); return; }
-    if (window.TTS) TTS.read(item.t, 'ذكر');
+    if (item.a && navigator.onLine !== false) { play([item.a]); player.onerror = () => { stop(); if (window.TTS) TTS.read(item.t, 'ذكر'); }; return; }
+    stop(); if (window.TTS) TTS.read(item.t, 'ذكر');
   }
 
   function card(it, key, done, fs) {
@@ -103,8 +118,7 @@
       // تشغيل متتابع: التسجيلات حيث وُجدت
       const q = list.filter(x => x.a); let i = 0;
       if (!q.length) { if (window.TTS) TTS.read(list.map(x => x.t).join('. '), 'الأذكار'); return; }
-      const next = () => { if (i >= q.length) { player.onended = null; return; } player.src = q[i++].a; player.play().catch(() => { }); };
-      player.onended = next; next(); APP.toast('▶ يُشغَّل ' + q.length + ' ذكراً بالتتابع — اضغط أي ذكر للاستماع له وحده', 4000);
+      void i; player.onerror = null; play(q.map(x => x.a)); APP.toast('▶ يُشغَّل ' + q.length + ' ذكراً بالتتابع — اضغط أي ذكر للاستماع له وحده', 4000);
     };
     if ($('#hq')) $('#hq').oninput = e => { const q = AR.normalize(e.target.value); el.querySelectorAll('.hisn-grid .tile').forEach(t => { t.style.display = !q || t.dataset.t.includes(q) ? '' : 'none'; }); };
     if ($('#perm')) $('#perm').onclick = async () => { await NOTIFY.request(); APP.rerender(); };
@@ -137,5 +151,5 @@
     return out;
   });
 
-  window.ADHKAR = { listen };
+  window.ADHKAR = { listen, stop };
 })();

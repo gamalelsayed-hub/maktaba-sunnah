@@ -114,6 +114,7 @@
   function unlock() { if (P.unlocked) return; P.unlocked = true; try { audio.src = SILENT; const p = audio.play(); if (p) p.catch(() => { }); } catch (e) { } }
   async function play(list, opts = {}) {
     unlock(); // يجب أن يسبق أي await
+    if (window.ADHKAR) ADHKAR.stop();
     P.r = opts.reciter || P.r || (await DB.setting('reciter')) || 'husary';
     P.rep = opts.rep || P.rep || 1; P.repLeft = P.rep; P.onEnd = opts.onEnd || null;
     P.q = []; list.forEach(([s, a]) => { if (a === 1 && s !== 1 && s !== 9 && !opts.noBasmala) P.q.push([1, 1, true]); P.q.push([s, a]); });
