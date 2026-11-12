@@ -8,7 +8,7 @@
 }
 body.dark { --bg: #111714; --panel: #18211c; --ink: #e5e7eb; --muted: #9ca3af; --line: #2c3a32; --brand: #4ade80; --brand2: #2dd4bf; }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; min-height: 100%; }
 body { background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 15px; }
 a { color: var(--brand2); text-decoration: none; }
 a:hover { text-decoration: underline; }

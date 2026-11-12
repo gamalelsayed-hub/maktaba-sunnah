@@ -125,11 +125,33 @@
     const hits = (catName ? cat.filter(c => c.g === catName && c.s === 'p') : cat.filter(c => ws.every(w => c._n.includes(w))))
       .sort((a, b) => (a.s !== 'p') - (b.s !== 'p') || (ws[0] ? N(b.t).startsWith(ws[0]) - N(a.t).startsWith(ws[0]) : 0) || a.d - b.d).slice(0, catName ? 300 : 80);
     const have = id => (APP.state.books[id] || {}).count;
-    box.innerHTML = `<div class="muted">${catName ? '«' + esc(catName) + '»: ' : ''}${hits.length >= 80 ? 'أول ' + hits.length + ' نتيجة' : hits.length + ' نتيجة'}</div>` + (hits.length ? `<table class="t"><tr><th>الكتاب</th><th>المؤلف</th><th>الفن</th><th>الحجم</th><th></th></tr>${hits.map(c => {
+    const bar = hits.length ? `<div class="row" id="multiBar" style="position:sticky;top:var(--tbH,58px);z-index:5;background:var(--bg);padding:8px 0;gap:8px;border-bottom:1px solid var(--line,#ddd)">
+      <label><input type="checkbox" id="selAll"> تحديد الكل</label>
+      <button class="btn primary" id="dlSel" disabled>⬇ تحميل المحدد (0)</button><span id="dlLog" class="muted"></span></div>` : '';
+    box.innerHTML = `<div class="muted">${catName ? '«' + esc(catName) + '»: ' : ''}${hits.length >= 80 ? 'أول ' + hits.length + ' نتيجة' : hits.length + ' نتيجة'}</div>` + bar + (hits.length ? `<table class="t"><tr><th></th><th>الكتاب</th><th>المؤلف</th><th>الفن</th><th>الحجم</th><th></th></tr>${hits.map(c => {
       const id = IMPORT.slug(c.v);
-      return `<tr><td>${esc(c.t)}${c.s === 's' ? ' <small class="muted">(نسخة أخرى)</small>' : ''}</td><td>${esc(c.a)}${c.d ? ' <small class="muted">ت ' + c.d + 'هـ</small>' : ''}</td><td><small>${esc(c.g)}</small></td><td><small>${c.c > 1e6 ? (c.c / 1e6).toFixed(1) + ' م حرف' : Math.round(c.c / 1e3) + ' ألف حرف'}</small></td>
+      return `<tr><td>${have(id) ? '' : `<input type="checkbox" class="selBk" value="${esc(c.v)}">`}</td><td>${esc(c.t)}${c.s === 's' ? ' <small class="muted">(نسخة أخرى)</small>' : ''}</td><td>${esc(c.a)}${c.d ? ' <small class="muted">ت ' + c.d + 'هـ</small>' : ''}</td><td><small>${esc(c.g)}</small></td><td><small>${c.c > 1e6 ? (c.c / 1e6).toFixed(1) + ' م حرف' : Math.round(c.c / 1e3) + ' ألف حرف'}</small></td>
         <td>${have(id) ? `<a class="btn sm" href="#/book/${id}">فتح</a>` : `<button class="btn sm primary" data-dl="${esc(c.v)}">تحميل</button>`}</td></tr>`; }).join('')}</table>` : '<div class="muted">لا توجد نتائج. جرّب كلمة واحدة من العنوان أو اسم المؤلف.</div>');
     box.querySelectorAll('[data-dl]').forEach(b => b.onclick = () => APP.downloadBook(cat.find(c => c.v === b.dataset.dl), b));
+    // تحديد مجموعة كتب وتحميلها مرة واحدة
+    const sel = () => [...box.querySelectorAll('.selBk:checked')];
+    const upd = () => { const n = sel().length, sz = sel().reduce((s, x) => s + ((cat.find(c => c.v === x.value) || {}).c || 0), 0); const b = box.querySelector('#dlSel'); if (b) { b.disabled = !n; b.textContent = `⬇ تحميل المحدد (${n})` + (n ? ` — نحو ${Math.max(1, Math.round(sz * 2 / 1e6))} ميجا` : ''); } };
+    box.querySelectorAll('.selBk').forEach(x => x.onchange = upd);
+    const sa = box.querySelector('#selAll'); if (sa) sa.onchange = () => { box.querySelectorAll('.selBk').forEach(x => { x.checked = sa.checked; }); upd(); };
+    const dl = box.querySelector('#dlSel');
+    if (dl) dl.onclick = async () => {
+      const list = sel(); if (!list.length) return;
+      dl.disabled = true; let ok = 0; const bad = [];
+      for (let i = 0; i < list.length; i++) {
+        const c = cat.find(e => e.v === list[i].value), btn = box.querySelector(`[data-dl="${CSS.escape(c.v)}"]`);
+        box.querySelector('#dlLog').textContent = `(${i + 1} من ${list.length}) ${c.t}`;
+        try { await IMPORT.downloadOpenITI(c, t => { if (btn) btn.textContent = t; }); ok++; list[i].checked = false; list[i].disabled = true; if (btn) { btn.textContent = '✔ تم'; btn.disabled = true; } }
+        catch (e) { bad.push(c.t); if (btn) btn.textContent = 'تعذر'; }
+      }
+      await APP.loadMeta();
+      box.querySelector('#dlLog').textContent = `✔ تم تحميل ${ok} من ${list.length}` + (bad.length ? ` — تعذر: ${bad.join('، ')}` : '');
+      APP.toast(`تم تحميل ${ok} كتاباً`); upd();
+    };
   };
   APP.downloadBook = async (entry, btn) => {
     const label = t => { if (btn) btn.textContent = t; else APP.toast(t, 1500); };

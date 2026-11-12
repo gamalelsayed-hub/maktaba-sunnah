@@ -307,6 +307,7 @@
       if (p) APP.setProfile(p); else { APP.setProfile('aam'); }
       await APP.refreshUser();
       window.addEventListener('hashchange', APP.route);
+      APP.fixTopbarH(); window.addEventListener('resize', APP.fixTopbarH);
       APP.bindGlobal();
       await APP.route();
       if (!p) APP.chooseProfile(true);
@@ -328,6 +329,7 @@
       APP.setReviewer(false); APP.toast('أُغلق وضع المراجع'); APP.rerender();
     },
 
+    fixTopbarH() { const t = document.querySelector('.topbar'); if (t) document.documentElement.style.setProperty('--tbH', t.offsetHeight + 'px'); },
     async installScreen() {
       const el = $('#view');
       const removed = (await DB.setting('removedBooks')) || [];

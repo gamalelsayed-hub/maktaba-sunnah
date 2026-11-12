@@ -120,7 +120,8 @@
     // مواضع المسألة في كتب الفقه المثبتة (بحث تلقائي بكلماتها المفتاحية)
     const box = el.querySelector('#fiqhSrc');
     if (box && APP.deepFind) {
-      const ids = ['bidayat', 'mughni', 'muhalla'].filter(b => (APP.state.books[b] || {}).count);
+      // كتب الخلاف الأساسية أولاً، ثم أي كتاب فقه حمّله المستخدم من الفهرس
+      const ids = [...new Set(['bidayat', 'mughni', 'muhalla'].concat(Object.values(APP.state.books).filter(b => b.type === 'fiqhbook').map(b => b.id)))].filter(b => (APP.state.books[b] || {}).count);
       const words = AR.normalize(it.kw || it.title).split(' ').filter(w => w.length >= 2);
       if (!ids.length) { box.innerHTML = 'ثبّت بداية المجتهد والمغني والمحلى من <a href="#/library">المكتبة</a>.'; return; }
       const hits = await APP.deepFind(words, null, ids, {});
