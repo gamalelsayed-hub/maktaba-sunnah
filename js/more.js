@@ -213,6 +213,6 @@
   V.sahaba = async (el, parts, p) => {
     await origSahaba(el, parts, p);
     const b = APP.state.books.isaba;
-    el.querySelector('.sub').insertAdjacentHTML('afterend', b && b.count ? `<form class="filters" onsubmit="event.preventDefault();location.hash='#/search?type=sahabi&nodirect=1&q='+encodeURIComponent(this.q.value)"><input name="q" type="text" placeholder="ابحث باسم الصحابي في الإصابة (نحو 9800 ترجمة)…" style="flex:1"><button class="btn primary">بحث</button><a class="btn" href="#/book/isaba">تصفح الإصابة بالحروف</a></form><h2>تراجم مفصلة</h2>` : `<div class="info">ثبّت «الإصابة في تمييز الصحابة» من <a href="#/library">المكتبة</a> لتراجم آلاف الصحابة.</div>`);
+    el.querySelector('.sub').insertAdjacentHTML('afterend', b && b.count ? `<form class="filters" onsubmit="event.preventDefault();location.hash='#/search?type=sahabi&nodirect=1&q='+encodeURIComponent(this.q.value)"><input name="q" type="text" placeholder="اكتب اسم الصحابي أو كنيته (أبو بكر، عائشة، تميم الداري…) لتظهر سيرته مختصرة" style="flex:1"><button class="btn primary">بحث</button><a class="btn" href="#/book/isaba">تصفح الإصابة بالحروف</a></form><h2>تراجم مفصلة</h2>` : `<div class="info">ثبّت «الإصابة في تمييز الصحابة» من <a href="#/library">المكتبة</a> لتراجم آلاف الصحابة.</div>`);
   };
 })();

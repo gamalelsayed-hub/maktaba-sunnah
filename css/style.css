@@ -243,7 +243,7 @@ body.dark .summary-box { background: #0f2a1a; border-color: #14532d; }
   .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 44; }
   .view { padding: 16px 14px calc(110px + var(--sab)); }
   h1 { font-size: 21px; }
-  html, body { overflow-x: hidden; }
+  html, body { overflow-x: clip; }
   .global-search, .global-search input { min-width: 0; }
   table.t { display: block; overflow-x: auto; }
   .notes-panel { width: calc(100vw - 24px); left: 12px; bottom: 140px; }
@@ -399,3 +399,13 @@ html.native .fab { display: none; }
 .compass .needle::before { content: ''; position: absolute; top: 14px; bottom: 50%; width: 3px; background: var(--brand); border-radius: 2px; }
 .compass .needle span { position: absolute; top: -6px; font-size: 22px; }
 .compass .cN { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); color: var(--red); font-size: 12px; }
+
+/* التظليل في الوضع الليلي */
+body.dark mark { background: rgba(224,180,90,.30); color: #ffe9b0; box-shadow: inset 0 -2px 0 rgba(224,180,90,.6); }
+body.dark mark.mt-diff { background: rgba(224,180,90,.30); color: #ffe9b0; }
+body.dark .tw-hint { background: #1e3a6b; color: #bfdbfe; }
+body.dark .dk-fadl { background: #2a2312; color: #e9c46a; }
+/* بطاقة الصحابي */
+.sah-card h2::before, .sah-card h2::after { content: none; }
+.sah-t th { width: 120px; white-space: nowrap; }
+@media (max-width: 860px) { .sah-t th { width: 92px; white-space: normal; font-size: 12.5px; } }
