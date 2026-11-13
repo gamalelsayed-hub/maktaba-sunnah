@@ -58,11 +58,17 @@ jobs:
           $BT/zipalign -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
           VER=$(node -p "require('../package.json').version")
           $BT/apksigner sign --ks ks.jks --ks-key-alias maktaba --ks-pass pass:$PASS --key-pass pass:$PASS --out "../../maktaba-sunnah-$VER.apk" aligned.apk
-          rm -f ks.jks
           $BT/apksigner verify --print-certs "../../maktaba-sunnah-$VER.apk" | grep -i sha-256
-          ls -la ../../*.apk
+          $BT/aapt2 dump badging "../../maktaba-sunnah-$VER.apk" | grep -E "^package|targetSdkVersion|sdkVersion" || true
+          # حزمة AAB لجوجل بلاي (موقّعة بنفس المفتاح كـ«مفتاح رفع»)
+          ./gradlew bundleRelease --no-daemon -q
+          cp app/build/outputs/bundle/release/app-release.aab "../../maktaba-sunnah-$VER.aab"
+          jarsigner -keystore ks.jks -storepass "$PASS" -keypass "$PASS" -sigalg SHA256withRSA -digestalg SHA-256 "../../maktaba-sunnah-$VER.aab" maktaba > /dev/null
+          jarsigner -verify "../../maktaba-sunnah-$VER.aab" | tail -1
+          rm -f ks.jks
+          ls -la ../../*.apk ../../*.aab
       - uses: actions/upload-artifact@v4
-        with: { name: maktaba-sunnah-android, path: '*.apk', compression-level: 0 }
+        with: { name: maktaba-sunnah-android, path: '*.a?[kb]', compression-level: 0 }
       - name: نشر في صفحة الإصدارات (رابط تحميل مباشر)
         uses: softprops/action-gh-release@v2
         with:
@@ -72,5 +78,7 @@ jobs:
           body: |
             تطبيق «مكتبة القرآن والسنة» لأندرويد — يعمل بدون إنترنت بعد التثبيت.
             طريقة التثبيت: نزّل ملف APK، افتحه، واسمح بالتثبيت من مصادر غير معروفة إذا طُلب منك.
-          files: '*.apk'
+          files: |
+            *.apk
+            *.aab
           make_latest: true
