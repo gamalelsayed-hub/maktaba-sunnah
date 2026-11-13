@@ -4,6 +4,9 @@
 (() => {
   const C = window.Capacitor, native = !!(C && C.isNativePlatform && C.isNativePlatform());
   const LN = native && C.Plugins && C.Plugins.LocalNotifications;
+  // الأذان الكامل في أندرويد: منبّه من النظام يشغّل الأذان على صوت المنبّه مع زر إيقاف (AdhanPlugin)
+  const AD = native && C.Plugins && C.Plugins.Adhan;
+  const isAdhan = n => n.channel === 'adhan' || n.channel === 'adhan_fajr';
   // نطاقات المعرّفات لكل نوع، حتى تُعاد جدولة كل نوع دون المساس بغيره
   const RANGE = { prayer: [1000, 1999], adhkar: [2000, 2499], fasting: [3000, 3499], zakat: [4000, 4499], khatma: [4500, 4599] };
   const CHANNELS = [
@@ -53,8 +56,8 @@
   // ===== الويب: مؤقتات داخل الصفحة =====
   const webTimers = {};
   const adhanAudio = new Audio(); adhanAudio.preload = 'none';
-  function playAdhan(fajr) { if (window.MEDIA) MEDIA.claim('adhan'); try { adhanAudio.src = fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3'; adhanAudio.play().catch(() => { }); } catch (e) { } }
-  function stopAdhan() { try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) { } }
+  function playAdhan(fajr) { if (AD) { AD.test({ fajr: !!fajr }).catch(() => { }); return; } if (window.MEDIA) MEDIA.claim('adhan'); try { adhanAudio.src = fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3'; adhanAudio.play().catch(() => { }); } catch (e) { } }
+  function stopAdhan() { if (AD) { AD.stop().catch(() => { }); return; } try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) { } }
   function webShow(n) {
     if (n.channel === 'adhan' || n.channel === 'adhan_fajr') playAdhan(n.channel === 'adhan_fajr');
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -71,6 +74,12 @@
     list = list.filter(n => n.at && n.at.getTime() > now + 5000).sort((a, b) => a.at - b.at).slice(0, hi - lo);
     if (LN) {
       await setup();
+      let adCount = 0;
+      if (AD && kind === 'prayer') {
+        const ad = list.filter(isAdhan); adCount = ad.length;
+        try { await AD.schedule({ items: ad.map((n, i) => ({ id: i, at: n.at.getTime(), title: n.title, body: n.body || '', fajr: n.channel === 'adhan_fajr' })) }); list = list.filter(n => !isAdhan(n)); }
+        catch (e) { console.warn('adhan', e); }
+      }
       try {
         const pend = await LN.getPending();
         const mine = (pend.notifications || []).filter(n => n.id >= lo && n.id <= hi).map(n => ({ id: n.id }));
@@ -82,7 +91,7 @@
           extra: { route: n.route || '' },
         })) });
       } catch (e) { console.warn('schedule', e); }
-      return list.length;
+      return list.length + adCount;
     }
     // الويب: ما كان خلال 36 ساعة القادمة فقط (الصفحة لا تبقى مفتوحة أكثر عادة)
     (webTimers[kind] || []).forEach(clearTimeout);

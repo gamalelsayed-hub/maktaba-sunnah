@@ -65,7 +65,7 @@
         ${st.kind === 'web' ? `<div class="warn" style="margin-top:8px">في نسخة المتصفح يُرفع الأذان ما دام التطبيق مفتوحاً فقط. ليُرفع الأذان والجوال مغلق استعمل <b>تطبيق أندرويد</b>.</div>` : ''}
         ${c.enabled && st.perm !== 'granted' ? '<div class="warn" style="margin-top:8px">⚠️ صلاحية التنبيهات غير ممنوحة، فلن يُرفع الأذان. <button class="btn sm primary" id="perm">منح الصلاحية</button></div>' : ''}
         ${c.enabled && st.exact && st.exact !== 'granted' ? '<div class="warn" style="margin-top:8px">⚠️ صلاحية «المنبهات الدقيقة» غير مفعلة، فقد يتأخر الأذان دقائق. <button class="btn sm primary" id="perm2">تفعيلها</button></div>' : ''}
-        <div class="muted" style="font-size:13px;margin:6px 0">اضغط 🔊/🔕 بجوار كل صلاة لتشغيل أذانها أو إسكاته.</div>
+        <div class="muted" style="font-size:13px;margin:6px 0">اضغط 🔊/🔕 بجوار كل صلاة لتشغيل أذانها أو إسكاته.${st.kind === 'native' ? ' الأذان الكامل يُرفع على <b>صوت المنبّه</b>، فيُسمع ولو كان الجوال صامتاً، ويُوقف من زر «إيقاف» في الإشعار.' : ''}</div>
         <div class="filters">
           <label>صوت الأذان <select id="snd"><option value="adhan" ${c.sound === 'adhan' ? 'selected' : ''}>أذان كامل</option><option value="beep" ${c.sound === 'beep' ? 'selected' : ''}>تنبيه قصير فقط</option></select></label>
           <label>تذكير قبل الأذان <select id="pre">${[0, 5, 10, 15, 20, 30].map(m => `<option value="${m}" ${+c.pre === m ? 'selected' : ''}>${m ? m + ' دقيقة' : 'بدون'}</option>`).join('')}</select></label>
