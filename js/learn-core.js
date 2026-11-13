@@ -197,6 +197,14 @@
     b.innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="--a:${i * 26}deg;--d:${60 + (i % 3) * 30}px">${['⭐', '✨', '🌟'][i % 3]}</i>`).join('');
     (host || document.body).appendChild(b); setTimeout(() => b.remove(), 1100);
   }
+  // ردّ فعل الأستاذ جمال في زاوية الشاشة (تصفيق، إبهام، تفكير…)
+  let rt = null;
+  function react(pose, ms = 1600) {
+    let el = document.getElementById('tcReact');
+    if (!el) { el = document.createElement('img'); el.id = 'tcReact'; el.className = 'tc-react'; el.alt = ''; el.onerror = () => el.classList.remove('on'); document.body.appendChild(el); }
+    el.src = 'img/teacher/' + pose + '-h.png'; el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+    clearTimeout(rt); rt = setTimeout(() => el.classList.remove('on'), ms);
+  }
   const praise = () => say(['p_good', 'p_great', 'p_char_good'][Math.floor(Math.random() * 3)]);
 
   // ===== التقدم =====
@@ -332,5 +340,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

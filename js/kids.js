@@ -217,7 +217,7 @@
     if (sec === 'stories') {
       if (id == null) {
         const b = sh('📚 قصصي', '#/kids');
-        b.innerHTML = `<div class="lr-grid g2">${LEARN.STORIES.map((st, i) => `<a class="lr-tile kd sur ${k['st_' + st.id] ? 'done' : ''}" href="#/kids/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${k['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
+        b.innerHTML = `${LX.who('read', 'md')}<div class="lr-grid g2">${LEARN.STORIES.map((st, i) => `<a class="lr-tile kd sur ${k['st_' + st.id] ? 'done' : ''}" href="#/kids/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${k['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
         LIT.sayTiles(b); return;
       }
       const st = LEARN.STORIES.find(x => x.id === id); if (!st) { location.hash = '#/kids/stories'; return; }
@@ -264,7 +264,7 @@
     const b = sh('سورة ' + AR.SURAHS[s - 1], list);
     const ay = (await DB.byIndex('items', 'bookId', 'quran')).filter(a => a.surah === s).sort((x, y) => x.ayah - y.ayah);
     const heard = new Set(); wasQ = true;
-    b.innerHTML = `<div class="kd-quran">
+    b.innerHTML = `${LX.who('read', 'md')}<div class="kd-quran">
       <div class="row" style="justify-content:center;gap:10px;flex-wrap:wrap"><button class="lr-btn ok" data-all>▶ لقّنّي السورة</button><button class="lr-btn ghost" data-stop>⏹</button></div>
       <div class="muted" style="text-align:center;margin:8px 0">👆 اضغط على الآية لتسمعها ثم ردّدها</div>
       ${ay.map(a => `<button class="kd-ayah" data-a="${a.ayah}" data-card="quran:${s}:${a.ayah}"><span>${esc(noBasm(a.text, s, a.ayah))}</span> <i>${AD(a.ayah)}</i></button>`).join('')}</div>`;

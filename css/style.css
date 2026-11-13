@@ -723,7 +723,7 @@ html.dark body.learn-mode, body.dark.learn-mode { --lr-pad: #ffffff; }
 .kd-ayah.ayah-playing { border-color: #2e9e5b; background: #e3f7ea; }
 /* الأستاذ جمال */
 .tc { display: block; object-fit: contain; pointer-events: none; }
-.tc.hero { width: 190px; height: 190px; margin: 0 auto 4px; animation: tcBob 2.4s ease-in-out infinite; }
+.tc.tch { width: 190px; height: 190px; margin: 0 auto 4px; animation: tcBob 2.4s ease-in-out infinite; }
 .tc.lg { width: 170px; height: 170px; margin: 0 auto; animation: tcBob 2s ease-in-out infinite; }
 .tc.md { width: 120px; height: 120px; margin: 0 auto; }
 .tc.sm { width: 64px; height: 64px; }
@@ -774,3 +774,8 @@ html.dark body.learn-mode, body.dark.learn-mode { --lr-pad: #ffffff; }
 .st-sent span { display: inline-block; opacity: 0; animation: stWord .5s ease forwards; }
 @keyframes stWord { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 img.tc[src$="face.png"] { border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.tc.sm2 { width: 92px; height: 92px; flex: none; }
+.tc.flip { transform: scaleX(-1); }
+.tc-react { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 10px); left: 8px; width: 130px; height: 130px; object-fit: contain; z-index: 120; pointer-events: none; opacity: 0; transform: translateY(40px) scale(.7); transition: opacity .25s, transform .35s cubic-bezier(.3,1.6,.5,1); }
+.tc-react.on { opacity: 1; transform: none; }
+body:not(.learn-mode) .tc-react { display: none; }

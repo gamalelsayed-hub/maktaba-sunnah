@@ -7,7 +7,8 @@
   const dayKey = off => { const d = new Date(); d.setDate(d.getDate() - off); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
   // ===== الأستاذ جمال (صور الأوضاع في img/teacher/ — تختفي إن لم توجد) =====
-  const who = (pose, cls = '') => `<img class="tc ${cls}" src="img/teacher/${pose}.png" alt="" onerror="this.remove()">`;
+  // الأحجام الصغيرة تستعمل نسخة نصف الجسم (-h) ليظهر الوجه بوضوح
+  const who = (pose, cls = '') => `<img class="tc ${cls}" src="img/teacher/${pose}${pose !== 'face' && /\b(sm|sm2|md)\b/.test(cls) ? '-h' : ''}.png" alt="" onerror="this.remove()">`;
 
   // ===== رسم الحرف متحركاً (مسارات من خط النسخ) =====
   function drawLetter(host, ch, opt = {}) {

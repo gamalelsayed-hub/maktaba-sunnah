@@ -5,7 +5,7 @@
   // ===== شاشة البداية: من أنت؟ =====
   V.start = async el => {
     const b = LEARN.shell(el, { title: 'مكتبة القرآن والسنة', repeat: () => LEARN.say('p_welcome') });
-    b.innerHTML = `${LX.who('wave', 'hero')}<div class="st-grid">
+    b.innerHTML = `${LX.who('wave', 'tch')}<div class="st-grid">
       <a class="st-card kids" href="#/kids" data-aud="kids"><span class="st-ic">🧒</span><b>الأطفال</b><small>حروف، كتابة، أرقام، قرآن، ألعاب</small></a>
       <a class="st-card lit" href="#/literacy" data-aud="lit"><span class="st-ic">✍️</span><b>تعلّم القراءة والكتابة</b><small>لمن لا يعرف القراءة — بالصوت والصور</small></a>
       <a class="st-card adult" href="#/" data-aud="adult"><span class="st-ic">📚</span><b>الشباب والكبار</b><small>المصحف والتفسير والحديث والفقه</small></a>

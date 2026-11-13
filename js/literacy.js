@@ -35,7 +35,7 @@
   // سؤال اختيار: يسمع المتعلم شيئاً (أو يقرأه) ثم يختار
   function choose(b, { prompt, hear, show, options, cols }) {
     return gone(b) || new Promise(res => {
-      b.innerHTML = `<div class="lr-step">${show ? `<div class="lr-q">${show}</div>` : `<button class="lr-ic xl" data-hear>🔊</button>`}
+      b.innerHTML = `<div class="lr-step">${show ? `<div class="lr-q">${show}</div>` : `<div class="row" style="align-items:center;gap:6px">${LX.who('listen', 'sm2')}<button class="lr-ic xl" data-hear>🔊</button></div>`}
         <div class="lr-opts ${cols === 2 ? 'c2' : ''}">${options.map((o, k) => `<button class="lr-tile opt" data-o="${k}">${o.html}</button>`).join('')}</div></div>`;
       const play = () => hear && say(hear[0], hear[1]);
       const hb = b.querySelector('[data-hear]'); if (hb) hb.onclick = play;
@@ -43,22 +43,22 @@
       let tries = 0;
       b.querySelectorAll('[data-o]').forEach(t => t.onclick = async () => {
         const o = options[+t.dataset.o];
-        if (o.ok) { t.classList.add('good'); LEARN.tone('ok'); LEARN.burst(t); b.querySelectorAll('[data-o]').forEach(x => x.disabled = true); await LEARN.praise(); res(tries === 0); }
-        else { tries++; t.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => t.classList.remove('bad'), 500); await say('p_try_again'); play(); }
+        if (o.ok) { t.classList.add('good'); LEARN.tone('ok'); LEARN.burst(t); LEARN.react(Math.random() < 0.5 ? 'clap' : 'thumbs'); b.querySelectorAll('[data-o]').forEach(x => x.disabled = true); await LEARN.praise(); res(tries === 0); }
+        else { tries++; t.classList.add('bad'); LEARN.tone('bad'); LEARN.react('think'); setTimeout(() => t.classList.remove('bad'), 500); await say('p_try_again'); play(); }
       });
     });
   }
 
   function writeStep(b, text, { guide, prompt, model }) {
     return gone(b) || new Promise(res => {
-      b.innerHTML = `<div class="lr-step">${model ? `<div class="lr-model" data-say="${model}">${text}</div>` : ''}<div class="lr-padhost"></div><div class="lr-foot"><button class="lr-btn ghost" data-skip>تخطَّ ⬅</button></div></div>`;
+      b.innerHTML = `<div class="lr-step"><div class="row" style="align-items:center;gap:8px">${LX.who('write', 'sm2')}${model ? `<div class="lr-model" data-say="${model}">${text}</div>` : ''}</div><div class="lr-padhost"></div><div class="lr-foot"><button class="lr-btn ghost" data-skip>تخطَّ ⬅</button></div></div>`;
       bindSay(b);
       say(prompt);
       let fails = 0;
       LEARN.pad(b.querySelector('.lr-padhost'), text, {
         guide, onCheck: async (sc, ok) => {
-          if (ok) { LEARN.tone('win'); LEARN.burst(b.querySelector('.lr-padhost')); await LEARN.praise(); res(true); }
-          else { fails++; LEARN.tone('bad'); await say('p_try_again'); if (fails >= 3) b.querySelector('[data-skip]').classList.add('lr-pulse'); }
+          if (ok) { LEARN.tone('win'); LEARN.burst(b.querySelector('.lr-padhost')); LEARN.react('thumbs'); await LEARN.praise(); res(true); }
+          else { fails++; LEARN.tone('bad'); LEARN.react('think'); await say('p_try_again'); if (fails >= 3) b.querySelector('[data-skip]').classList.add('lr-pulse'); }
         }
       });
       b.querySelector('[data-skip]').onclick = () => { LEARN.stop(); res(false); };
@@ -68,7 +68,7 @@
   // شاهد رسم الحرف متحركاً قبل أن يكتبه
   function watch(b, c) {
     return gone(b) || new Promise(res => {
-      b.innerHTML = `<div class="lr-step"><div class="lr-dl"></div><div class="lr-foot">${NEXT}</div></div>`;
+      b.innerHTML = `<div class="lr-step"><div class="row" style="align-items:center;gap:4px">${LX.who('point', 'sm2 flip')}<div class="lr-dl"></div></div><div class="lr-foot">${NEXT}</div></div>`;
       const nx = b.querySelector('[data-next]'); nx.onclick = () => { LEARN.stop(); res(); };
       say('p_watch'); LX.drawLetter(b.querySelector('.lr-dl'), c);
     });
@@ -178,7 +178,7 @@
       b.querySelectorAll('[data-k]').forEach(ch => ch.onclick = async () => {
         const k = +ch.dataset.k;
         if (words[k] === words[pos]) { slots[pos].textContent = words[k]; slots[pos].classList.add('ok'); ch.disabled = true; ch.classList.add('used'); pos++; LEARN.tone('ok');
-          if (pos === words.length) { LEARN.burst(b.querySelector('#arLine')); await LEARN.praise(); res(); } }
+          if (pos === words.length) { LEARN.burst(b.querySelector('#arLine')); LEARN.react('clap'); await LEARN.praise(); res(); } }
         else { ch.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => ch.classList.remove('bad'), 500); }
       });
     });
