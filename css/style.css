@@ -434,7 +434,7 @@ body.dark .rawi-name { color: var(--brand); }
 .kb-doc h2 { border-bottom: 1px solid rgba(161, 98, 7, .4); padding-bottom: 4px; margin-top: 22px; }
 .kb-doc h3 { color: #a16207; margin-top: 18px; }
 .kb-doc p { margin: 8px 0; }
-.kb-doc .ayah { font-family: 'AmiriQuran', 'Amiri', serif; font-size: 20px; color: #14532d; line-height: 2.2; }
+.kb-doc .ayah { font-family: 'Amiri Quran', 'Amiri', serif; font-size: 20px; color: #14532d; line-height: 2.2; }
 .kb-doc .hadith { color: #3b2a06; }
 .kb-doc .tafsir { color: #555; font-size: 15px; border-right: 3px solid #a16207; padding-right: 8px; }
 .kb-doc .edit { color: #b45309; }

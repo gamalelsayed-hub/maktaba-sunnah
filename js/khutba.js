@@ -387,7 +387,7 @@
         </aside>
         <div class="kb-main">
           <div class="row kb-tools" style="flex-wrap:wrap;gap:6px">
-            <button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPrint">🧾 PDF / طباعة</button><button class="btn sm" id="kbSave">💾 حفظ</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}
+            <button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPdf">📥 PDF</button><button class="btn sm" id="kbPrint">🖨 طباعة</button><button class="btn sm" id="kbSave">💾 حفظ</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}
             <span class="muted" style="font-size:12px">النص قابل للتعديل مباشرة — ما بين [✎ …] أماكن تكملها أنت.</span>
           </div>
           <article id="kbDoc" class="kb-doc" contenteditable="true" spellcheck="false"><div class="muted">جارٍ التجهيز…</div></article>
@@ -431,18 +431,22 @@
       try { APP.download(fileName(titleFn()) + '.docx', DOCX.build(blocksOf(doc)), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); }
       catch (e) { APP.toast('تعذّر إنشاء ملف Word: ' + e.message); }
     };
+    $('#kbPdf').onclick = async () => {
+      const btn = $('#kbPdf'), old = btn.textContent; btn.disabled = true; btn.textContent = '⏳ جارٍ إنشاء PDF…';
+      try { const blob = await PDFGEN.fromBlocks(blocksOf(doc), titleFn()); APP.download(fileName(titleFn()) + '.pdf', blob, 'application/pdf'); }
+      catch (e) { APP.toast('تعذّر إنشاء PDF: ' + (e.message || e)); }
+      btn.disabled = false; btn.textContent = old;
+    };
     $('#kbPrint').onclick = async () => {
-      const html = printHtml(doc, titleFn());
       if (window.NATIVE_FILE) {
-        APP.toast('اختر من الشاشة التالية «حفظ بتنسيق PDF» أو الطابعة', 5000);
-        try { await window.NATIVE_FILE.print(html, fileName(titleFn())); } catch (e) { APP.toast('تعذّرت الطباعة: ' + (e.message || e)); }
+        try { await window.NATIVE_FILE.print(printHtml(doc, titleFn()), fileName(titleFn())); } catch (e) { APP.toast('تعذّرت الطباعة: ' + (e.message || e)); }
         return;
       }
-      // المتصفح: إطار مخفي يحوي الخطبة وحدها، ومن نافذة الطباعة يُختار «حفظ PDF»
-      const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:-9999px';
-      document.body.appendChild(f);
-      f.onload = () => { setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.print(); } setTimeout(() => f.remove(), 60000); }, 300); };
-      f.srcdoc = html;
+      // المتصفح (جوال أو كمبيوتر): طباعة الصفحة نفسها مع إخفاء كل شيء عدا الخطبة
+      document.body.classList.add('kb-printing');
+      const off = () => document.body.classList.remove('kb-printing');
+      window.addEventListener('afterprint', off, { once: true });
+      setTimeout(() => { try { window.print(); } catch (e) { APP.toast('المتصفح لا يدعم الطباعة — استعمل زر PDF'); } setTimeout(off, 1500); }, 50);
     };
     $('#kbSave').onclick = () => {
       let s = []; try { s = JSON.parse(localStorage.getItem(LS) || '[]'); } catch (e) { }
@@ -456,7 +460,7 @@
 
   function showSaved(s) {
     const box = $('#kbR');
-    box.innerHTML = `<div class="kb-main"><div class="row kb-tools" style="flex-wrap:wrap;gap:6px"><a class="btn sm" href="#/khutba">← رجوع</a><button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPrint">🧾 PDF / طباعة</button><button class="btn sm" id="kbSave">💾 حفظ التعديلات</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}</div>
+    box.innerHTML = `<div class="kb-main"><div class="row kb-tools" style="flex-wrap:wrap;gap:6px"><a class="btn sm" href="#/khutba">← رجوع</a><button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPdf">📥 PDF</button><button class="btn sm" id="kbPrint">🖨 طباعة</button><button class="btn sm" id="kbSave">💾 حفظ التعديلات</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}</div>
       <article id="kbDoc" class="kb-doc" contenteditable="true" spellcheck="false">${s.html}</article></div>`;
     wireTools($('#kbDoc'), () => s.title);
   }
