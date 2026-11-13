@@ -97,6 +97,6 @@
     d.querySelector('[data-x]').onclick = () => tour(STEPS.length);
   }
   // عند أول فتح بعد التثبيت
-  setTimeout(() => { try { if (!localStorage.getItem('tour-done') && !document.querySelector('#modal:not(.hidden)')) tour(0); } catch (e) { } }, 2500);
+  setTimeout(() => { try { if (!localStorage.getItem('tour-done') && !document.body.classList.contains('learn-mode') && !document.querySelector('#modal:not(.hidden)')) tour(0); } catch (e) { } }, 2500);
   window.GUIDE = { tour };
 })();
