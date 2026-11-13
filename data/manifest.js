@@ -85,15 +85,18 @@ window.PACK_MANIFEST=[
   "title": "الأربعون حديثاً",
   "count": 40,
   "size": 8649,
-  "version": "37fa481435c6"
+  "version": "c57ecc511b2d"
  },
  {
   "file": "hadith-ahmad",
   "id": "ahmad",
-  "title": "مسند أحمد (جزء)",
-  "count": 1374,
-  "size": 1861104,
-  "version": "2d8681de502a"
+  "title": "مسند الإمام أحمد",
+  "count": 26363,
+  "size": 26872759,
+  "version": "c6b02b80877e",
+  "optional": true,
+  "type": "hadith",
+  "author": "الإمام أحمد بن حنبل"
  },
  {
   "file": "hadith-darimi",
@@ -139,9 +142,9 @@ window.PACK_MANIFEST=[
   "file": "hadith-mishkat",
   "id": "mishkat",
   "title": "مشكاة المصابيح",
-  "count": 4428,
-  "size": 3505352,
-  "version": "7adf10564383"
+  "count": 6306,
+  "size": 4464260,
+  "version": "f5cea1a3d96c"
  },
  {
   "file": "book-fath",
@@ -214,9 +217,9 @@ window.PACK_MANIFEST=[
   "id": "tafsir-ibnkathir",
   "title": "تفسير القرآن العظيم",
   "author": "ابن كثير",
-  "count": 1941,
-  "size": 14695219,
-  "version": "b6e5f24e0597",
+  "count": 1944,
+  "size": 14749512,
+  "version": "d1625ace5d91",
   "optional": true,
   "type": "tafsir"
  },
@@ -226,8 +229,8 @@ window.PACK_MANIFEST=[
   "title": "جامع البيان عن تأويل آي القرآن",
   "author": "ابن جرير الطبري",
   "count": 4758,
-  "size": 24813745,
-  "version": "022d2ce6bc02",
+  "size": 24833066,
+  "version": "fc17c7020501",
   "optional": true,
   "type": "tafsir"
  },
@@ -237,8 +240,8 @@ window.PACK_MANIFEST=[
   "title": "الجامع لأحكام القرآن",
   "author": "القرطبي",
   "count": 3288,
-  "size": 20443182,
-  "version": "0000140d14e6",
+  "size": 20443264,
+  "version": "55eb8b689481",
   "optional": true,
   "type": "tafsir"
  },
@@ -248,8 +251,8 @@ window.PACK_MANIFEST=[
   "title": "تيسير الكريم الرحمن في تفسير كلام المنان",
   "author": "عبد الرحمن بن ناصر السعدي",
   "count": 1756,
-  "size": 5546530,
-  "version": "eb7621cc720e",
+  "size": 5546668,
+  "version": "1f0983c4bba7",
   "optional": true,
   "type": "tafsir"
  },

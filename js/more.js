@@ -72,7 +72,7 @@
     await origLib(el, parts, p);
     const opt = (window.PACK_MANIFEST || []).filter(m => m.optional);
     const st = m => { const b = APP.state.books[m.id]; return b && b.count && !b.sample && b.packVersion === m.version ? 'ok' : (b && b.count && !b.sample ? 'old' : 'no'); };
-    const TYPE = { sharh: 'شرح حديث', tafsir: 'تفسير', fiqhbook: 'فقه', sirabook: 'سيرة وتاريخ وتراجم', rijal: 'رجال' };
+    const TYPE = { hadith: 'حديث', sharh: 'شرح حديث', tafsir: 'تفسير', fiqhbook: 'فقه', sirabook: 'سيرة وتاريخ وتراجم', rijal: 'رجال' };
     // الأقسام القديمة (المصادر والاستيراد اليدوي) تُطوى تحت «خيارات متقدمة» لتبسيط الشاشة
     const adv = document.createElement('details');
     adv.innerHTML = '<summary>⚙️ خيارات متقدمة: الاستيراد اليدوي، والمصادر، والكتب المثبتة</summary>';
