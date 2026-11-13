@@ -54,10 +54,16 @@
   V.adhkar = async (el, [tab, cat]) => {
     const d = D(), cfg = await settings(), p = await prog();
     tab = tab || (isMorningNow() ? 'sabah' : 'masa');
-    const tabs = [['sabah', '🌅 الصباح'], ['masa', '🌇 المساء'], ['hisn', '🏰 حصن المسلم'], ['remind', '🔔 التذكير']];
+    const tabs = [['sabah', '🌅 الصباح'], ['masa', '🌇 المساء'], ['hisn', '🏰 حصن المسلم'], ['tasbih', '📿 المسبحة'], ['remind', '🔔 التذكير']];
     const head = `<div class="row"><h1>📿 الأذكار</h1><span class="spacer"></span>
       <button class="btn sm" id="fsMinus">ا-</button><button class="btn sm" id="fsPlus">ا+</button></div>
       <div class="tabs">${tabs.map(([k, l]) => `<button class="${k === tab ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('')}</div>`;
+    if (tab === 'tasbih' && window.TASBIH) {
+      el.innerHTML = head + '<div id="tsb"></div>';
+      el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { location.hash = '#/adhkar/' + b.dataset.tab; });
+      el.querySelector('#fsMinus').style.display = el.querySelector('#fsPlus').style.display = 'none';
+      return TASBIH.render(el.querySelector('#tsb'));
+    }
     let body = '', list = [];
     if (tab === 'sabah' || tab === 'masa') {
       // النوع: 0 للصباح والمساء، 1 للصباح فقط، 2 للمساء فقط؛ وتُبدَّل ألفاظ «أصبحنا/أمسينا» في المساء
