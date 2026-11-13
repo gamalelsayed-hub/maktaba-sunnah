@@ -502,10 +502,10 @@ body.dark .hc.forbid { background: rgba(240, 90, 90, .12); } body.dark .hc-day .
 .tj-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; padding: 6px 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--line, #ddd); }
 .tj-legend i { font-style: normal; margin-inline-end: 3px; }
 .tj-hamzat_wasl, .tj-lam_shamsiyyah, .tj-silent { color: #9e9e9e; }
-.tj-madd_2 { color: #b8860b; } .tj-madd_246 { color: #ef6c00; } .tj-madd_munfasil { color: #e64a19; } .tj-madd_muttasil { color: #c62828; } .tj-madd_6 { color: #8e0000; }
+.tj-madd_2 { color: #b8860b; } .tj-madd_246 { color: #d81b60; } .tj-madd_munfasil { color: #ff6d00; } .tj-madd_muttasil { color: #d50000; } .tj-madd_6 { color: #7f0000; }
 .tj-ghunnah { color: #2e7d32; } .tj-ikhfa { color: #43a047; } .tj-ikhfa_shafawi { color: #7cb342; }
 .tj-idghaam_ghunnah { color: #00897b; } .tj-idghaam_no_ghunnah { color: #607d8b; } .tj-idghaam_shafawi { color: #0097a7; }
-.tj-iqlab { color: #7b1fa2; } .tj-qalqalah { color: #1565c0; } .tj-idghaam_mutajanisayn, .tj-idghaam_mutaqaribayn { color: #ad1457; }
+.tj-iqlab { color: #7b1fa2; } .tj-qalqalah { color: #1565c0; } .tj-idghaam_mutajanisayn, .tj-idghaam_mutaqaribayn { color: #6d4c41; }
 body.dark [class^="tj-"] { filter: brightness(1.55) saturate(1.1); }
 body.dark .ap-body h4, body.dark .ap-gh dt { color: #8fd8a8; }
 
