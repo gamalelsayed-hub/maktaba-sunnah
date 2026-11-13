@@ -58,6 +58,7 @@
           <li>غرفة هادئة، والجوال على بُعد شبر من فمك.</li>
           <li>صوت واضح متوسط السرعة، كأنك تعلّم طفلاً.</li>
           <li>الحروف بالحركات: انطق الصوت فقط «بَ» وليس «باء فتحة».</li>
+          <li>المرحلة الثانية (المدود والتنوين) ليست مطلوبة الآن.</li>
           <li>اضغط «سجّل»، انتظر نصف ثانية، انطق، ثم «إيقاف».</li>
         </ul></details>
       </div>
@@ -78,7 +79,8 @@
   };
 
   async function focus(b, all, have) {
-    const todo = all.filter(c => !have.has(c.key));
+    let todo = all.filter(c => !have.has(c.key) && c.phase === 1);
+    if (!todo.length) todo = all.filter(c => !have.has(c.key));
     let i = 0;
     const show = () => {
       const c = todo[i];
@@ -88,13 +90,11 @@
         <div class="rc-big">${esc(c.show)}</div>
         <div class="muted" style="font-size:13px">${c.text !== c.show ? 'انطق: ' + esc(c.text) : ''}</div>
         <div class="row" style="gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px">
-          <button class="lr-btn" data-hear>🔊 اسمع (صوت الجهاز)</button>
           <button class="lr-btn rec" data-rec>🎙️ سجّل</button>
           <button class="lr-btn ghost" data-skip>⏭ تخطَّ</button>
         </div>
         <div id="rcAfter" style="margin-top:12px"></div>
         <a href="#/learnrec" class="muted" style="display:block;margin-top:16px">↩ القائمة</a></div>`;
-      b.querySelector('[data-hear]').onclick = () => LEARN.sayTTS(c.text);
       b.querySelector('[data-skip]').onclick = () => { i++; show(); };
       const rb = b.querySelector('[data-rec]');
       rb.onclick = async () => {

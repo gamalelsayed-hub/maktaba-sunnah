@@ -1,5 +1,5 @@
 /* 🧒 أساس قسمي «الأطفال» و«محو الأمية»: الحروف، الأصوات، لوح الكتابة بالتصحيح، الأصوات المسجلة.
-   كل شيء يعمل بدون إنترنت. الصوت: تسجيل بشري إن وُجد (مسجّل على الجهاز أو مرفق مع التطبيق)، وإلا صوت الجهاز. */
+   كل شيء يعمل بدون إنترنت. الصوت بشري فقط: مسجّل على الجهاز أو مرفق مع التطبيق (لا صوت آلي). */
 (() => {
   const esc = s => AR.escapeHtml(String(s == null ? '' : s));
 
@@ -101,13 +101,11 @@
   };
 
   // ===== النطق =====
-  const textOf = key => { const c = clips().find(x => x.key === key); return c ? c.text : ''; };
   let cur = null, curUrl = null, gen = 0;
   function stop() {
     gen++;
     if (cur) { try { cur.pause(); } catch (e) { } cur = null; }
     if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
-    if (window.NATIVE_TTS) NATIVE_TTS.stop(); else if (window.speechSynthesis) speechSynthesis.cancel();
   }
   const playUrl = (url, my) => new Promise(res => {
     const a = new Audio(url); cur = a;
@@ -115,18 +113,6 @@
     a.play().catch(() => res());
     const chk = setInterval(() => { if (my !== gen) { clearInterval(chk); res(); } else if (a.ended) clearInterval(chk); }, 300);
   });
-  function tts(text, my) {
-    return new Promise(res => {
-      if (!text) return res();
-      if (window.NATIVE_TTS) { NATIVE_TTS.speak(text, 0.85).then(res, res); return; }
-      if (!window.speechSynthesis) return res();
-      const u = new SpeechSynthesisUtterance(text); u.lang = 'ar-SA'; u.rate = 0.85;
-      const v = speechSynthesis.getVoices().find(v => /^ar/i.test(v.lang)); if (v) u.voice = v;
-      u.onend = u.onerror = () => res();
-      speechSynthesis.speak(u);
-      setTimeout(res, 6000 + text.length * 200);
-    });
-  }
   async function say(key, text) {
     if (!key && text) { const c = clips().find(x => x.text === text); if (c) key = c.key; }
     stop(); const my = gen;
@@ -135,9 +121,8 @@
     if (rec && rec.blob) { curUrl = URL.createObjectURL(rec.blob); return playUrl(curUrl, my); }
     const f = key && window.LEARN_AUDIO && LEARN_AUDIO[key];
     if (f) return playUrl('audio/learn/' + f, my);
-    return tts(text != null ? text : textOf(key), my);
+    // لا يُستعمل صوت الجهاز أبداً: إن لم يُسجَّل المقطع بعد يبقى صامتاً
   }
-  const sayTTS = text => { stop(); return tts(text, gen); };
   async function sayAll(list) { const my = gen + 1; for (const [k, t] of list) { await say(k, t); if (gen !== my) return; await new Promise(r => setTimeout(r, 250)); } }
 
   // أصوات قصيرة للتفاعل (بدون ملفات)
@@ -295,5 +280,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { sayTTS, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();
