@@ -58,9 +58,9 @@
       ${dash}
       <h2>ابدأ من هنا</h2>
       <div class="quick">
-        ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
+        ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/khatma', '📅', 'c2', 'الختمة')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
         ${Q('#/hadith', '📜', 'c8', 'الحديث')}${Q('#/ask', '❓', 'c5', 'اسأل عن حكم')}${Q('#/khutba', '🎤', 'c1', 'إعداد خطبة أو درس')}${Q('#/fiqh', '⚖️', 'c6', 'الفقه المقارن')}${Q('#/talab', '🎓', 'c7', 'طلب العلم')}
-        ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}
+        ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}${Q('#/guide', '📘', 'c3', 'دليل الاستخدام')}
       </div>
       <h2>جرّب البحث</h2>
       <div class="chips">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'صلاة المسافر'].map(s => `<a href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
@@ -94,10 +94,12 @@
         ${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}
         <div class="mushaf-text quran-text">${ayat.map(a => `<span class="ay ${APP.hlClass(a.id)}" data-card="${a.id}" data-ay="${a.ayah}">${APP.withGharib(esc(s !== 1 && a.ayah === 1 && a.text.startsWith('بِسْمِ') ? a.text.split(' ').slice(4).join(' ') : a.text))}</span><a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> `).join('')}</div>
       </div>
-      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
+      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><button class="btn" id="qTj">🎨 ${localStorage.getItem('tj-color') === '1' ? 'إخفاء ألوان التجويد' : 'ألوان التجويد'}</button><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
     if (window.QA && ayat.length) {
       const from = k => QA.surahAyat(s).slice(k - 1);
       el.querySelector('#qPlayAll').onclick = () => QA.play(from(1));
+      el.querySelector('#qTj').onclick = () => { try { localStorage.setItem('tj-color', localStorage.getItem('tj-color') === '1' ? '0' : '1'); } catch (e) { } APP.rerender(); };
+      if (window.AYAH && localStorage.getItem('tj-color') === '1') { const mu = el.querySelector('.mushaf'); mu.insertAdjacentHTML('afterbegin', AYAH.legend()); mu.querySelector('.mushaf-text').classList.add('tj-on'); AYAH.colorSurah(el, s, ayat).catch(() => { }); }
       // الضغط على آية: ورقة خيارات
       el.querySelector('.mushaf-text').onclick = e => {
         const sp = e.target.closest('.ay'); if (!sp || e.target.closest('a')) return;
@@ -105,10 +107,12 @@
         el.querySelectorAll('.ay.sel').forEach(x => x.classList.remove('sel')); sp.classList.add('sel');
         APP.modal(`<div class="row"><b>سورة ${esc(AR.SURAHS[s - 1])} — الآية ${AR.toArabicDigits(it.ayah)}</b><span class="spacer"></span><button class="icon-btn" onclick="APP.closeModal()" style="color:var(--muted)">✕</button></div>
           <div class="quran-text" style="margin:8px 0">${esc(it.text)}</div>
-          <div class="row" style="gap:8px"><button class="btn primary" id="mPlay1">🔊 استمع للآية</button><button class="btn" id="mPlayFrom">▶ من هنا إلى آخر السورة</button><a class="btn" href="#/item/${it.id}" onclick="APP.closeModal()">📖 التفسير والمتشابهات</a></div>
+          <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary sm" id="mPlay1">🔊 استمع للآية</button><button class="btn sm" id="mPlayFrom">▶ من هنا إلى آخر السورة</button><a class="btn sm" href="#/item/${it.id}" onclick="APP.closeModal()">📖 صفحة الآية والتفاسير والمتشابهات</a></div>
+          <div id="mAyahPanel" class="ap-modal"></div>
           ${APP.actionsBar(it)}`, box => {
           box.querySelector('#mPlay1').onclick = () => { APP.closeModal(); QA.play([[s, it.ayah]], { noBasmala: true }); };
           box.querySelector('#mPlayFrom').onclick = () => { APP.closeModal(); QA.play(from(it.ayah)); };
+          if (window.AYAH) AYAH.panel(box.querySelector('#mAyahPanel'), it);
         });
       };
       // شارة المتشابهات بعد رقم كل آية لها نظائر

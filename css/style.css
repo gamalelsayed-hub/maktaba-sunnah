@@ -482,3 +482,47 @@ body.dark .hc.forbid { background: rgba(240, 90, 90, .12); } body.dark .hc-day .
 .zk-add input, .zk-add select { min-width: 0; }
 .warnt { color: #b45309; }
 @media (max-width: 600px) { .zk-sum { grid-template-columns: 1fr; } .zk-add .row > * { flex: 1 1 100%; } }
+
+/* ===== لوحة الآية: التفسير والغريب والأسباب والتجويد ===== */
+.ap-modal { margin: 10px 0; }
+.ap-tabs { flex-wrap: wrap; }
+.ap-body { padding: 10px 2px; line-height: 2; font-size: 15.5px; max-height: 52vh; overflow: auto; }
+.ap-card .ap-body { max-height: none; }
+.ap-body h4 { margin: 4px 0; color: #14532d; }
+.ap-body p { margin: 4px 0 8px; }
+.ap-src { font-size: 12px; margin-top: 8px; line-height: 1.7; }
+.ap-intro { background: rgba(161, 98, 7, .07); border-radius: 10px; padding: 6px 10px; margin-bottom: 8px; }
+.ap-gh { margin: 0; }
+.ap-gh dt { font-family: 'Amiri Quran', 'Naskh', serif; color: #14532d; font-size: 19px; margin-top: 6px; }
+.ap-gh dd { margin: 0 14px 4px 0; }
+.ap-had { border-right: 3px solid #a16207; padding: 4px 10px; margin: 8px 0; background: rgba(161, 98, 7, .05); border-radius: 6px; }
+.ap-rule { padding: 6px 0; border-bottom: 1px dashed var(--line, #ddd); }
+.ap-ex { font-size: 18px; margin-top: 2px; }
+.ap-tjtext { font-size: 24px; margin-bottom: 10px; }
+.tj-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; padding: 6px 10px; margin-bottom: 6px; border-bottom: 1px dashed var(--line, #ddd); }
+.tj-legend i { font-style: normal; margin-inline-end: 3px; }
+.tj-hamzat_wasl, .tj-lam_shamsiyyah, .tj-silent { color: #9e9e9e; }
+.tj-madd_2 { color: #b8860b; } .tj-madd_246 { color: #ef6c00; } .tj-madd_munfasil { color: #e64a19; } .tj-madd_muttasil { color: #c62828; } .tj-madd_6 { color: #8e0000; }
+.tj-ghunnah { color: #2e7d32; } .tj-ikhfa { color: #43a047; } .tj-ikhfa_shafawi { color: #7cb342; }
+.tj-idghaam_ghunnah { color: #00897b; } .tj-idghaam_no_ghunnah { color: #607d8b; } .tj-idghaam_shafawi { color: #0097a7; }
+.tj-iqlab { color: #7b1fa2; } .tj-qalqalah { color: #1565c0; } .tj-idghaam_mutajanisayn, .tj-idghaam_mutaqaribayn { color: #ad1457; }
+body.dark [class^="tj-"] { filter: brightness(1.55) saturate(1.1); }
+body.dark .ap-body h4, body.dark .ap-gh dt { color: #8fd8a8; }
+
+/* ===== الختمة ===== */
+.kh-prog { height: 12px; border-radius: 8px; background: rgba(20, 83, 45, .12); overflow: hidden; margin: 8px 0; }
+.kh-prog > i { display: block; height: 100%; background: linear-gradient(90deg, #14532d, #2f855a); }
+.kh-days { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; margin-top: 8px; }
+.kh-days span { text-align: center; font-size: 12px; padding: 4px 0; border-radius: 6px; background: var(--card, #fff); border: 1px solid var(--line, #ddd); }
+.kh-days span.done { background: #14532d; color: #fff; border-color: #14532d; }
+.kh-days span.today { box-shadow: 0 0 0 2px #a16207 inset; }
+.kh-days span.late { background: rgba(185, 28, 28, .12); }
+.kh-today { font-size: 16px; line-height: 2; }
+
+/* ===== دليل الاستخدام ===== */
+.gd-sec { margin: 8px 0; }
+.gd-sec summary { font-size: 17px; font-weight: 700; padding: 6px 0; cursor: pointer; }
+.gd-sec ol, .gd-sec ul { line-height: 2; margin: 4px 0; }
+.gd-tip { background: rgba(20, 83, 45, .07); border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-size: 14px; }
+.tour { position: fixed; inset: auto 12px calc(76px + var(--sab, 0px)) 12px; z-index: 60; background: var(--card, #fff); border: 1px solid #14532d; border-radius: 16px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); max-width: 520px; margin: 0 auto; }
+.tour h3 { margin: 0 0 6px; color: #14532d; }

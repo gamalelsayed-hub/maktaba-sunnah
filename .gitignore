@@ -8,3 +8,4 @@ mobile/node_modules/
 mobile/www/
 node_modules/
 package-lock.json
+scripts/build-data/ayah/
