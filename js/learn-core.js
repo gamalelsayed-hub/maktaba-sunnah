@@ -63,7 +63,11 @@
     grad_intro: 'هذا اختبار صغير لتعرف مستواك',
     grad_pass: 'مبارك! أنت الآن تستطيع القراءة. يمكنك دخول قسم الكبار',
     grad_fail: 'تحتاج مراجعة قليلة ثم أعد الاختبار',
-    exit_hold: 'اضغط مطولا للخروج'
+    exit_hold: 'اضغط مطولا للخروج',
+    lit_intro: 'ابدأ بالحروف، ثم أشكال الحروف، ثم الكلمات، ثم الجمل، ثم الاختبار',
+    t_letters: 'حروفي', t_write: 'أكتب', t_numbers: 'أرقامي', t_quran: 'قرآني', t_games: 'ألعابي',
+    t_nlearn: 'تعلّم الأرقام', t_count: 'عُدّ', t_add: 'اجمع', t_sub: 'اطرح',
+    t_animal: 'أين الحيوان؟', t_speak: 'قل اسمه', t_first: 'الحرف الأول', t_arrange: 'رتّب الجملة', t_memory: 'الذاكرة'
   };
 
   // ===== قائمة كل المقاطع الصوتية (للتسجيل) =====
@@ -73,10 +77,10 @@
     L.forEach(([c], i) => HAR.forEach(([k]) => out.push({ key: `h${i}${k}`, text: harakah(c, k), show: harakah(c, k), group: '٢. الحروف بالحركات (فتحة، ضمة، كسرة)', phase: 1 })));
     W.forEach(x => out.push({ key: x.id, text: x.w, show: x.e + ' ' + x.w, group: '٣. الكلمات', phase: 1 }));
     NUM.forEach((n, i) => out.push({ key: 'n' + i, text: n, show: AD(i) + ' — ' + n, group: '٤. الأرقام', phase: 1 }));
-    Object.entries(P).forEach(([k, t]) => out.push({ key: 'p_' + k, text: t, show: t, group: '٥. جمل التعليمات والتشجيع', phase: 1 }));
-    S.forEach((t, i) => out.push({ key: 's' + i, text: t, show: t, group: '٦. الجمل', phase: 1 }));
-    L.forEach(([c], i) => ['a', 'u', 'i'].forEach(k => out.push({ key: `m${i}${k}`, text: madd(c, k), show: madd(c, k), group: '٧. المدود (المرحلة الثانية)', phase: 2 })));
-    L.forEach(([c], i) => TAN.forEach(([k]) => out.push({ key: `t${i}${k}`, text: tanween(c, k), show: tanween(c, k), group: '٨. التنوين (المرحلة الثانية)', phase: 2 })));
+    Object.entries(P).forEach(([k, t]) => out.push({ key: 'p_' + k, text: t, show: t, group: k.startsWith('t_') ? '٦. أسماء الأقسام والألعاب' : '٥. جمل التعليمات والتشجيع', phase: 1 }));
+    S.forEach((t, i) => out.push({ key: 's' + i, text: t, show: t, group: '٧. الجمل', phase: 1 }));
+    L.forEach(([c], i) => ['a', 'u', 'i'].forEach(k => out.push({ key: `m${i}${k}`, text: madd(c, k), show: madd(c, k), group: '٨. المدود (المرحلة الثانية)', phase: 2 })));
+    L.forEach(([c], i) => TAN.forEach(([k]) => out.push({ key: `t${i}${k}`, text: tanween(c, k), show: tanween(c, k), group: '٩. التنوين (المرحلة الثانية)', phase: 2 })));
     return out;
   }
 
@@ -124,6 +128,7 @@
     });
   }
   async function say(key, text) {
+    if (!key && text) { const c = clips().find(x => x.text === text); if (c) key = c.key; }
     stop(); const my = gen;
     const rec = key && await VS.get(key).catch(() => null);
     if (my !== gen) return;
@@ -132,6 +137,7 @@
     if (f) return playUrl('audio/learn/' + f, my);
     return tts(text != null ? text : textOf(key), my);
   }
+  const sayTTS = text => { stop(); return tts(text, gen); };
   async function sayAll(list) { const my = gen + 1; for (const [k, t] of list) { await say(k, t); if (gen !== my) return; await new Promise(r => setTimeout(r, 250)); } }
 
   // أصوات قصيرة للتفاعل (بدون ملفات)
@@ -289,5 +295,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { sayTTS, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

@@ -94,7 +94,7 @@
         </div>
         <div id="rcAfter" style="margin-top:12px"></div>
         <a href="#/learnrec" class="muted" style="display:block;margin-top:16px">↩ القائمة</a></div>`;
-      b.querySelector('[data-hear]').onclick = () => LEARN.say(null, c.text);
+      b.querySelector('[data-hear]').onclick = () => LEARN.sayTTS(c.text);
       b.querySelector('[data-skip]').onclick = () => { i++; show(); };
       const rb = b.querySelector('[data-rec]');
       rb.onclick = async () => {
