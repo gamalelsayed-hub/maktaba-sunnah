@@ -102,6 +102,8 @@
     if (/^["“«]/.test(s)) s = 'قال رسول الله ﷺ: ' + s;
     return s.length > 650 ? s.slice(0, 640).replace(/\s\S*$/, '') + ' …' : s;
   }
+  // رقم الحديث كما في المطبوع (لمسلم: ترقيم عبد الباقي إن توفر)
+  const hnum = it => it.printedNum ? it.printedNum : (it.bookId === 'muslim' ? it.num + ' بترقيم sunnah.com' : it.num);
   function hadithGrade(it) {
     if (it.bookId === 'bukhari') return { ok: true, label: 'رواه البخاري' };
     if (it.bookId === 'muslim') return { ok: true, label: 'رواه مسلم' };
@@ -289,7 +291,7 @@
     }
     if (hads.length) {
       H(ORD[n++] + ': ' + els[n - 1], 3);
-      for (const h of hads) P('«' + h.text + '»', h.g.label + ' (' + h.it.num + ')' + (h.g.grade ? ' — ' + h.g.grade : '') + (h.g.review ? ' — [✎ راجع درجته]' : ''), 'hadith');
+      for (const h of hads) P('«' + h.text + '»', h.g.label + ' (' + hnum(h.it) + ')' + (h.g.grade ? ' — ' + h.g.grade : '') + (h.g.review ? ' — [✎ راجع درجته]' : ''), 'hadith');
     }
     if (fiqh.length || qaw.length) {
       H(ORD[n++] + ': ' + els[n - 1], 3);
@@ -379,7 +381,7 @@
         <aside class="kb-side card">
           <div class="muted" style="font-size:13px">اختر الأدلة التي تريدها، فتُرتّب في الخطبة تلقائياً:</div>
           ${pick('ayah', '📖 الآيات', g => esc(AR.SURAHS[g[0].surah - 1] + ' ' + g[0].ayah + (g.length > 1 ? '–' + g[g.length - 1].ayah : '') + ': ' + g.map(a => a.text).join(' ').slice(0, 90)) + '…')}
-          ${pick('hadith', '📜 الأحاديث', h => esc(h.text.slice(0, 110)) + '… <small class="muted">' + esc(h.g.label + ' ' + h.it.num) + '</small>')}
+          ${pick('hadith', '📜 الأحاديث', h => esc(h.text.slice(0, 110)) + '… <small class="muted">' + esc(h.g.label + ' ' + hnum(h.it)) + '</small>')}
           ${pick('fiqh', '⚖️ المسائل الفقهية', f => esc(f.title))}
           ${pick('qaida', '🧩 القواعد', f => esc(f.title))}
           ${pick('event', '🕌 من السيرة', e => esc(APP.titleOf(e)))}

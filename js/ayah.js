@@ -43,7 +43,7 @@
   // نص الآية كما حُسبت عليه مواضع التجويد
   const tjText = (s, a, text) => {
     let t = text;
-    if (a === 1 && s !== 1 && s !== 9 && t.startsWith('بِسْمِ')) t = t.split(' ').slice(4).join(' ');
+    if (a === 1 && s !== 1 && s !== 9 && /^ب\u0651?\u0650سْمِ /.test(t)) t = t.split(' ').slice(4).join(' ');
     return t.replace(/ـٰ/g, 'ٰ');
   };
   function tajweedHtml(s, a, text, d) {

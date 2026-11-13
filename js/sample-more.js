@@ -3,7 +3,7 @@
 (function () {
   const D = window.SAMPLE_DATA;
   const ev = (id, year, month, title, place, era, category, summary, extra) =>
-    D.items.push(Object.assign({ id: 'sira:' + id, bookId: 'sira', type: 'event', year, month, title, place, era, category, summary, events: [], results: [], causes: [], parties: [], sources: ['السيرة النبوية لابن هشام', 'البداية والنهاية لابن كثير'] }, extra || {}));
+    D.items.push(Object.assign({ id: 'sira:' + id, bookId: 'sira', type: 'event', year, month, title, place, era, category, summary, events: [], results: [], causes: [], parties: [], sources: era === 'الخلافة الراشدة' ? ['تاريخ الطبري', 'البداية والنهاية لابن كثير'] : ['السيرة النبوية لابن هشام', 'البداية والنهاية لابن كثير'] }, extra || {}));
   const M = 'العهد المكي', MD = 'العهد المدني', R = 'الخلافة الراشدة';
 
   // ===== العهد المكي =====

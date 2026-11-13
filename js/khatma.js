@@ -18,7 +18,7 @@
     if (QW) return QW;
     const ay = (await DB.byIndex('items', 'bookId', 'quran')).sort((x, y) => x.surah - y.surah || x.ayah - y.ayah);
     QW = ay.map(x => {
-      let t = x.text; if (x.ayah === 1 && x.surah !== 1 && x.surah !== 9 && t.startsWith('بِسْمِ')) t = t.split(' ').slice(4).join(' ');
+      let t = x.text; if (x.ayah === 1 && x.surah !== 1 && x.surah !== 9 && /^ب\u0651?\u0650سْمِ /.test(t)) t = t.split(' ').slice(4).join(' ');
       return [x.surah, x.ayah, t.replace(/[ؐ-ًؚ-ٰٟۖ-ۭـ\s]/g, '').length];
     });
     return QW;
@@ -63,7 +63,7 @@
       el.innerHTML = `<div class="row"><h1>📖 الورد ${D(i + 1)} من ${D(K.active.parts.length)}</h1><span class="spacer"></span><a class="btn sm" href="#/khatma">← الختمة</a></div>
         <div class="sub">${esc(partName(p))} — نحو ${D(p[4])} صفحة</div>
         <div class="row" style="gap:8px;margin-bottom:10px;flex-wrap:wrap"><button class="btn primary" id="khPlay">▶ استمع للورد</button><span class="muted" style="font-size:13px">اضغط على أي آية لتفسيرها ومعاني كلماتها وتجويدها</span></div>
-        <div class="mushaf"><div class="mushaf-text quran-text">${list.map(([s, a]) => { const x = map.get(s + ':' + a); if (!x) return ''; let t = x.text; const head = a === 1 ? `</div><div class="surah-head"><span></span><b>سورة ${esc(AR.SURAHS[s - 1])}</b><span></span></div>${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}<div class="mushaf-text quran-text">` : ''; if (a === 1 && s !== 1 && t.startsWith('بِسْمِ')) t = t.split(' ').slice(4).join(' '); return `${head}<span class="ay" data-card="${x.id}">${esc(t)}</span><a class="ayah-num" href="#/item/${x.id}">${D(a)}</a> `; }).join('')}</div></div>
+        <div class="mushaf"><div class="mushaf-text quran-text">${list.map(([s, a]) => { const x = map.get(s + ':' + a); if (!x) return ''; let t = x.text; const head = a === 1 ? `</div><div class="surah-head"><span></span><b>سورة ${esc(AR.SURAHS[s - 1])}</b><span></span></div>${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}<div class="mushaf-text quran-text">` : ''; if (a === 1 && s !== 1 && /^ب\u0651?\u0650سْمِ /.test(t)) t = t.split(' ').slice(4).join(' '); return `${head}<span class="ay" data-card="${x.id}">${esc(t)}</span><a class="ayah-num" href="#/item/${x.id}">${D(a)}</a> `; }).join('')}</div></div>
         <div class="row" style="gap:8px;margin:14px 0"><button class="btn primary" id="khDone">${K.active.done[i] ? '✔ مقروء — إلغاء العلامة' : '✔ أتممت هذا الورد'}</button></div>`;
       el.querySelector('#khPlay').onclick = () => QA.play(list);
       el.querySelectorAll('.mushaf-text').forEach(m => m.onclick = e => {
