@@ -547,3 +547,13 @@ body.dark .ap-body h4, body.dark .ap-gh dt { color: #8fd8a8; }
 body.dark .mp-wrap { background: #1a1d17; color: #ece7d6; box-shadow: 0 0 0 4px #1a1d17, 0 0 0 6px rgba(110,200,140,.5); }
 body.dark .mp-n, body.dark .mp-head { color: #8fd8a8; }
 body.dark .mp-w.sel { background: rgba(224,180,90,.3); }
+
+/* ===== مصحفي الخاص ===== */
+.mm-info { text-align: center; font-size: 14px; margin: 4px 0 8px; }
+.mm-wrap { max-width: 720px; margin: 0 auto; overflow: auto; border-radius: 8px; background: var(--card, #fff); border: 1px solid var(--line, #ddd); touch-action: pan-y pinch-zoom; }
+.mm-img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.mm-wrap.zoom { max-height: 80vh; touch-action: auto; }
+.mm-wrap.zoom .mm-img { width: 200%; max-width: none; }
+.mm-empty { padding: 14px; line-height: 2.2; }
+.mm-ay { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; max-height: 120px; overflow: auto; }
+body.dark .mm-img { filter: brightness(.85); }

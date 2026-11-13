@@ -36,3 +36,17 @@ for i in range(0, 604, 20):
         'window.MUSHAF_PAGES=window.MUSHAF_PAGES||{};Object.assign(MUSHAF_PAGES,%s);\n' % json.dumps(chunk, ensure_ascii=False, separators=(',', ':')))
 open(os.path.join(OUT, 'index.js'), 'w', encoding='utf-8').write('window.MUSHAF_INDEX=%s;\n' % json.dumps(first, separators=(',', ':')))
 print('pages ok', sum(os.path.getsize(os.path.join(OUT, f)) for f in os.listdir(OUT)) // 1024, 'KB')
+
+# ===== إحداثيات الآيات (رقم السطر في مصحف المدينة) — تُستعمل لتقدير صفحات أي مصحف آخر =====
+coord, head = {}, {}
+for p in range(1, 605):
+    for li, l in enumerate(pages[p - 1]):
+        c = (p - 1) * 15 + li
+        if l[0] == 'h': head[l[1]] = c
+        if l[0] == 't':
+            for x in l[1]:
+                coord.setdefault((x[0], x[1]), c)
+order = sorted(coord)
+open(os.path.join(OUT, 'coords.js'), 'w', encoding='utf-8').write('window.MUSHAF_COORDS=%s;\n' % json.dumps(
+    {'a': [[s, a, coord[(s, a)]] for s, a in order], 'h': [head.get(s, coord[(s, 1)]) for s in range(1, 115)], 'total': 604 * 15}, separators=(',', ':')))
+print('coords ok', len(order))
