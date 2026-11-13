@@ -526,3 +526,24 @@ body.dark .ap-body h4, body.dark .ap-gh dt { color: #8fd8a8; }
 .gd-tip { background: rgba(20, 83, 45, .07); border-radius: 10px; padding: 8px 12px; margin: 6px 0; font-size: 14px; }
 .tour { position: fixed; inset: auto 12px calc(76px + var(--sab, 0px)) 12px; z-index: 60; background: var(--card, #fff); border: 1px solid #14532d; border-radius: 16px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25); max-width: 520px; margin: 0 auto; }
 .tour h3 { margin: 0 0 6px; color: #14532d; }
+
+/* ===== المصحف بالصفحات ===== */
+.mp-bar { gap: 6px; flex-wrap: nowrap; margin-bottom: 8px; align-items: center; }
+.mp-sel { min-width: 0; flex: 1 1 auto; max-width: 180px; }
+.mp-in { width: 64px; text-align: center; }
+.mp-wrap { max-width: 640px; margin: 0 auto; background: #fffdf5; border: 2px solid #c9a227; border-radius: 6px; box-shadow: 0 0 0 4px #fffdf5, 0 0 0 6px rgba(20,83,45,.6); padding: 8px 10px 4px; color: #1b1b1b; touch-action: pan-y; user-select: none; }
+.mp-top { display: flex; justify-content: space-between; font-size: 12.5px; color: #7a5b12; border-bottom: 1px solid rgba(201,162,39,.5); padding-bottom: 3px; margin-bottom: 4px; }
+.mp-page { font-family: 'Amiri Quran', 'Naskh', serif; direction: rtl; line-height: 1.95; }
+.mp-line { display: flex; justify-content: space-between; white-space: nowrap; overflow: hidden; gap: .12em; }
+.mp-line.c { justify-content: center; gap: .35em; }
+.mp-first { padding: 10% 6%; }
+.mp-w { cursor: pointer; border-radius: 4px; }
+.mp-w.sel { background: rgba(201,162,39,.28); }
+.mp-n { display: inline-block; font-size: .72em; min-width: 1.6em; height: 1.6em; line-height: 1.6em; text-align: center; margin: 0 .12em; border: 1.5px solid #c9a227; border-radius: 50%; color: #14532d; vertical-align: middle; }
+.mp-head { margin: 4px 0; text-align: center; border: 1.5px solid #c9a227; border-radius: 6px; background: linear-gradient(90deg, rgba(20,83,45,.08), rgba(201,162,39,.18), rgba(20,83,45,.08)); font-family: 'Naskh', serif; font-weight: 700; font-size: .85em; color: #14532d; padding: 2px 0; }
+.mp-basm { text-align: center; font-size: .95em; }
+.mp-num { text-align: center; font-size: 13px; color: #7a5b12; border-top: 1px solid rgba(201,162,39,.5); margin-top: 4px; padding-top: 2px; }
+.mp-tools { margin-top: 10px; }
+body.dark .mp-wrap { background: #1a1d17; color: #ece7d6; box-shadow: 0 0 0 4px #1a1d17, 0 0 0 6px rgba(110,200,140,.5); }
+body.dark .mp-n, body.dark .mp-head { color: #8fd8a8; }
+body.dark .mp-w.sel { background: rgba(224,180,90,.3); }

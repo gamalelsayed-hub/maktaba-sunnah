@@ -9,3 +9,4 @@ mobile/www/
 node_modules/
 package-lock.json
 scripts/build-data/ayah/
+scripts/build-data/pages/

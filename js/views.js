@@ -58,7 +58,7 @@
       ${dash}
       <h2>ابدأ من هنا</h2>
       <div class="quick">
-        ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/khatma', '📅', 'c2', 'الختمة')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
+        ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/mushaf', '📄', 'c1', 'المصحف بالصفحات')}${Q('#/khatma', '📅', 'c2', 'الختمة')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}
         ${Q('#/hadith', '📜', 'c8', 'الحديث')}${Q('#/ask', '❓', 'c5', 'اسأل عن حكم')}${Q('#/khutba', '🎤', 'c1', 'إعداد خطبة أو درس')}${Q('#/fiqh', '⚖️', 'c6', 'الفقه المقارن')}${Q('#/talab', '🎓', 'c7', 'طلب العلم')}
         ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}${Q('#/guide', '📘', 'c3', 'دليل الاستخدام')}
       </div>
@@ -77,7 +77,7 @@
       const ayat = await DB.byIndex('items', 'bookId', 'quran');
       const cnt = {}; ayat.forEach(a => cnt[a.surah] = (cnt[a.surah] || 0) + 1);
       const MAKKI = new Set([1,6,7,10,11,12,14,15,16,17,18,19,20,21,23,25,26,27,28,29,30,31,32,34,35,36,37,38,39,40,41,42,43,44,45,46,50,51,52,53,54,56,67,68,69,70,71,72,73,74,75,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,100,101,102,103,104,105,106,107,108,109,111,112,113,114]);
-      el.innerHTML = `<div class="row"><h1>المصحف الشريف</h1><span class="spacer"></span><a class="btn sm" href="#/listen">🎧 الاستماع</a><a class="btn sm" href="#/wird">☀️ وردي</a></div>
+      el.innerHTML = `<div class="row"><h1>المصحف الشريف</h1><span class="spacer"></span><a class="btn sm primary" href="#/mushaf">📄 المصحف بالصفحات</a><a class="btn sm" href="#/listen">🎧 الاستماع</a><a class="btn sm" href="#/wird">☀️ وردي</a></div>
         <div class="sub">${AR.toArabicDigits(ayat.length)} آية برواية حفص، مع ${AR.toArabicDigits(books('tafsir').filter(b => b.count).length)} تفاسير — اختر سورة أو اكتب اسمها.</div>
         <input type="search" id="sFilter" placeholder="ابحث عن سورة…" style="width:100%;max-width:360px;margin-bottom:14px">
         <div class="surah-list">${AR.SURAHS.map((n, i) => `<a class="surah-item" href="#/quran/${i + 1}" data-n="${esc(AR.normalize(n))}"><span class="sn">${AR.toArabicDigits(i + 1)}</span><span class="st"><b>${esc(n)}</b><small>${MAKKI.has(i + 1) ? 'مكية' : 'مدنية'} — ${AR.toArabicDigits(cnt[i + 1] || 0)} آية</small></span></a>`).join('')}</div>`;
@@ -94,7 +94,7 @@
         ${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}
         <div class="mushaf-text quran-text">${ayat.map(a => `<span class="ay ${APP.hlClass(a.id)}" data-card="${a.id}" data-ay="${a.ayah}">${APP.withGharib(esc(s !== 1 && a.ayah === 1 && a.text.startsWith('بِسْمِ') ? a.text.split(' ').slice(4).join(' ') : a.text))}</span><a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> `).join('')}</div>
       </div>
-      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><button class="btn" id="qTj">🎨 ${localStorage.getItem('tj-color') === '1' ? 'إخفاء ألوان التجويد' : 'ألوان التجويد'}</button><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
+      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><button class="btn" id="qTj">🎨 ${localStorage.getItem('tj-color') === '1' ? 'إخفاء ألوان التجويد' : 'ألوان التجويد'}</button><a class="btn" href="#/mushaf?s=${s}">📄 بالصفحات</a><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
     if (window.QA && ayat.length) {
       const from = k => QA.surahAyat(s).slice(k - 1);
       el.querySelector('#qPlayAll').onclick = () => QA.play(from(1));
