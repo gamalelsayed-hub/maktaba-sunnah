@@ -43,6 +43,37 @@
     return new RegExp('(^|\\s)' + pre + body + suf + '(?=\\s|$)');
   }
 
+  // استخراج الجذر التقريبي من كلمة: «الصابرين» ← صبر، «يستغفرون» ← غفر، «المرضى» ← مرض
+  function rootOf(word) {
+    let w = stem(word);
+    for (const p of ['است', 'مست', 'يست', 'تست', 'نست']) if (w.startsWith(p) && w.length - p.length >= 3) { w = w.slice(p.length); break; }
+    if (w.length > 3 && /^[امتي]/.test(w)) w = w.slice(1);
+    while (w.length > 3 && /^.+[اوي]/.test(w)) { const i = w.slice(1).search(/[اوي]/) + 1; if (i < 1) break; w = w.slice(0, i) + w.slice(i + 1); }
+    return w.length >= 3 && w.length <= 4 ? w : '';
+  }
+  // regex لمشتقات الجذر في النص المطبّع (حرف العلة في آخر الجذر يقبل ا/و/ي أو يسقط)
+  function derivRe(root) {
+    const L = normalize(root).replace(/\s/g, '').split('');
+    if (L.length < 3 || L.length > 4) return null;
+    const e = l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const body = L.map((l, i) => i === L.length - 1 && /[اوي]/.test(l) ? '[اوي]?' : e(l)).join('[اويتن]{0,2}');
+    return new RegExp('(?:^| )[وفبلكسالتمني]{0,4}' + body + '[اويتنهكم]{0,4}(?= |$)');
+  }
+  // مرادفات شائعة (مطبّعة): كل مجموعة يُبحث عن أي كلمة فيها
+  const SYN = [['مرض', 'سقم', 'وجع'], ['خوف', 'خشيه', 'رهبه', 'وجل'], ['غضب', 'سخط'], ['كذب', 'زور', 'افك', 'بهتان'],
+    ['زواج', 'نكاح'], ['موت', 'وفاه', 'منيه'], ['جهاد', 'قتال', 'غزو'], ['زكاه', 'صدقه'], ['دعاء', 'تضرع'],
+    ['ذنب', 'معصيه', 'خطيئه', 'اثم', 'سيئه'], ['توبه', 'استغفار', 'انابه'], ['جنه', 'فردوس'], ['نار', 'جهنم', 'سعير', 'جحيم'],
+    ['قلب', 'فؤاد'], ['والدين', 'ابوين'], ['فقير', 'مسكين'], ['ظلم', 'جور', 'بغي', 'عدوان'], ['عدل', 'قسط', 'انصاف'],
+    ['رياء', 'سمعه'], ['شكر', 'حمد', 'ثناء'], ['نبي', 'رسول'], ['خمر', 'مسكر', 'نبيذ'], ['زنا', 'فاحشه'],
+    ['بيع', 'تجاره', 'شراء'], ['جوع', 'مسغبه'], ['امراه', 'نساء'], ['حيوان', 'بهيمه', 'دابه'], ['رحمه', 'رافه', 'شفقه'],
+    ['سلام', 'تحيه'], ['كبر', 'تكبر', 'خيلاء'], ['حياء', 'استحياء'], ['صبر', 'احتساب'], ['رزق', 'كسب'], ['يتيم', 'ايتام'],
+    ['جار', 'جيران'], ['مسجد', 'مساجد'], ['ضيف', 'ضيافه'], ['ميراث', 'فرائض', 'تركه'], ['قسم', 'يمين', 'حلف']];
+  function synonyms(word) {
+    const n = normalize(word), c = core(n), r = rootOf(n);
+    const g = SYN.find(g => g.some(x => x === n || x === c || (r && rootOf(x) === r)));
+    return g ? g.filter(x => x !== n && x !== c && !(r && rootOf(x) === r)) : [];
+  }
+
   function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -117,5 +148,5 @@
 
   const toArabicDigits = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
-  window.AR = { wordRe, core, snippetHtml, uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
+  window.AR = { rootOf, derivRe, synonyms, wordRe, core, snippetHtml, uthmaniAlt, normalize, stem, rootRegex, highlight, escapeHtml, SURAHS, surahByName, toArabicDigits };
 })();

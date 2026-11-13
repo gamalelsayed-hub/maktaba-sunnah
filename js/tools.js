@@ -36,7 +36,18 @@
   // الوضع الافتراضي: الكلمة نفسها بسوابقها ولواحقها فقط. ومع loose: أي نص يحتوي الحروف (أوسع وأقل دقة)
   const reCache = new Map();
   const wre = w => { if (!reCache.has(w)) reCache.set(w, AR.wordRe(w)); return reCache.get(w); };
-  function scoreText(n, t, words, rootRe, loose) {
+  // مع «المشتقات والمرادفات»: كل كلمة تطابق نفسها أو أي مشتق من جذرها أو مرادفاً لها
+  const mCache = new Map();
+  function matcher(w, deriv) {
+    if (!deriv) return [wre(w)];
+    if (!mCache.has(w)) {
+      const r = AR.rootOf(w), d = r && AR.derivRe(r);
+      mCache.set(w, [wre(w), ...(d ? [d] : []), ...AR.synonyms(w).map(wre)]);
+    }
+    return mCache.get(w);
+  }
+  const hit = (res, s) => { for (const r of res) { const m = r.exec(s); if (m) return m; } return null; };
+  function scoreText(n, t, words, rootRe, loose, deriv) {
     if (rootRe) return rootRe.test(n) ? 1 : 0;
     let sc = 0; const pos = [];
     for (const w of words) {
@@ -45,10 +56,10 @@
         i = n.indexOf(w);
         if (i < 0) { const st = AR.stem(w); if (st.length < 3 || (i = n.indexOf(st)) < 0) return 0; sc += 1; } else sc += 2;
       } else {
-        const m = wre(w).exec(n); if (!m) return 0; i = m.index; sc += 2;
+        const ms = matcher(w, deriv), m = hit(ms, n); if (!m) return 0; i = m.index; sc += wre(w).test(n) ? 3 : 2;
       }
       pos.push(i);
-      if (loose ? t.includes(w) : wre(w).test(t)) sc += 6;
+      if (loose ? t.includes(w) : hit(matcher(w, deriv), t)) sc += 6;
     }
     if (pos.length > 1 && Math.max(...pos) - Math.min(...pos) < 400) sc += 5;
     return sc;
@@ -58,7 +69,7 @@
     const seen = f.seen || new Set();
     return DB.deepScan(bookIds, it => {
       if (!DB.HEAVY.includes(it.type) || seen.has(it.id) || (f.type && it.type !== f.type) || !APP.visible(it.id)) return 0;
-      return scoreText(it.n || '', N((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.chapter || '')), words, rootRe, f.loose);
+      return scoreText(it.n || '', N((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.chapter || '')), words, rootRe, f.loose, f.deriv);
     }, onBook);
   }
   APP.deepFind = deepFind; APP.scoreText = scoreText;
@@ -87,13 +98,18 @@
       if (hukm && !x.hukm.includes(hukm)) continue;
       if (!APP.visible(x.id)) continue;
       if (f.deep && x.heavy) continue;
-      let score = 0;
+      let score = 0, hl = null;
       if (rootRe) { if (!rootRe.test(x.n)) continue; score = 1; }
       else if (words.length) {
         let ok = true;
         for (const w of words) {
           let inT, inN;
           if (f.loose) { const st = AR.stem(w); inT = x.t.includes(w) || x.t.includes(st); inN = x.n.includes(w) || (st.length >= 3 && x.n.includes(st)); }
+          else if (f.deriv) {
+            const ms = matcher(w, true), mt = hit(ms, x.t), mn = hit(ms, x.n);
+            inT = !!mt; inN = !!mn;
+            if (inN || inT) { const ex = wre(w); if (ex.test(x.n) || ex.test(x.t)) score += 2; (hl = hl || new Set()).add((mn || mt)[0].trim()); }
+          }
           else { inT = wre(w).test(x.t); inN = wre(w).test(x.n); }
           if (!inT && !inN) { ok = false; break; }
           score += (inT ? 6 : 0) + (inN ? 2 : 0);
@@ -101,14 +117,14 @@
         if (!ok) continue;
         if (x.topics.some(t => N(t) === n)) score += 15;
       } else if (!hukm) continue;
-      res.push({ id: x.id, type: x.type, score });
+      res.push({ id: x.id, type: x.type, score, hl });
     }
     if (f.deep && (words.length || rootRe) && !hukm) {
       const ids = Object.values(APP.state.books).filter(b => b.count && DEEP_TYPES.includes(b.type) && (!f.book || b.id === f.book)).map(b => b.id);
       res.push(...await deepFind(words, rootRe, ids, f, f.onBook));
     }
     res.sort((a, b) => b.score - a.score);
-    return { res, hukm, words, root: !!rootRe };
+    return { res, hukm, words, root: !!rootRe, deriv: !!f.deriv && !rootRe && !f.loose };
   }
 
   V.search = async (el, _, p) => {
@@ -134,6 +150,7 @@
         ${sel('school', ['الحنفية', 'المالكية', 'الشافعية', 'الحنابلة', 'الظاهرية', 'أقوال الصحابة', 'أقوال التابعين'].map(s => [s, s]), 'كل المذاهب')}
         <select name="book"><option value="">كل الكتب</option>${bookOpts}</select>
         <label class="row" style="gap:4px"><input type="checkbox" name="deep" value="1" ${p.deep ? 'checked' : ''}> بحث عميق داخل الشروح والتفاسير والمطولات</label>
+        <label class="row" style="gap:4px" title="يبحث بجذر كل كلمة ومشتقاتها ومرادفاتها: «صبر» تجد الصابرين واصبروا، و«مرض» تجد السقم والوجع"><input type="checkbox" name="deriv" value="1" ${p.deriv ? 'checked' : ''}> 🌱 بالمشتقات والمرادفات</label>
         <label class="row" style="gap:4px" title="الافتراضي: الكلمة نفسها فقط (الربا، بالربا، والربا). هذا الخيار يوسّع البحث لكل كلمة تحتوي الحروف"><input type="checkbox" name="loose" value="1" ${p.loose ? 'checked' : ''}> بحث موسّع (أجزاء الكلمات)</label>
         <button class="btn primary">بحث</button>
       </form><div id="sr"></div>`;
@@ -141,7 +158,7 @@
     if (!q && !p.hukm) return;
     const box = $('#sr'); box.innerHTML = '<div class="muted">جارٍ البحث… (أول بحث يجهّز الفهرس ويأخذ ثوانٍ)</div>';
     const t0 = performance.now();
-    const { res, hukm, root } = await runSearch(p.nohukm ? q.split(' ').filter(w => !Object.values(HUKM_WORDS).flat().includes(N(w))).join(' ') : q,
+    const { res, hukm, root, deriv } = await runSearch(p.nohukm ? q.split(' ').filter(w => !Object.values(HUKM_WORDS).flat().includes(N(w))).join(' ') : q,
       Object.assign({}, p, { onBook: bid => { box.innerHTML = '<div class="muted">بحث عميق في: ' + esc(APP.bookTitle(bid)) + '…</div>'; } }));
     const counts = {}; res.forEach(r => counts[r.type] = (counts[r.type] || 0) + 1);
     const types = Object.keys(counts).sort((a, b) => Object.keys(TYPE_LABEL).indexOf(a) - Object.keys(TYPE_LABEL).indexOf(b));
@@ -149,9 +166,9 @@
     const show = res.filter(r => r.type === tab).slice(0, +(p.more || 30));
     const items = await Promise.all(show.map(r => DB.get('items', r.id)));
     const mk = (k, v) => { const sp = new URLSearchParams(p); sp.set(k, v); sp.set('nodirect', '1'); return '#/search?' + sp.toString(); };
-    box.innerHTML = `<div class="info">${res.length.toLocaleString('ar')} نتيجة في ${Math.round(performance.now() - t0)} ملّي ثانية${hukm ? ' — مُصفّاة بالنصوص المصنّفة بأنها تدل على <b>' + esc(hukm) + '</b> (التصنيف يكتمل مع المراجعة). <a href="' + mk('nohukm', '1') + '">اعرض كل النصوص التي فيها الكلمة</a>' : ''}${root ? ' — بحث بالجذر (تقريبي)' : ''}.${p.deep ? '' : ' <a href="' + mk('deep', '1') + '">ابحث أيضاً داخل نصوص الشروح والتفاسير والمطولات</a>'}</div>
-      ${res.length ? `<div class="tabs">${types.map(t => `<button class="${t === tab ? 'on' : ''}" onclick="location.hash='${mk('tab', t)}'">${TYPE_LABEL[t] || t} (${counts[t]})</button>`).join('')}</div>` : '<div class="muted">لا توجد نتائج. جرّب كلمة أقصر، أو أزل بعض الفلاتر، أو ابحث بالجذر.</div>'}
-      ${items.map(it => APP.mini(it, q)).join('')}
+    box.innerHTML = `<div class="info">${res.length.toLocaleString('ar')} نتيجة في ${Math.round(performance.now() - t0)} ملّي ثانية${hukm ? ' — مُصفّاة بالنصوص المصنّفة بأنها تدل على <b>' + esc(hukm) + '</b> (التصنيف يكتمل مع المراجعة). <a href="' + mk('nohukm', '1') + '">اعرض كل النصوص التي فيها الكلمة</a>' : ''}${root ? ' — بحث بالجذر (تقريبي)' : ''}${deriv ? ' — 🌱 مع المشتقات والمرادفات (تقريبي)' : ''}.${!deriv && !root && !p.loose && res.length < 15 ? ' <a href="' + mk('deriv', '1') + '">🌱 وسّع البحث بالمشتقات والمرادفات</a>' : ''}${p.deep ? '' : ' <a href="' + mk('deep', '1') + '">ابحث أيضاً داخل نصوص الشروح والتفاسير والمطولات</a>'}</div>
+      ${res.length ? `<div class="tabs">${types.map(t => `<button class="${t === tab ? 'on' : ''}" onclick="location.hash='${mk('tab', t)}'">${TYPE_LABEL[t] || t} (${counts[t]})</button>`).join('')}</div>` : '<div class="muted">لا توجد نتائج. جرّب كلمة أقصر، أو أزل بعض الفلاتر، أو ابحث بالمشتقات والمرادفات.</div>'}
+      ${items.map((it, i) => APP.mini(it, show[i].hl ? [q, ...show[i].hl].join(' ') : q)).join('')}
       ${counts[tab] > show.length ? `<a class="btn" href="${mk('more', +(p.more || 30) + 30)}">عرض المزيد</a>` : ''}`;
   };
 
