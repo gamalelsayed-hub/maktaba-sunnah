@@ -38,7 +38,7 @@
       if (!it) return '';
       switch (it.type) {
         case 'ayah': return 'سورة ' + AR.SURAHS[it.surah - 1] + ' — آية ' + it.ayah;
-        case 'hadith': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' (' + it.num + (it.printedNum && it.printedNum !== it.num ? '، وفي المطبوع ' + it.printedNum : '') + ')';
+        case 'hadith': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' (' + it.num + (it.printedNum && it.printedNum !== it.num ? '، وفي المطبوع ' + it.printedNum : '') + (it.alsoNums && it.alsoNums.length ? '، ويشمل ' + it.alsoNums.join('، ') : '') + ')';
         case 'tafsir': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title + ' (' + APP.state.books[it.bookId].author + ')' : it.bookId) + ' — ' + AR.SURAHS[it.surah - 1] + ' ' + it.ayah + (it.ayahTo && it.ayahTo !== it.ayah ? '–' + it.ayahTo : '');
         case 'sharh': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' — حديث ' + (it.num || (it.hadithRef || '').split(':')[1]);
         case 'section': return (APP.state.books[it.bookId] ? APP.state.books[it.bookId].title : it.bookId) + ' — ' + (it.title || '');

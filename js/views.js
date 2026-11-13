@@ -168,6 +168,8 @@
   // ===== صفحة النص الكاملة =====
   V.item = async (el, [id]) => {
     const it = await DB.get('items', id);
+    // رقم مضموم في المصدر إلى حديث مجاور (alsoNums): ننتقل إلى الحديث الذي يحويه
+    if (!it) { const m = /^([a-z0-9-]+):(\d+)$/.exec(id); if (m) { const al = (await DB.searchIndex()).find(x => x.bookId === m[1] && x.also && x.also.includes(+m[2])); if (al) { location.replace('#/item/' + encodeURIComponent(al.id)); return; } } }
     if (!it) { el.innerHTML = `<div class="warn">النص «${esc(id)}» غير موجود في المكتبة. ربما لم يُستورد كتابه بعد — <a href="#/library">المكتبة</a>.</div>`; return; }
     const linked = await APP.linked(it);
     const R = RENDER[it.type] || RENDER.generic;
@@ -210,7 +212,7 @@
       const takhrij = await Promise.all((it.takhrij || []).map(APP.linkFor));
       const bk = APP.state.books[it.bookId] || {};
       return `<h1>${esc(APP.titleOf(it))}</h1><div class="sub">${esc(it.kitab || '')}${it.bab ? ' — ' + esc(it.bab) : ''}${bk.numbering ? '<br><small>' + esc(bk.numbering) + '</small>' : ''}</div>
-        <div class="row"><a class="btn sm" href="#/item/${it.bookId}:${it.num - 1}">→ الحديث السابق</a><a class="btn sm" href="#/item/${it.bookId}:${it.num + 1}">الحديث التالي ←</a></div>
+        <div class="row"><a class="btn sm" href="#/item/${it.bookId}:${it.num - 1}">→ الحديث السابق</a><a class="btn sm" href="#/item/${it.bookId}:${Math.max(it.num, ...(it.alsoNums || [])) + 1}">الحديث التالي ←</a></div>
         <div class="summary-box"><b>الحكم باختصار:</b> ${APP.gradeSummary(it)}</div>
         <div class="card ${APP.hlClass(it.id)}" data-card="${it.id}">
           ${it.isnad ? `<details ${open()}><summary>الإسناد</summary><div class="isnad">${esc(it.isnad)}</div>${chain ? '<div class="chain"><b>رجال السند:</b> ' + chain + '<span class="arrow">←</span> النبي ﷺ</div>' : ''}</details>` : ''}

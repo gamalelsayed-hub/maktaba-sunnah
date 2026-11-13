@@ -117,7 +117,7 @@
       const d = directTarget(q);
       if (d) {
         if (d.hash) { location.replace(d.hash); return; }
-        if (d.book) { const pm = (await DB.searchIndex()).find(x => x.bookId === d.book && x.pn === d.num); if (pm) { location.replace('#/item/' + encodeURIComponent(pm.id)); return; } }
+        if (d.book) { const idx = await DB.searchIndex(); const pm = idx.find(x => x.bookId === d.book && x.pn === d.num); if (pm) { location.replace('#/item/' + encodeURIComponent(pm.id)); return; } if (!(await DB.get('items', d.item))) { const al = idx.find(x => x.bookId === d.book && x.also && x.also.includes(d.num)); if (al) { location.replace('#/item/' + encodeURIComponent(al.id)); return; } } }
         if (await DB.get('items', d.item)) { location.replace('#/item/' + encodeURIComponent(d.item)); return; }
       }
     }

@@ -109,7 +109,7 @@
         idx.push({
           id: it.id, bookId: it.bookId, type: it.type, heavy,
           n: heavy ? (it.n || '').slice(0, 300) : (it.n || ''), t: AR.normalize((it.title || '') + ' ' + (it.bab || '') + ' ' + (it.kitab || '') + ' ' + (it.topics || []).join(' ')),
-          topics: it.topics || [], hukm: it.hukm || [], grade: it.gradeClass || '', pn: it.printedNum || 0, num: it.num || 0, narrators: it.narrators || [], schools: it.schools || []
+          topics: it.topics || [], hukm: it.hukm || [], grade: it.gradeClass || '', pn: it.printedNum || 0, num: it.num || 0, also: it.alsoNums || null, narrators: it.narrators || [], schools: it.schools || []
         });
       });
       DB._index = idx;
