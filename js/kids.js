@@ -19,12 +19,112 @@
 
   // ===== الألعاب =====
   const GAMES = {
-    animal: { ic: '🐾', t: 'أين الحيوان؟', run: b => rounds(b, 5, () => { const an = W.filter(w => LEARN.ANIMALS.includes(w.w)); const w = LEARN.shuffle(an)[0]; return LIT.choose(b, { hear: [w.id], options: LEARN.pick(an, 4, w).map(x => ({ html: `<span class="lr-pic sm">${x.e}</span>`, ok: x === w })), cols: 2 }); }) },
-    speak: { ic: '🎤', t: 'قل اسمه', run: b => rounds(b, 4, () => sayName(b, LEARN.shuffle(W.filter(w => LEARN.ANIMALS.includes(w.w)))[0])) },
-    first: { ic: '🔤', t: 'الحرف الأول', run: b => rounds(b, 5, () => { const w = LEARN.shuffle(W)[0]; const ls = LEARN.pick(L.map(x => x[0]), 3, w.first); return LIT.choose(b, { prompt: 'p_first_letter', show: `<span class="lr-pic" data-say="${w.id}">${w.e}</span>`, hear: [w.id], options: ls.map(c => ({ html: `<span class="lr-g2">${c}</span>`, ok: c === w.first })) }); }) },
-    arrange: { ic: '🧩', t: 'رتّب الجملة', run: b => rounds(b, 3, () => LIT.arrange(b, Math.floor(Math.random() * S.length)).then(() => true)) },
-    memory: { ic: '🃏', t: 'الذاكرة', run: b => memory(b) }
+    animal: { ic: '🐾', t: 'أين الحيوان؟', run: b => rounds(b, 5, () => { const an = LEARN.THEMES.find(t => t.id === 'animals').words; const w = LEARN.shuffle(an)[0]; return LIT.choose(b, { hear: [w.id], options: LEARN.pick(an, 4, w).map(x => ({ html: `<span class="lr-pic sm">${x.e}</span>`, ok: x === w })), cols: 2 }); }) },
+    speak: { ic: '🎤', t: 'قل اسمه', run: b => rounds(b, 4, () => sayName(b, LEARN.shuffle(LEARN.PICW.filter(w => !/\s/.test(w.w)))[0])) },
+    first: { ic: '🔤', t: 'الحرف الأول', run: b => rounds(b, 5, () => { const w = LEARN.shuffle(LEARN.PICW)[0]; const ls = LEARN.pick(L.map(x => x[0]), 3, w.first); return LIT.choose(b, { prompt: 'p_first_letter', show: `<span class="lr-pic" data-say="${w.id}">${w.e}</span>`, hear: [w.id], options: ls.map(c => ({ html: `<span class="lr-g2">${c}</span>`, ok: c === w.first })) }); }) },
+    arrange: { ic: '🧩', t: 'رتّب الجملة', run: b => rounds(b, 3, () => { const x = LEARN.shuffle(LEARN.SK)[0]; return LIT.arrange(b, x.id, x.t).then(() => true); }) },
+    memory: { ic: '🃏', t: 'الذاكرة', run: b => memory(b) },
+    missing: { ic: '❓', t: 'الحرف الناقص', run: b => rounds(b, 5, () => missing(b)) },
+    build: { ic: '🔠', t: 'كوّن الكلمة', run: b => rounds(b, 4, () => build(b)) },
+    pop: { ic: '🎈', t: 'البالونات', run: b => rounds(b, 5, () => pop(b)) },
+    tf: { ic: '✅', t: 'صح أم خطأ', run: b => rounds(b, 6, () => trueFalse(b)) },
+    color: { ic: '🎨', t: 'الألوان', run: b => rounds(b, 5, () => { const cs = LEARN.THEMES.find(t => t.id === 'colors').words; const w = LEARN.shuffle(cs)[0]; return LIT.choose(b, { prompt: 'p_color', hear: [w.id], cols: 2, options: LEARN.pick(cs, 4, w).map(x => ({ html: `<span class="lr-pic sm">${x.e}</span>`, ok: x === w })) }); }) },
+    more: { ic: '⚖️', t: 'أكثر وأقل', run: b => rounds(b, 5, () => more(b)) },
+    order: { ic: '🚂', t: 'رتب الأرقام', run: b => rounds(b, 4, () => order(b)) },
+    match: { ic: '🔗', t: 'صل الكلمة بالصورة', run: b => rounds(b, 3, () => match(b)) }
   };
+  const GKEY = { animal: 't_animal', speak: 't_speak', first: 't_first', arrange: 't_arrange', memory: 't_memory', missing: 't_missing', build: 't_build', pop: 't_pop', tf: 't_tf', color: 't_color', more: 't_more', order: 't_order', match: 't_match', learn: 't_nlearn', count: 't_count', add: 't_add', sub: 't_sub' };
+  const plain = w => w.replace(/[\u064B-\u0652]/g, '');
+  const short = () => LEARN.PICW.filter(x => !/\s/.test(x.w) && x.w.length >= 3 && x.w.length <= 5);
+
+  // الحرف الناقص: كلمة ناقصة حرفاً، يختار الطفل الحرف
+  function missing(b) {
+    const w = LEARN.shuffle(short())[0], k = Math.floor(Math.random() * w.w.length), c = w.w[k];
+    const norm = ch => /[أإآ]/.test(ch) ? 'ا' : ch === 'ة' ? 'ه' : ch === 'ى' ? 'ي' : ch;
+    const shown = w.w.slice(0, k) + '<b class="hl">_</b>' + w.w.slice(k + 1);
+    const opts = LEARN.pick(L.map(x => x[0]).filter(x => x !== norm(c)), 2).concat([c]);
+    return LIT.choose(b, { prompt: 'p_missing', hear: [w.id], show: `<div class="lr-pic sm">${w.e}</div><div class="lr-w2">${shown}</div>`, options: LEARN.shuffle(opts).map(x => ({ html: `<span class="lr-g2">${x}</span>`, ok: x === c })) });
+  }
+  // كوّن الكلمة: يضغط الحروف بالترتيب
+  function build(b) {
+    return LIT.gone(b) || new Promise(res => {
+      const w = LEARN.shuffle(short())[0], letters = w.w.split(''), order = LEARN.shuffle(letters.map((_, k) => k)); let pos = 0;
+      b.innerHTML = `<div class="lr-step"><div class="lr-pic" data-say="${w.id}">${w.e}</div><div class="lr-line">${letters.map(() => '<span class="lr-slot sm"></span>').join('')}</div>
+        <div class="lr-chips">${order.map(k => `<button class="lr-chip big" data-k="${k}">${letters[k]}</button>`).join('')}</div></div>`;
+      LIT.bindSay(b); say('p_build').then(() => say(w.id));
+      const slots = b.querySelectorAll('.lr-slot');
+      b.querySelectorAll('[data-k]').forEach(ch => ch.onclick = async () => {
+        const k = +ch.dataset.k;
+        if (letters[k] === letters[pos]) { slots[pos].textContent = letters[k]; slots[pos].classList.add('ok'); ch.disabled = true; ch.classList.add('used'); pos++; LEARN.tone('ok');
+          if (pos === letters.length) { LEARN.burst(b.querySelector('.lr-line')); await LEARN.praise(); await say(w.id); res(true); } }
+        else { ch.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => ch.classList.remove('bad'), 500); }
+      });
+    });
+  }
+  // البالونات: حروف تطير، يفقع الطفل حرف الصوت الذي سمعه
+  function pop(b) {
+    return LIT.gone(b) || new Promise(res => {
+      const i = Math.floor(Math.random() * 28), ks = LEARN.pick(L.map((_, k) => k), 5, i);
+      b.innerHTML = `<div class="lr-step"><button class="lr-ic xl" data-hear>🔊</button><div class="pop-sky">${ks.map((k, n) => `<button class="pop-b" data-k="${k}" style="--x:${8 + n * 18}%;--d:${5 + (n % 3) * 1.4}s;--h:${n * 67 % 360}"><span>${L[k][0]}</span></button>`).join('')}</div></div>`;
+      const hear = () => say('l' + i);
+      b.querySelector('[data-hear]').onclick = hear;
+      say('p_pop').then(hear);
+      let tries = 0;
+      b.querySelectorAll('.pop-b').forEach(x => x.onclick = async () => {
+        if (+x.dataset.k === i) { x.classList.add('popped'); LEARN.tone('win'); LEARN.burst(b.querySelector('.pop-sky')); b.querySelectorAll('.pop-b').forEach(y => y.disabled = true); await LEARN.praise(); res(tries === 0); }
+        else { tries++; x.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => x.classList.remove('bad'), 400); }
+      });
+    });
+  }
+  // صح أم خطأ: صورة واسم مسموع
+  function trueFalse(b) {
+    const w = LEARN.shuffle(LEARN.PICW)[0], right = Math.random() < 0.5, heard = right ? w : LEARN.shuffle(LEARN.PICW.filter(x => x !== w))[0];
+    return LIT.choose(b, { prompt: 'p_true_false', hear: [heard.id], show: `<span class="lr-pic">${w.e}</span>`, cols: 2, options: [{ html: '<span class="lr-pic sm">✅</span>', ok: right }, { html: '<span class="lr-pic sm">❌</span>', ok: !right }] });
+  }
+  function more(b) {
+    const e1 = LEARN.shuffle(EMO)[0], a = 1 + Math.floor(Math.random() * 8); let c = 1 + Math.floor(Math.random() * 8); if (c === a) c = a < 8 ? a + 1 : a - 1;
+    return LIT.choose(b, { prompt: 'p_more', cols: 2, options: [{ html: objs(a, e1), ok: a > c }, { html: objs(c, e1), ok: c > a }] });
+  }
+  function order(b) {
+    return LIT.gone(b) || new Promise(res => {
+      const start = Math.floor(Math.random() * 6), nums = Array.from({ length: 5 }, (_, k) => start + k), sh = LEARN.shuffle(nums); let pos = 0;
+      b.innerHTML = `<div class="lr-step"><div class="train">🚂${nums.map(() => '<span class="lr-slot sm"></span>').join('')}</div><div class="lr-chips">${sh.map(n => `<button class="lr-chip big" data-n="${n}">${AD(n)}</button>`).join('')}</div></div>`;
+      say('p_order');
+      const slots = b.querySelectorAll('.lr-slot');
+      b.querySelectorAll('[data-n]').forEach(ch => ch.onclick = async () => {
+        const n = +ch.dataset.n;
+        if (n === nums[pos]) { slots[pos].textContent = AD(n); slots[pos].classList.add('ok'); ch.disabled = true; ch.classList.add('used'); say('n' + n); pos++;
+          if (pos === nums.length) { LEARN.burst(b.querySelector('.train')); await LEARN.praise(); res(true); } }
+        else { ch.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => ch.classList.remove('bad'), 400); }
+      });
+    });
+  }
+  // صل الكلمة بصورتها: يضغط كلمة ثم صورتها
+  function match(b) {
+    return LIT.gone(b) || new Promise(res => {
+      const ws = LEARN.shuffle(LEARN.PICW).slice(0, 4), pics = LEARN.shuffle(ws);
+      b.innerHTML = `<div class="lr-step"><div class="match-g"><div class="match-col">${ws.map((w, k) => `<button class="lr-chip big" data-w="${k}">${esc(w.w)}</button>`).join('')}</div><div class="match-col">${pics.map(w => `<button class="lr-tile" data-p="${ws.indexOf(w)}"><span class="lr-pic sm">${w.e}</span></button>`).join('')}</div></div></div>`;
+      say('p_match');
+      let sel = null, got = 0;
+      b.querySelectorAll('[data-w]').forEach(x => x.onclick = () => { b.querySelectorAll('[data-w]').forEach(y => y.classList.remove('sel')); sel = +x.dataset.w; x.classList.add('sel'); say(ws[sel].id); });
+      b.querySelectorAll('[data-p]').forEach(x => x.onclick = async () => {
+        if (sel == null) return;
+        const wb = b.querySelector(`[data-w="${sel}"]`);
+        if (+x.dataset.p === sel) { x.classList.add('good'); x.disabled = true; wb.classList.remove('sel'); wb.classList.add('used'); wb.disabled = true; sel = null; LEARN.tone('ok');
+          if (++got === ws.length) { LEARN.burst(b.querySelector('.match-g')); await LEARN.praise(); res(true); } }
+        else { x.classList.add('bad'); LEARN.tone('bad'); setTimeout(() => x.classList.remove('bad'), 400); }
+      });
+    });
+  }
+
+  // ===== القصص =====
+  async function story(b, st, back) {
+    await say('stt_' + st.id);
+    for (const pg of st.pages) await LIT.stepNext(b, `<div class="lr-pic">${pg.e}</div><div class="lr-sent" data-say="${pg.id}">${esc(pg.t)}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
+    const pg = LEARN.shuffle(st.pages.filter(x => x.t.split(' ').length >= 3))[0];
+    if (pg) await LIT.arrange(b, pg.id, pg.t);
+    return LIT.done(b, 'kids', 'st_' + st.id, back);
+  }
 
   function sayName(b, w) {
     return LIT.gone(b) || new Promise(res => {
@@ -54,7 +154,7 @@
 
   function memory(b) {
     return LIT.gone(b) || new Promise(res => {
-      const ws = LEARN.shuffle(W.filter(w => LEARN.ANIMALS.includes(w.w))).slice(0, 6);
+      const ws = LEARN.shuffle(LEARN.PICW).slice(0, 6);
       const cards = LEARN.shuffle([...ws, ...ws].map((w, k) => ({ w, k })));
       b.innerHTML = `<div class="lr-step"><div class="mem-grid">${cards.map((c, i) => `<button class="mem" data-i="${i}"><span>${c.w.e}</span></button>`).join('')}</div></div>`;
       say('p_memory');
@@ -86,26 +186,47 @@
     return LIT.done(b, 'kids', id, back);
   }
 
-  V.kids = async (el, [sec, id]) => {
+  V.kids = async (el, [sec, id, sub, sub2]) => {
     const p = await LEARN.prog(), k = p.kids || {};
     const sh = (title, back, repeat) => { const b = LEARN.shell(el, { theme: 'kids', title, back, stars: p.stars || 0, repeat, exit: back ? '' : exitBtn }); bindExit(el); return b; };
+    const tiles = (b, T) => { b.innerHTML = `<div class="kd-home">${T.map(([href, ic, key, done], i) => `<a class="kd-tile k${(i % 5) + 1}" href="${href}" data-sk="${key}"><span>${ic}</span><b>${LEARN.P[key.slice(2)] || ''}</b>${done ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`; LIT.sayTiles(b); };
+    if (sec === 'letters') { location.replace('#/kids/read/letters' + (id != null ? '/' + id : '')); return; }
     if (!sec) {
       const b = sh('🌟 عالم الصغار', '');
-      const T = [['letters', '🔤', 'حروفي', 'k1'], ['write', '✍️', 'أكتب', 'k2'], ['numbers', '🔢', 'أرقامي', 'k3'], ['quran', '📖', 'قرآني', 'k4'], ['games', '🎮', 'ألعابي', 'k5']];
-      b.innerHTML = `<div class="kd-home">${T.map(([s, ic, t, c]) => `<a class="kd-tile ${c}" href="#/kids/${s}" data-say-t="${t}"><span>${ic}</span><b>${t}</b></a>`).join('')}</div>`;
-      b.querySelectorAll('[data-say-t]').forEach(a => a.addEventListener('pointerdown', () => say(null, a.dataset.sayT)));
+      tiles(b, [['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
+        ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/games', '🎮', 'p_t_games']]);
       return;
     }
-    if (sec === 'letters' || sec === 'write') {
-      const pre = sec === 'letters' ? 'l' : 'wr';
+    if (sec === 'read') {
       if (id == null) {
-        const b = sh(sec === 'letters' ? '🔤 حروفي' : '✍️ أكتب', '#/kids');
+        const b = sh('🔤 حروفي', '#/kids');
+        const n = re => Object.keys(k).filter(x => re.test(x)).length;
+        b.innerHTML = `<div class="lr-path">${[['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28], ['decode', '🔡', 'l_decode', n(/^d_/), LEARN.DECODE.reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)]]
+          .map(([r, ic, key, d, tot], i) => `<a class="lr-level" href="#/kids/read/${r}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
+        LIT.sayTiles(b); return;
+      }
+      if (!(await LIT.reading({ sec: id, id: sub, sub: sub2, area: 'kids', base: '#/kids/read', pg: k, sh }))) location.hash = '#/kids/read';
+      return;
+    }
+    if (sec === 'words' || sec === 'sent') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.hash = '#/kids'; return; }
+    if (sec === 'stories') {
+      if (id == null) {
+        const b = sh('📚 قصصي', '#/kids');
+        b.innerHTML = `<div class="lr-grid g2">${LEARN.STORIES.map((st, i) => `<a class="lr-tile kd sur ${k['st_' + st.id] ? 'done' : ''}" href="#/kids/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${k['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
+        LIT.sayTiles(b); return;
+      }
+      const st = LEARN.STORIES.find(x => x.id === id); if (!st) { location.hash = '#/kids/stories'; return; }
+      return story(sh(st.ic + ' ' + st.t, '#/kids/stories'), st, '#/kids/stories');
+    }
+    if (sec === 'write') {
+      const pre = 'wr';
+      if (id == null) {
+        const b = sh('✍️ أكتب', '#/kids');
         b.innerHTML = `<div class="lr-grid">${L.map(([c], i) => `<a class="lr-tile kd ${k[pre + i] ? 'done' : ''}" href="#/kids/${sec}/${i}" style="--h:${i * 13 % 360}"><span class="lr-g2">${c}</span>${k[pre + i] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
         return;
       }
       const i = +id, back = '#/kids/' + sec;
       const b = sh(L[i][0], back, () => say('l' + i));
-      if (sec === 'letters') return LIT.letterLesson(b, i, 'kids', back);
       say('l' + i);
       await LIT.writeStep(b, L[i][0], { guide: true, prompt: 'p_trace' });
       await LIT.writeStep(b, L[i][0], { guide: true, prompt: 'p_trace' });
@@ -116,8 +237,7 @@
       const SET = sec === 'numbers' ? NUMS : GAMES, back = '#/kids/' + sec;
       if (id == null || !SET[id]) {
         const b = sh(sec === 'numbers' ? '🔢 أرقامي' : '🎮 ألعابي', '#/kids');
-        b.innerHTML = `<div class="kd-home">${Object.entries(SET).map(([g, o], i) => `<a class="kd-tile k${(i % 5) + 1}" href="#/kids/${sec}/${g}" data-say-t="${o.t}"><span>${o.ic}</span><b>${o.t}</b>${k[sec[0] + g] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
-        b.querySelectorAll('[data-say-t]').forEach(a => a.addEventListener('pointerdown', () => say(null, a.dataset.sayT)));
+        tiles(b, Object.entries(SET).map(([g, o]) => [`#/kids/${sec}/${g}`, o.ic, 'p_' + GKEY[g], k[sec[0] + g]]));
         return;
       }
       const b = sh(SET[id].ic + ' ' + SET[id].t, back);

@@ -19,14 +19,26 @@
   const forms = c => NOJOIN.has(c) ? { iso: c, ini: c, med: 'ـ' + c, fin: 'ـ' + c } : { iso: c, ini: c + 'ـ', med: 'ـ' + c + 'ـ', fin: 'ـ' + c };
 
   // ===== كلمات بصور (إيموجي) =====
+  function firstOf(w) { const c = w.replace(/[\u064B-\u0652]/g, '')[0]; return /[اأإآ]/.test(c) ? 'ا' : c; }
   const W = [
     ['أسد', '🦁'], ['أرنب', '🐇'], ['بطة', '🦆'], ['بقرة', '🐄'], ['بيت', '🏠'], ['باب', '🚪'], ['تفاحة', '🍎'], ['تمر', '🌴'], ['ثعلب', '🦊'], ['جمل', '🐪'],
     ['حصان', '🐴'], ['خروف', '🐑'], ['خبز', '🍞'], ['دجاجة', '🐔'], ['ديك', '🐓'], ['ذئب', '🐺'], ['زرافة', '🦒'], ['ساعة', '⌚'], ['سمكة', '🐟'], ['سيارة', '🚗'],
     ['شمس', '☀️'], ['شجرة', '🌳'], ['صقر', '🦅'], ['ضفدع', '🐸'], ['طائرة', '✈️'], ['ظرف', '✉️'], ['عين', '👁️'], ['غزال', '🦌'], ['فيل', '🐘'], ['قطة', '🐈'],
     ['قمر', '🌙'], ['قلم', '✏️'], ['كتاب', '📖'], ['كلب', '🐕'], ['ليمون', '🍋'], ['ماء', '💧'], ['مسجد', '🕌'], ['موز', '🍌'], ['مفتاح', '🔑'], ['نحلة', '🐝'],
     ['نمر', '🐅'], ['نجمة', '⭐'], ['هاتف', '📱'], ['وردة', '🌹'], ['يد', '✋'], ['نقود', '💵'], ['مدرسة', '🏫'], ['بحر', '🌊'], ['طبيب', '🩺'], ['حليب', '🥛']
-  ].map(([w, e], i) => ({ id: 'w' + i, w, e, first: AR.normalize(w)[0] === 'ا' ? 'ا' : w[0] === 'أ' ? 'ا' : w[0] }));
-  const ANIMALS = ['أسد', 'أرنب', 'بطة', 'بقرة', 'ثعلب', 'جمل', 'حصان', 'خروف', 'دجاجة', 'ديك', 'ذئب', 'زرافة', 'سمكة', 'صقر', 'ضفدع', 'غزال', 'فيل', 'قطة', 'كلب', 'نحلة', 'نمر'];
+  ].map(([w, e], i) => ({ id: 'w' + i, w, e, first: firstOf(w) }));
+  const D = window.LEARN_DATA;
+  // كل كلمات المنهج (الكلمات القديمة تحتفظ بمفاتيحها حتى لا تضيع تسجيلاتها)
+  const WMAP = new Map(W.map(x => [x.w, x]));
+  D.THEMES.forEach(th => th.w.forEach(([w, e]) => { if (!WMAP.has(w)) WMAP.set(w, { id: 'v_' + w, w, e, first: firstOf(w) }); }));
+  const THEMES = D.THEMES.map(th => Object.assign({}, th, { words: th.w.map(([w]) => WMAP.get(w)) }));
+  const ALLW = [...WMAP.values()];
+  const PICW = ALLW.filter(x => x.e);
+  const ANIMALS = THEMES.find(t => t.id === 'animals').words.map(x => x.w);
+  const DECODE = D.DECODE.map(d => Object.assign({}, d, { words: d.w.map(w => ({ id: 'd_' + w, w, e: '' })) }));
+  const SK = D.SENT_K.map((t, i) => ({ id: 'sk' + i, t })), SA = D.SENT_A.map((t, i) => ({ id: 'sa' + i, t }));
+  const SIGNS = D.SIGNS.map(([t, c], i) => ({ id: 'g' + i, t, c }));
+  const STORIES = D.STORIES.map(st => Object.assign({}, st, { pages: st.p.map(([t, e], i) => ({ id: `st_${st.id}_${i}`, t, e })) }));
 
   const S = [
     'السلام عليكم', 'بسم الله الرحمن الرحيم', 'الحمد لله رب العالمين', 'أنا أحب أمي', 'الشمس في السماء', 'القطة تشرب الماء',
@@ -35,7 +47,7 @@
   const NUM = ['صفر', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر', 'عشرون'];
   const AD = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
-  // جمل التعليمات (تُسجَّل بصوت بشري، وإلا تُقرأ بصوت الجهاز)
+  // جمل التعليمات والتشجيع (بصوت بشري مسجّل)
   const P = {
     welcome: 'أهلا بك. للأطفال اضغط على صورة الطفل. لتتعلم القراءة والكتابة اضغط على صورة القلم. وللمكتبة اضغط على صورة الكتاب',
     listen: 'استمع جيدا',
@@ -64,24 +76,57 @@
     grad_pass: 'مبارك! أنت الآن تستطيع القراءة. يمكنك دخول قسم الكبار',
     grad_fail: 'تحتاج مراجعة قليلة ثم أعد الاختبار',
     exit_hold: 'اضغط مطولا للخروج',
-    lit_intro: 'ابدأ بالحروف، ثم أشكال الحروف، ثم الكلمات، ثم الجمل، ثم الاختبار',
+    lit_intro: 'ابدأ من الأعلى: الحروف، ثم الحركات والمدود، ثم الكلمات واللافتات، ثم الجمل، ثم الاختبار',
     t_letters: 'حروفي', t_write: 'أكتب', t_numbers: 'أرقامي', t_quran: 'قرآني', t_games: 'ألعابي',
     t_nlearn: 'تعلّم الأرقام', t_count: 'عُدّ', t_add: 'اجمع', t_sub: 'اطرح',
-    t_animal: 'أين الحيوان؟', t_speak: 'قل اسمه', t_first: 'الحرف الأول', t_arrange: 'رتّب الجملة', t_memory: 'الذاكرة'
+    t_animal: 'أين الحيوان؟', t_speak: 'قل اسمه', t_first: 'الحرف الأول', t_arrange: 'رتّب الجملة', t_memory: 'الذاكرة',
+    madd_intro: 'هذه حروف المد: الألف والواو والياء، تمد الصوت',
+    tanween_intro: 'التنوين: نون ساكنة نسمعها ولا نكتبها',
+    short_long: 'هل الصوت قصير أم طويل؟ اختر ما تسمع',
+    sukun_intro: 'السكون: الحرف الساكن لا يتحرك',
+    shadda_intro: 'الشدة: الحرف المشدد يُنطق مرتين',
+    shams_intro: 'اللام الشمسية لا تنطق، واللام القمرية تنطق',
+    verbs_intro: 'اقرأ الكلمة حرفا حرفا ثم اقرأها كاملة',
+    story: 'استمع إلى القصة',
+    read_sign: 'اقرأ هذه اللوحة',
+    missing: 'اختر الحرف الناقص',
+    build: 'كوّن الكلمة بالحروف',
+    pop: 'افقع البالون الذي فيه الحرف',
+    true_false: 'هل هذا صحيح؟',
+    color: 'اختر اللون',
+    more: 'أيهما أكثر؟',
+    order: 'رتب الأرقام من الأصغر إلى الأكبر',
+    match: 'صل كل كلمة بصورتها',
+    t_words: 'كلماتي', t_stories: 'قصصي', t_reading: 'أتعلم القراءة',
+    t_missing: 'الحرف الناقص', t_build: 'كوّن الكلمة', t_pop: 'البالونات', t_tf: 'صح أم خطأ', t_color: 'الألوان', t_more: 'أكثر وأقل', t_order: 'رتب الأرقام', t_match: 'صل الكلمة بالصورة',
+    l_letters: 'الحروف', l_harakat: 'الحركات', l_madd: 'المدود', l_tanween: 'التنوين', l_forms: 'أشكال الحروف', l_decode: 'السكون والشدة', l_words: 'الكلمات', l_signs: 'اللافتات', l_sent: 'الجمل', l_grad: 'الاختبار'
   };
 
   // ===== قائمة كل المقاطع الصوتية (للتسجيل) =====
+  let CLIPS = null;
   function clips() {
-    const out = [];
-    L.forEach(([c, n], i) => out.push({ key: 'l' + i, text: n, show: c, group: '١. أسماء الحروف', phase: 1 }));
-    L.forEach(([c], i) => HAR.forEach(([k]) => out.push({ key: `h${i}${k}`, text: harakah(c, k), show: harakah(c, k), group: '٢. الحروف بالحركات (فتحة، ضمة، كسرة)', phase: 1 })));
-    W.forEach(x => out.push({ key: x.id, text: x.w, show: x.e + ' ' + x.w, group: '٣. الكلمات', phase: 1 }));
-    NUM.forEach((n, i) => out.push({ key: 'n' + i, text: n, show: AD(i) + ' — ' + n, group: '٤. الأرقام', phase: 1 }));
-    Object.entries(P).forEach(([k, t]) => out.push({ key: 'p_' + k, text: t, show: t, group: k.startsWith('t_') ? '٦. أسماء الأقسام والألعاب' : '٥. جمل التعليمات والتشجيع', phase: 1 }));
-    S.forEach((t, i) => out.push({ key: 's' + i, text: t, show: t, group: '٧. الجمل', phase: 1 }));
-    L.forEach(([c], i) => ['a', 'u', 'i'].forEach(k => out.push({ key: `m${i}${k}`, text: madd(c, k), show: madd(c, k), group: '٨. المدود (المرحلة الثانية)', phase: 2 })));
-    L.forEach(([c], i) => TAN.forEach(([k]) => out.push({ key: `t${i}${k}`, text: tanween(c, k), show: tanween(c, k), group: '٩. التنوين (المرحلة الثانية)', phase: 2 })));
-    return out;
+    if (CLIPS) return CLIPS;
+    const out = [], add = (key, text, show, group) => out.push({ key, text, show: show || text, group, phase: 1 });
+    L.forEach(([c, n], i) => add('l' + i, n, c, '١. أسماء الحروف'));
+    L.forEach(([c], i) => HAR.forEach(([k]) => add(`h${i}${k}`, harakah(c, k), null, '٢. الحروف بالحركات (فتحة، ضمة، كسرة)')));
+    Object.entries(P).filter(([k]) => !/^[tl]_/.test(k)).forEach(([k, t]) => add('p_' + k, t, null, '٣. جمل التعليمات والتشجيع'));
+    Object.entries(P).filter(([k]) => /^[tl]_/.test(k)).forEach(([k, t]) => add('p_' + k, t, null, '٤. أسماء الأقسام والألعاب'));
+    THEMES.forEach(th => add('th_' + th.id, th.t, th.ic + ' ' + th.t, '٤. أسماء الأقسام والألعاب'));
+    DECODE.forEach(d => add('dt_' + d.id, d.t, null, '٤. أسماء الأقسام والألعاب'));
+    STORIES.forEach(st => add('stt_' + st.id, st.t, st.ic + ' ' + st.t, '٤. أسماء الأقسام والألعاب'));
+    NUM.forEach((n, i) => add('n' + i, n, AD(i) + ' — ' + n, '٥. الأرقام'));
+    const seen = new Set();
+    THEMES.forEach(th => th.words.forEach(x => { if (seen.has(x.id)) return; seen.add(x.id); add(x.id, x.w, (x.e ? x.e + ' ' : '') + x.w, `٦. الكلمات — ${th.t}`); }));
+    W.forEach(x => { if (!seen.has(x.id)) { seen.add(x.id); add(x.id, x.w, x.e + ' ' + x.w, '٦. الكلمات — متنوعة'); } });
+    L.forEach(([c], i) => ['a', 'u', 'i'].forEach(k => add(`m${i}${k}`, madd(c, k), null, '٧. المدود (بَا بُو بِي)')));
+    L.forEach(([c], i) => TAN.forEach(([k]) => add(`t${i}${k}`, tanween(c, k), null, '٨. التنوين')));
+    DECODE.forEach(d => d.words.forEach(x => add(x.id, x.w, null, '٩. ' + d.t)));
+    S.forEach((t, i) => add('s' + i, t, null, '١٠. جمل أساسية'));
+    SK.forEach(x => add(x.id, x.t, null, '١١. جمل الأطفال'));
+    SA.forEach(x => add(x.id, x.t, null, '١٢. جمل الحياة اليومية (الكبار)'));
+    SIGNS.forEach(x => add(x.id, x.t, null, '١٣. اللافتات'));
+    STORIES.forEach(st => st.pages.forEach(pg => add(pg.id, pg.t, pg.e + ' ' + pg.t, '١٤. القصص — ' + st.t)));
+    return (CLIPS = out);
   }
 
   // ===== تخزين التسجيلات على الجهاز =====
@@ -280,5 +325,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

@@ -47,7 +47,7 @@
     if (mode === 'go') return focus(b, all, have);
     const done = all.filter(c => have.has(c.key)).length, p1 = all.filter(c => c.phase === 1), d1 = p1.filter(c => have.has(c.key)).length;
     b.innerHTML = `<div class="card">
-        <div><b>سجّلت ${AD(done)} من ${AD(all.length)} مقطعاً</b> — المرحلة الأولى: ${AD(d1)} من ${AD(p1.length)}</div>
+        <div><b>سجّلت ${AD(done)} من ${AD(all.length)} مقطعاً</b></div>
         <div class="lr-progress"><i style="width:${Math.round(done / all.length * 100)}%"></i></div>
         <div class="muted" style="font-size:13px;margin:8px 0">التسجيلات تُستعمل فوراً في التطبيق على هذا الجهاز. وعند الانتهاء صدّرها وأرسلها لتُضاف للتطبيق عند الجميع.</div>
         <div class="row" style="gap:8px;flex-wrap:wrap">
@@ -58,7 +58,7 @@
           <li>غرفة هادئة، والجوال على بُعد شبر من فمك.</li>
           <li>صوت واضح متوسط السرعة، كأنك تعلّم طفلاً.</li>
           <li>الحروف بالحركات: انطق الصوت فقط «بَ» وليس «باء فتحة».</li>
-          <li>المرحلة الثانية (المدود والتنوين) ليست مطلوبة الآن.</li>
+          <li>المقاطع مرتبة حسب الأهمية: ابدأ من الأعلى، وكل مجموعة تكملها تشغّل دروسها.</li>
           <li>اضغط «سجّل»، انتظر نصف ثانية، انطق، ثم «إيقاف».</li>
         </ul></details>
       </div>

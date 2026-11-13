@@ -702,3 +702,21 @@ body.learn-lit { --lr-a: #0d5c3f; --lr-b: #f4f1e8; }
 .rc-focus { text-align: center; }
 .rc-big { font: 700 64px/1.5 Naskh, serif; margin: 10px 0; color: var(--lr-a); }
 html.dark body.learn-mode, body.dark.learn-mode { --lr-pad: #ffffff; }
+/* المنهج الموسّع: لافتات، بالونات، قطار، توصيل، قصص */
+.lr-sign { display: inline-block; font: 800 44px/1.4 'Plex Arabic', sans-serif; color: #fff; padding: 14px 30px; border-radius: 14px; border: 5px solid rgba(255,255,255,.85); box-shadow: 0 0 0 4px currentColor, 0 6px 14px rgba(0,0,0,.2); cursor: pointer; }
+.lr-sign.sm { font-size: 22px; padding: 6px 12px; border-width: 3px; box-shadow: none; }
+.lr-sign.s-g { background: #1b7f3b; } .lr-sign.s-r { background: #c62828; } .lr-sign.s-b { background: #1565c0; } .lr-sign.s-y { background: #f9a825; color: #222; }
+.lr-tile.th { min-height: 120px; } .lr-tile.th b { font-size: 18px; }
+.lr-slot.sm { min-width: 44px; }
+.lr-chip.sel { border-color: var(--lr-a); background: #ede7ff; }
+.pop-sky { position: relative; width: 100%; height: 56vh; overflow: hidden; border-radius: 22px; background: linear-gradient(#bfe6ff, #e8f7ff); }
+.pop-b { position: absolute; bottom: -120px; left: var(--x); width: 78px; height: 96px; border: 0; border-radius: 50% 50% 46% 46%; background: hsl(var(--h) 80% 60%); color: #fff; font: 700 40px/1 Naskh, serif; animation: popUp var(--d) linear infinite; cursor: pointer; box-shadow: inset -8px -10px 0 rgba(0,0,0,.12); }
+.pop-b::after { content: ''; position: absolute; left: 50%; bottom: -26px; width: 2px; height: 26px; background: #888; }
+.pop-b.popped { animation: none; transform: scale(1.6); opacity: 0; transition: .25s; }
+.pop-b.bad { filter: grayscale(1); }
+@keyframes popUp { from { transform: translateY(0); } to { transform: translateY(-75vh); } }
+.train { display: flex; gap: 6px; align-items: center; font-size: 46px; direction: rtl; flex-wrap: wrap; justify-content: center; }
+.match-g { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; }
+.match-col { display: flex; flex-direction: column; gap: 10px; }
+.match-col .lr-tile { min-height: 76px; }
+.lr-dots { display: flex; gap: 6px; } .lr-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line2); } .lr-dots i.on { background: var(--lr-a); }
