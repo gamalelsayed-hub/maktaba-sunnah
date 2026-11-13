@@ -12,3 +12,8 @@ scripts/build-data/ayah/
 scripts/build-data/pages/
 scripts/build-data/ahmad/
 scripts/build-data/mishkat/
+
+# مفاتيح التوقيع لا تُرفع أبداً
+*.jks
+*.keystore
+*password*.txt

@@ -50,14 +50,15 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon -q
           # توقيع ثابت حتى تُثبَّت التحديثات فوق النسخة القديمة دون فقد البيانات
-          # (يُفضَّل نقل المفتاح إلى أسرار المستودع: ANDROID_KEYSTORE_B64 و ANDROID_KEYSTORE_PASS)
-          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > ks.jks; PASS="$KS_PASS"; else cp ../release.keystore ks.jks; PASS=$(cat ../keystore-password.txt); fi
+          # المفتاح محفوظ في أسرار المستودع فقط: ANDROID_KEYSTORE_B64 و ANDROID_KEYSTORE_PASS
+          if [ -z "$KS_B64" ] || [ -z "$KS_PASS" ]; then echo "::error::أسرار مفتاح التوقيع غير موجودة"; exit 1; fi
+          echo "$KS_B64" | base64 -d > ks.jks; PASS="$KS_PASS"
           BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
           $BT/zipalign -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
           VER=$(node -p "require('../package.json').version")
           $BT/apksigner sign --ks ks.jks --ks-key-alias maktaba --ks-pass pass:$PASS --key-pass pass:$PASS --out "../../maktaba-sunnah-$VER.apk" aligned.apk
           rm -f ks.jks
-          $BT/apksigner verify "../../maktaba-sunnah-$VER.apk"
+          $BT/apksigner verify --print-certs "../../maktaba-sunnah-$VER.apk" | grep -i sha-256
           ls -la ../../*.apk
       - uses: actions/upload-artifact@v4
         with: { name: maktaba-sunnah-android, path: '*.apk', compression-level: 0 }
