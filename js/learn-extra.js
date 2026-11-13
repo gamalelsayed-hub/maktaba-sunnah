@@ -60,6 +60,7 @@
 
   // ===== الأوسمة =====
   const cnt = (o, re) => Object.keys(o).filter(k => re.test(k)).length;
+  const nRules = () => LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + Math.ceil(d.words.length / 6), 0);
   const nDecode = () => LEARN.DECODE.reduce((a, d) => a + Math.ceil(d.words.length / 6), 0);
   const BADGES = [
     ['first', '🌱', 'أول نجمة', p => (p.stars || 0) >= 1],
@@ -79,10 +80,16 @@
     ['d3', '🔥', '٣ أيام متتالية', p => streak(p) >= 3],
     ['d7', '🔥', 'أسبوع كامل', p => streak(p) >= 7],
     ['d30', '🏆', 'شهر كامل', p => streak(p) >= 30],
-    ['grad', '🎓', 'تخرّج من محو الأمية', p => !!(p.lit && p.lit.grad)]
+    ['grad', '🎓', 'تخرّج من محو الأمية', p => !!(p.lit && p.lit.grad)],
+    ['kgrad', '🏆', 'بطل القراءة', p => !!(p.kids && p.kids.kgrad)],
+    ['rules', '✍️', 'بطل قواعد الكتابة', p => cnt(allDone(p), /^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/) >= nRules()],
+    ['dict', '🎧', 'بطل الإملاء', p => cnt(allDone(p), /^dc\d/) >= 5],
+    ['duas', '🤲', 'حافظ الأدعية', p => cnt(p.kids || {}, /^du\d/) >= 12],
+    ['math', '🔢', 'بطل الحساب', p => cnt(allDone(p), /^mt_/) >= 6],
+    ['texts', '📰', 'قارئ الحياة', p => cnt(p.lit || {}, /^tx_/) >= 10]
   ];
   // الشهادات: إنجازات كبيرة تُطبع
-  const CERTS = { letters: 'إتمام تعلّم الحروف الهجائية', madd: 'إتمام المدود', tanween: 'إتمام التنوين', decode: 'إتمام القراءة بالسكون والشدة', stories: 'إتمام قصص الأطفال', q10: 'تعلّم عشر سور من القرآن الكريم', qall: 'إتمام جزء عمّ', grad: 'إتمام برنامج تعلّم القراءة والكتابة' };
+  const CERTS = { letters: 'إتمام تعلّم الحروف الهجائية', madd: 'إتمام المدود', tanween: 'إتمام التنوين', decode: 'إتمام القراءة بالسكون والشدة', stories: 'إتمام قصص الأطفال', q10: 'تعلّم عشر سور من القرآن الكريم', qall: 'إتمام جزء عمّ', grad: 'إتمام برنامج تعلّم القراءة والكتابة', kgrad: 'إتمام منهج القراءة والكتابة للأطفال', rules: 'إتمام قواعد الكتابة', math: 'إتمام الأرقام والحساب' };
 
   // تغليف التسجيل: يومي + سجل + أوسمة جديدة
   const baseMark = LEARN.mark;
@@ -163,7 +170,10 @@
     ['🖼️', 'الكلمات', p => Math.min(1, cnt(allDone(p), /^w_/) / 20), '#/kids/words'],
     ['🧩', 'الجمل', p => Math.min(1, cnt(allDone(p), /^se_sk/) / 20), '#/kids/sent'],
     ['📚', 'القصص', p => cnt(p.kids || {}, /^st_/) / LEARN.STORIES.length, '#/kids/stories'],
-    ['🕋', 'جزء عمّ', p => cnt(allDone(p), /^q\d+$/) / 38, '#/kids/quran']
+    ['✍️', 'قواعد الكتابة', p => cnt(allDone(p), /^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/) / nRules(), '#/kids/read/rules'],
+    ['🎧', 'اسمع واكتب', p => Math.min(1, cnt(allDone(p), /^dc\d/) / 5), '#/kids/dict'],
+    ['🕋', 'جزء عمّ', p => cnt(allDone(p), /^q\d+$/) / 38, '#/kids/quran'],
+    ['🏆', 'اختبار البطل', p => (p.kids && p.kids.kgrad) ? 1 : 0, '#/kids/exam']
   ];
   function ring(f, label) { const r = 26, C = 2 * Math.PI * r; return `<svg viewBox="0 0 64 64" class="ring"><circle cx="32" cy="32" r="${r}" class="rg-bg"/><circle cx="32" cy="32" r="${r}" class="rg-fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - Math.min(1, f))}"/><text x="32" y="38" text-anchor="middle">${label}</text></svg>`; }
 

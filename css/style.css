@@ -788,3 +788,27 @@ body:not(.learn-mode) .tc-react { display: none; }
 .vd-row span.on { transform: scale(1.18); background: #fff3c4; color: var(--lr-a); }
 .vd-ctrl { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
 .lr-me.vd { background: linear-gradient(135deg, #dff3ff, #ede7ff); }
+.lr-model.hidden { display: none; }
+/* الأرقام والحساب */
+.num-tens { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; max-width: 360px; font-size: 13px; line-height: 1; }
+.num-tens .ten { display: inline-block; padding: 3px; border: 2px solid #1565c0; border-radius: 6px; }
+.num-tens .one { font-size: 18px; align-self: flex-end; }
+.clk { width: min(62vw, 240px); height: min(62vw, 240px); }
+.clk-f { fill: #fff; stroke: var(--lr-a); stroke-width: 4; }
+.clk text { font: 700 10px 'Plex Arabic', sans-serif; fill: #333; }
+.clk-h { stroke: #333; stroke-width: 5; stroke-linecap: round; } .clk-m { stroke: #e53935; stroke-width: 3; stroke-linecap: round; } .clk-c { fill: #333; }
+.money { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 380px; }
+.note { display: inline-flex; align-items: center; justify-content: center; min-width: 70px; height: 40px; border-radius: 6px; font: 800 20px 'Plex Arabic', sans-serif; color: #fff; padding: 0 8px; box-shadow: 0 2px 0 rgba(0,0,0,.2); }
+.note.n1 { background: #8d6e63; } .note.n5 { background: #6a1b9a; } .note.n10 { background: #2e7d32; } .note.n50 { background: #1565c0; }
+/* نصوص من الحياة */
+.doc { font: 700 24px/1.9 Naskh, serif; padding: 14px 20px; border-radius: 12px; cursor: pointer; text-align: center; max-width: 520px; width: 100%; box-sizing: border-box; }
+.doc-paper { background: #fffdf5; border: 1px solid #e0d9c0; box-shadow: 0 3px 10px rgba(0,0,0,.1); color: #333; }
+.doc-card { background: #fff; border: 3px double #0d5c3f; color: #1a3d2e; }
+.doc-sms { background: #dcf8c6; border-radius: 18px 18px 4px 18px; color: #222; text-align: right; }
+.doc-road { background: #1b7f3b; color: #fff; border: 4px solid #fff; box-shadow: 0 0 0 3px #1b7f3b; }
+.doc-quran { background: #fffaf0; border: 2px solid #c9a227; font-family: 'Amiri Quran', serif; color: #333; }
+.doc-form { background: #fff; color: #333; text-align: right; border: 1px solid #ccc; } .doc-form div { border-bottom: 1px dotted #999; padding: 4px 0; } .doc-form div::after { content: ' : ...........'; color: #aaa; }
+.doc-warn { background: #fff8e1; border: 3px solid #f9a825; color: #b71c1c; }
+.shp { width: min(50vw, 200px); height: min(50vw, 200px); }
+.lr-opts .shp { width: 90px; height: 90px; }
+.lr-me.rv { background: linear-gradient(135deg, #ffe0e0, #fff3c4); }

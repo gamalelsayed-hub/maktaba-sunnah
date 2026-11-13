@@ -1,5 +1,5 @@
 /* 🧒 أساس قسمي «الأطفال» و«محو الأمية»: الحروف، الأصوات، لوح الكتابة بالتصحيح، الأصوات المسجلة.
-   كل شيء يعمل بدون إنترنت. الصوت بشري فقط: مسجّل على الجهاز أو مرفق مع التطبيق (لا صوت آلي). */
+   كل شيء يعمل بدون إنترنت. الصوت: تسجيل بشري (على الجهاز أو مرفق مع التطبيق)، وإلى أن يُسجَّل يُستعمل صوت الجهاز. */
 (() => {
   const esc = s => AR.escapeHtml(String(s == null ? '' : s));
 
@@ -75,6 +75,8 @@
     grad_intro: 'هذا اختبار صغير لتعرف مستواك',
     grad_pass: 'مبارك! أنت الآن تستطيع القراءة. يمكنك دخول قسم الكبار',
     grad_fail: 'تحتاج مراجعة قليلة ثم أعد الاختبار',
+    kgrad_pass: 'مبارك يا بطل! أنت الآن تقرأ وتكتب',
+    t_exam: 'اختبار البطل', t_duas: 'أدعيتي',
     exit_hold: 'اضغط مطولا للخروج',
     lit_intro: 'ابدأ من الأعلى: الحروف، ثم الحركات والمدود، ثم الكلمات واللافتات، ثم الجمل، ثم الاختبار',
     t_letters: 'حروفي', t_write: 'أكتب', t_numbers: 'أرقامي', t_quran: 'قرآني', t_games: 'ألعابي',
@@ -87,6 +89,17 @@
     shadda_intro: 'الشدة: الحرف المشدد يُنطق مرتين',
     shams_intro: 'اللام الشمسية لا تنطق، واللام القمرية تنطق',
     verbs_intro: 'اقرأ الكلمة حرفا حرفا ثم اقرأها كاملة',
+    lamalif_intro: 'اللام إذا جاءت بعدها ألف نكتبهما معا هكذا: لا',
+    taa_intro: 'التاء المربوطة تأتي في آخر الكلمة، ننطقها تاء إذا وصلنا، وهاء إذا وقفنا',
+    alifm_intro: 'الألف المقصورة تُكتب مثل الياء بلا نقط، وننطقها ألفا',
+    hamza_intro: 'الهمزة تُكتب على الألف أو الواو أو الياء أو على السطر، وننطقها دائما همزة',
+    aa_intro: 'الألف الممدودة: همزة بعدها ألف، نمدها مدا',
+    tanw2_intro: 'تنوين الفتح نكتب بعده ألفا لا ننطقها في وسط الكلام',
+    l_rules: 'قواعد الكتابة',
+    l_dict: 'اسمع واكتب', l_review: 'راجع أخطائي', l_math: 'الأرقام والحساب', l_texts: 'نصوص من الحياة', l_duas: 'أدعية يومي', l_shapes: 'الأشكال',
+    choose_num: 'اختر الرقم الذي تسمعه', bigger: 'اختر العدد الأكبر', money_total: 'كم مجموع هذه النقود؟', money_change: 'احسب الباقي', clock: 'كم الساعة؟', phone: 'اختر رقم الهاتف الذي تسمعه', date: 'اختر التاريخ الصحيح', shape: 'اختر الشكل الذي تسمعه', read_text: 'اقرأ النص، ثم أجب عن السؤال',
+    dictation: 'استمع إلى الكلمة، ثم رتب حروفها',
+    dictation_hand: 'استمع إلى الكلمة، ثم اكتبها بيدك',
     story: 'استمع إلى القصة',
     read_sign: 'اقرأ هذه اللوحة',
     missing: 'اختر الحرف الناقص',
@@ -133,6 +146,10 @@
     SA.forEach(x => add(x.id, x.t, null, '١٢. جمل الحياة اليومية (الكبار)'));
     SIGNS.forEach(x => add(x.id, x.t, null, '١٣. اللافتات'));
     STORIES.forEach(st => st.pages.forEach(pg => add(pg.id, pg.t, pg.e + ' ' + pg.t, '١٤. القصص — ' + st.t)));
+    D.DUAS.forEach((d, i) => { add('du' + i, d.t, d.e + ' ' + d.t, '١٧. أدعية اليوم'); add('duw' + i, d.w, d.e + ' ' + d.w, '١٧. أدعية اليوم'); });
+    D.SHAPES.forEach(([id, n]) => add('sh_' + id, n, null, '١٨. الأشكال'));
+    D.TEXTS.forEach(x => { add('txt_' + x.id, x.t, x.ic + ' ' + x.t, '١٩. نصوص من الحياة'); add('tx_' + x.id, x.l.join('، '), x.l.join(' / '), '١٩. نصوص من الحياة'); x.q.forEach((q, j) => add(`txq_${x.id}_${j}`, q[0], null, '١٩. نصوص من الحياة')); });
+    (window.LEARN_EXTRA_CLIPS || []).forEach(f => f(add));
     return (CLIPS = out);
   }
 
@@ -157,6 +174,7 @@
   function stop() {
     gen++;
     if (cur) { try { cur.pause(); } catch (e) { } cur = null; }
+    try { if (window.NATIVE_TTS) NATIVE_TTS.stop(); else if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) { }
     if (curUrl) { URL.revokeObjectURL(curUrl); curUrl = null; }
   }
   const playUrl = (url, my) => new Promise(res => {
@@ -173,7 +191,23 @@
     if (rec && rec.blob) { curUrl = URL.createObjectURL(rec.blob); return playUrl(curUrl, my); }
     const f = key && window.LEARN_AUDIO && LEARN_AUDIO[key];
     if (f) return playUrl('audio/learn/' + f, my);
-    // لا يُستعمل صوت الجهاز أبداً: إن لم يُسجَّل المقطع بعد يبقى صامتاً
+    // مؤقتاً حتى يُسجَّل المقطع بصوت بشري: صوت الجهاز (أوضح صوت عربي متاح). التسجيل يحل محله تلقائياً
+    return tts(text != null ? text : textOf(key), my);
+  }
+  const textOf = key => { const c = key && clips().find(x => x.key === key); return c ? c.text : ''; };
+  const rankV = v => (/natural|neural|online|premium|enhanced/i.test(v.name) ? 0 : /google/i.test(v.name) ? 1 : /hamed|zariyah|naayf|maged|tarik|laila|salma|shakir/i.test(v.name) ? 2 : 3) + (/sa|eg/i.test(v.lang) ? 0 : 0.5);
+  function tts(text, my) {
+    return new Promise(res => {
+      if (!text) return res();
+      const done = () => res();
+      if (window.NATIVE_TTS) { NATIVE_TTS.speak(text, 0.85).then(done, done); return; }
+      const syn = window.speechSynthesis; if (!syn) return res();
+      const vs = syn.getVoices().filter(v => /^ar/i.test(v.lang)).sort((a, b) => rankV(a) - rankV(b));
+      const u = new SpeechSynthesisUtterance(text); u.lang = vs[0] ? vs[0].lang : 'ar-SA'; if (vs[0]) u.voice = vs[0]; u.rate = 0.85;
+      u.onend = u.onerror = done; syn.speak(u);
+      setTimeout(done, 2500 + text.length * 180);
+      const chk = setInterval(() => { if (my !== gen) { clearInterval(chk); res(); } }, 300);
+    });
   }
   async function sayAll(list) { const my = gen + 1; for (const [k, t] of list) { await say(k, t); if (gen !== my) return; await new Promise(r => setTimeout(r, 250)); } }
 
@@ -216,6 +250,12 @@
     await DB.setting('learn', p); return p;
   }
 
+  // أخطاء المتعلم: تُجمع للمراجعة الذكية (تزيد مع الخطأ وتقل مع الصواب)
+  async function miss(id, d = 1) {
+    if (!id) return; const p = await prog(); p.miss = p.miss || {};
+    const v = (p.miss[id] || 0) + d; if (v > 0) p.miss[id] = Math.min(v, 5); else delete p.miss[id];
+    await DB.setting('learn', p);
+  }
   const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
   const pick = (arr, n, must) => { const rest = shuffle(arr.filter(x => x !== must)).slice(0, n - (must ? 1 : 0)); return shuffle(must ? [must, ...rest] : rest); };
 
@@ -268,9 +308,9 @@
       if (opt.guide) {
         ctx.font = font(fs); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.direction = 'rtl';
         ctx.fillStyle = 'rgba(30,120,80,.16)'; ctx.fillText(target, cv.width / 2, by);
-        ctx.setLineDash([12, 10]); ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(30,120,80,.75)'; ctx.strokeText(target, cv.width / 2, by); ctx.setLineDash([]);
+        ctx.setLineDash([8, 9]); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(30,120,80,.7)'; ctx.strokeText(target, cv.width / 2, by); ctx.setLineDash([]);
       }
-      ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(16, fs * 0.07); ctx.strokeStyle = opt.color || '#1565c0';
+      ctx.lineCap = ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(9, fs * 0.04); ctx.strokeStyle = opt.color || '#1565c0';
       strokes.forEach(s => { ctx.beginPath(); s.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); if (s.length === 1) ctx.lineTo(s[0][0] + 0.1, s[0][1]); ctx.stroke(); });
     }
     const pos = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; };
@@ -340,5 +380,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { miss, react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

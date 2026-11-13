@@ -118,6 +118,44 @@
     });
   }
 
+  // ===== الأشكال =====
+  const SHC = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#fdd835', '#e91e63', '#8e24aa', '#00acc1'];
+  function shapeSvg(id, col) {
+    const f = `fill="${col}"`;
+    const body = { circle: `<circle cx="50" cy="50" r="42" ${f}/>`, square: `<rect x="12" y="12" width="76" height="76" rx="4" ${f}/>`, triangle: `<polygon points="50,8 94,90 6,90" ${f}/>`, rect: `<rect x="4" y="26" width="92" height="48" rx="4" ${f}/>`,
+      star: `<polygon points="50,5 61,38 96,38 68,59 78,93 50,72 22,93 32,59 4,38 39,38" ${f}/>`, heart: `<path d="M50 88 C10 60 4 34 22 20 C36 10 48 18 50 28 C52 18 64 10 78 20 C96 34 90 60 50 88Z" ${f}/>`,
+      diamond: `<polygon points="50,4 92,50 50,96 8,50" ${f}/>`, crescent: `<path d="M64 8 A44 44 0 1 0 64 92 A34 34 0 1 1 64 8Z" ${f}/>` }[id];
+    return `<svg viewBox="0 0 100 100" class="shp">${body}</svg>`;
+  }
+  async function shapesLesson(b, back) {
+    const S = LEARN_DATA.SHAPES;
+    for (const [i, [id]] of S.entries()) await LIT.stepNext(b, `<div data-say="sh_${id}">${shapeSvg(id, SHC[i])}</div><div class="lr-cap" data-say="sh_${id}">${S[i][1]}</div>`, bb => { LIT.bindSay(bb); say('sh_' + id); });
+    await rounds(b, 6, () => { const k = R0(S.length), [id] = S[k]; return LIT.choose(b, { prompt: 'p_shape', hear: ['sh_' + id], cols: 2, options: LEARN.pick(S.map((_, j) => j), 4, k).map(j => ({ html: shapeSvg(S[j][0], SHC[(j + 3) % 8]), ok: j === k })) }); });
+    return LIT.done(b, 'kids', 'shp', back);
+  }
+  const R0 = n => Math.floor(Math.random() * n);
+
+  // ===== أدعية اليوم =====
+  async function duasView(sh, id, k) {
+    const DU = LEARN_DATA.DUAS, list = '#/kids/duas';
+    if (id == null) {
+      const b = sh('🤲 أدعية يومي', '#/kids');
+      b.innerHTML = `${LX.who('read', 'md')}<div class="lr-list">${DU.map((d, i) => `<a class="lr-sline ${k['du' + i] ? 'done' : ''}" href="${list}/${i}" data-sk="duw${i}"><span style="font-size:30px">${d.e}</span><span style="font-family:'Plex Arabic';font-size:18px">${esc(d.w)}</span>${k['du' + i] ? ' <i class="lr-ok">✓</i>' : ''}</a>`).join('')}
+        <a class="lr-sline" href="${list}/quiz" style="justify-content:center">🎯 اختبر نفسك</a></div>`;
+      LIT.sayTiles(b); return;
+    }
+    if (id === 'quiz') {
+      const b = sh('🎯 أدعية يومي', list);
+      await rounds(b, 6, () => { const i = R0(DU.length), d = DU[i]; return LIT.choose(b, { show: `<div style="font-size:60px">${d.e}</div><div class="lr-cap" style="font-size:22px">${esc(d.w)}</div>`, hear: ['duw' + i], options: LEARN.pick(DU.map((_, j) => j), 3, i).map(j => ({ html: `<span style="font:700 20px/1.7 Naskh,serif">${esc(DU[j].t)}</span>`, ok: j === i })) }); });
+      return LIT.done(b, 'kids', 'duq', list);
+    }
+    const i = +id, d = DU[i]; if (!d) { location.hash = list; return; }
+    const b = sh(d.e + ' ' + d.w, list);
+    await LIT.stepNext(b, `${LX.who('read', 'md')}<div style="font-size:64px">${d.e}</div><div class="lr-cap" style="font-size:22px" data-say="duw${i}">${esc(d.w)}</div><div class="lr-sent" data-say="du${i}">${esc(d.t)}</div><div class="muted">رواه ${esc(d.src)}</div>`, bb => { LIT.bindSay(bb); say('duw' + i).then(() => say('du' + i)); });
+    await LEARN.mark('kids', 'du' + i);
+    location.hash = i < DU.length - 1 ? `${list}/${i + 1}` : list;
+  }
+
   // ===== القصص =====
   async function story(b, st, back) {
     await say('stt_' + st.id);
@@ -192,6 +230,11 @@
     const sh = (title, back, repeat) => { const b = LEARN.shell(el, { theme: 'kids', title, back, stars: p.stars || 0, repeat, exit: back ? '' : exitBtn }); bindExit(el); return b; };
     const tiles = (b, T) => { b.innerHTML = `<div class="kd-home">${T.map(([href, ic, key, done], i) => `<a class="kd-tile k${(i % 5) + 1}" href="${href}" data-sk="${key}"><span>${ic}</span><b>${LEARN.P[key.slice(2)] || ''}</b>${done ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`; LIT.sayTiles(b); };
     if (sec === 'watch') return LX.watchView(sh, 'kids', '#/kids', id, k);
+    if (sec === 'math') return LMATH.view({ sh, area: 'kids', base: '#/kids/numbers', list: '#/kids/math', id, pg: k });
+    if (sec === 'duas') return duasView(sh, id, k);
+    if (sec === 'exam') return LIT.gradTest(sh('🏆 اختبار البطل', '#/kids'), 'kids');
+    if (sec === 'dict' || sec === 'review') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.hash = '#/kids'; return; }
+    if (sec === 'shapes') return shapesLesson(sh('🔷 الأشكال', '#/kids/numbers'), '#/kids/numbers');
     if (sec === 'parents') return LX.parents(sh('🔒 للأهل', '#/kids'));
     if (sec === 'rest' || await LX.overLimit()) return LX.rest(sh('🌙', ''));
     if (sec === 'letters') { location.replace('#/kids/read/letters' + (id != null ? '/' + id : '')); return; }
@@ -199,15 +242,16 @@
       const b = sh('🌟 عالم الصغار', '');
       const hi = sessionStorage.getItem('kids-hi') !== new Date().toDateString();
       if (hi) { sessionStorage.setItem('kids-hi', new Date().toDateString()); setTimeout(() => say('p_char_hi'), 300); }
-      tiles(b, [['#/learnme', '🗺️', 'p_t_map'], ['#/kids/watch', '🎬', 'p_t_watch'], ['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
-        ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/games', '🎮', 'p_t_games']]);
+      const nMiss = Object.keys(p.miss || {}).length;
+      tiles(b, [['#/learnme', '🗺️', 'p_t_map'], ['#/kids/watch', '🎬', 'p_t_watch'], ['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/dict', '🎧', 'p_l_dict'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
+        ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/duas', '🤲', 'p_t_duas'], ['#/kids/games', '🎮', 'p_t_games'], ...(nMiss ? [['#/kids/review', '🔁', 'p_l_review']] : []), ['#/kids/exam', '🏆', 'p_t_exam', k.kgrad]]);
       return;
     }
     if (sec === 'read') {
       if (id == null) {
         const b = sh('🔤 حروفي', '#/kids');
         const n = re => Object.keys(k).filter(x => re.test(x)).length;
-        b.innerHTML = `<div class="lr-path">${[['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28], ['decode', '🔡', 'l_decode', n(/^d_/), LEARN.DECODE.reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)]]
+        b.innerHTML = `<div class="lr-path">${[['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28], ['decode', '🔡', 'l_decode', n(/^d_(sukun|shadda|shams|verbs)_/), LEARN.DECODE.filter(d => !d.unit).reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)], ['rules', '✍️', 'l_rules', n(/^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/), LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)]]
           .map(([r, ic, key, d, tot], i) => `<a class="lr-level" href="#/kids/read/${r}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
         LIT.sayTiles(b); return;
       }
@@ -243,7 +287,7 @@
       const SET = sec === 'numbers' ? NUMS : GAMES, back = '#/kids/' + sec;
       if (id == null || !SET[id]) {
         const b = sh(sec === 'numbers' ? '🔢 أرقامي' : '🎮 ألعابي', '#/kids');
-        tiles(b, Object.entries(SET).map(([g, o]) => [`#/kids/${sec}/${g}`, o.ic, 'p_' + GKEY[g], k[sec[0] + g]]));
+        tiles(b, Object.entries(SET).map(([g, o]) => [`#/kids/${sec}/${g}`, o.ic, 'p_' + GKEY[g], k[sec[0] + g]]).concat(sec === 'numbers' ? [['#/kids/math', '💯', 'p_l_math', k.mt_tens], ['#/kids/shapes', '🔷', 'p_l_shapes', k.shp]] : []));
         return;
       }
       const b = sh(SET[id].ic + ' ' + SET[id].t, back);
