@@ -99,6 +99,13 @@
     match: 'صل كل كلمة بصورتها',
     t_words: 'كلماتي', t_stories: 'قصصي', t_reading: 'أتعلم القراءة',
     t_missing: 'الحرف الناقص', t_build: 'كوّن الكلمة', t_pop: 'البالونات', t_tf: 'صح أم خطأ', t_color: 'الألوان', t_more: 'أكثر وأقل', t_order: 'رتب الأرقام', t_match: 'صل الكلمة بالصورة',
+    watch: 'انظر كيف يكتب الحرف، ثم اكتب أنت',
+    badge: 'مبارك، حصلت على وسام جديد',
+    rest: 'أحسنت، كفى اليوم، نكمل غدا إن شاء الله',
+    char_hi: 'أنا الأستاذ جمال، هيا نتعلم معا',
+    char_good: 'أحسنت يا بطل',
+    char_done: 'ما شاء الله، أنهيت الدرس',
+    t_map: 'رحلتي', t_me: 'إنجازاتي',
     l_letters: 'الحروف', l_harakat: 'الحركات', l_madd: 'المدود', l_tanween: 'التنوين', l_forms: 'أشكال الحروف', l_decode: 'السكون والشدة', l_words: 'الكلمات', l_signs: 'اللافتات', l_sent: 'الجمل', l_quran: 'جزء عمّ', l_grad: 'الاختبار'
   };
 
@@ -190,7 +197,7 @@
     b.innerHTML = Array.from({ length: 14 }, (_, i) => `<i style="--a:${i * 26}deg;--d:${60 + (i % 3) * 30}px">${['⭐', '✨', '🌟'][i % 3]}</i>`).join('');
     (host || document.body).appendChild(b); setTimeout(() => b.remove(), 1100);
   }
-  const praise = () => (Math.random() < 0.5 ? say('p_good') : say('p_great'));
+  const praise = () => say(['p_good', 'p_great', 'p_char_good'][Math.floor(Math.random() * 3)]);
 
   // ===== التقدم =====
   async function prog() { return (await DB.setting('learn')) || { lit: {}, kids: {}, stars: 0 }; }
@@ -205,7 +212,7 @@
   const pick = (arr, n, must) => { const rest = shuffle(arr.filter(x => x !== must)).slice(0, n - (must ? 1 : 0)); return shuffle(must ? [must, ...rest] : rest); };
 
   // ===== الإطار (شاشة كاملة بلا قوائم التطبيق) =====
-  const LEARN_ROUTES = ['kids', 'literacy', 'start', 'learnrec'];
+  const LEARN_ROUTES = ['kids', 'literacy', 'start', 'learnrec', 'learnme'];
   function syncMode() {
     const r = (location.hash.slice(2).split(/[/?]/)[0]) || '';
     const on = LEARN_ROUTES.includes(r);

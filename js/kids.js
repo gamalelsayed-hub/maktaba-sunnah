@@ -191,10 +191,14 @@
     const p = await LEARN.prog(), k = p.kids || {};
     const sh = (title, back, repeat) => { const b = LEARN.shell(el, { theme: 'kids', title, back, stars: p.stars || 0, repeat, exit: back ? '' : exitBtn }); bindExit(el); return b; };
     const tiles = (b, T) => { b.innerHTML = `<div class="kd-home">${T.map(([href, ic, key, done], i) => `<a class="kd-tile k${(i % 5) + 1}" href="${href}" data-sk="${key}"><span>${ic}</span><b>${LEARN.P[key.slice(2)] || ''}</b>${done ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`; LIT.sayTiles(b); };
+    if (sec === 'parents') return LX.parents(sh('🔒 للأهل', '#/kids'));
+    if (sec === 'rest' || await LX.overLimit()) return LX.rest(sh('🌙', ''));
     if (sec === 'letters') { location.replace('#/kids/read/letters' + (id != null ? '/' + id : '')); return; }
     if (!sec) {
       const b = sh('🌟 عالم الصغار', '');
-      tiles(b, [['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
+      const hi = sessionStorage.getItem('kids-hi') !== new Date().toDateString();
+      if (hi) { sessionStorage.setItem('kids-hi', new Date().toDateString()); setTimeout(() => say('p_char_hi'), 300); }
+      tiles(b, [['#/learnme', '🗺️', 'p_t_map'], ['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
         ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/games', '🎮', 'p_t_games']]);
       return;
     }
@@ -228,7 +232,7 @@
       }
       const i = +id, back = '#/kids/' + sec;
       const b = sh(L[i][0], back, () => say('l' + i));
-      say('l' + i);
+      await LIT.watch(b, L[i][0]);
       await LIT.writeStep(b, L[i][0], { guide: true, prompt: 'p_trace' });
       await LIT.writeStep(b, L[i][0], { guide: true, prompt: 'p_trace' });
       await LIT.writeStep(b, L[i][0], { guide: false, prompt: 'p_write', model: 'l' + i });

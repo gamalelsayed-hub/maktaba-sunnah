@@ -65,14 +65,23 @@
     });
   }
 
+  // شاهد رسم الحرف متحركاً قبل أن يكتبه
+  function watch(b, c) {
+    return gone(b) || new Promise(res => {
+      b.innerHTML = `<div class="lr-step"><div class="lr-dl"></div><div class="lr-foot">${NEXT}</div></div>`;
+      const nx = b.querySelector('[data-next]'); nx.onclick = () => { LEARN.stop(); res(); };
+      say('p_watch'); LX.drawLetter(b.querySelector('.lr-dl'), c);
+    });
+  }
+
   async function done(b, area, id, back) {
     if (!b.isConnected) return;
     await LEARN.mark(area, id);
     LEARN.tone('win');
-    b.innerHTML = `<div class="lr-step lr-done"><div class="lr-trophy">🏆</div><div class="lr-cap">⭐</div>
+    b.innerHTML = `<div class="lr-step lr-done">${LX.who('celebrate', 'lg')}<div class="lr-trophy">🏆</div><div class="lr-cap">⭐</div>
       <div class="lr-foot"><a class="lr-btn ok big" href="${back}">⬅</a></div></div>`;
     LEARN.burst(b.querySelector('.lr-trophy'));
-    say('p_done');
+    say(Math.random() < 0.5 ? 'p_done' : 'p_char_done');
   }
 
   // ===== درس حرف (مشترك بين الكبار والأطفال) =====
@@ -87,6 +96,7 @@
     // كلمة تبدأ بالحرف
     const w = LEARN.shuffle(LEARN.PICW).find(x => x.first === c);
     if (w) await stepNext(b, `<div class="lr-pic" data-say="${w.id}">${w.e}</div><div class="lr-word" data-say="${w.id}"><b class="hl">${w.w[0]}</b>${w.w.slice(1)}</div>`, bb => { bindSay(bb); say(w.id); });
+    await watch(b, c);
     await writeStep(b, c, { guide: true, prompt: 'p_trace' });
     await writeStep(b, c, { guide: false, prompt: 'p_write', model: 'l' + i });
     await done(b, area, 'l' + i, back);
@@ -262,7 +272,7 @@
       const lv = [['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['forms', '🔗', 'l_forms', n(/^f\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28],
         ['decode', '🔡', 'l_decode', n(/^d_/), nD], ['words', '🖼️', 'l_words', n(/^w_/), nW], ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['quran', '📖', 'l_quran', n(/^q\d/), 38], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
       const b = sh('تعلّم القراءة والكتابة', '', () => say('p_lit_intro'));
-      b.innerHTML = `<div class="lr-path">${lv.map(([k, ic, key, d, tot], i) => `<a class="lr-level" href="#/literacy/${k}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
+      b.innerHTML = `<a class="lr-me" href="#/learnme" data-sk="p_t_me">${LX.who('face', 'sm')}<b>🏅 إنجازاتي</b><span>🔥 ${AD(LX.streak(p))}</span><span>⭐ ${AD(p.stars || 0)}</span></a><div class="lr-path">${lv.map(([k, ic, key, d, tot], i) => `<a class="lr-level" href="#/literacy/${k}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
       sayTiles(b);
       say('p_lit_intro');
       return;
@@ -272,5 +282,5 @@
     if (!(await reading({ sec, id, sub, area: 'lit', base: '#/literacy', pg: lit, sh }))) location.hash = '#/literacy';
   };
 
-  window.LIT = { gone, letterLesson, writeStep, choose, arrange, stepNext, bindSay, done, reading, listLesson, chunk, sayTiles, chips };
+  window.LIT = { watch, gone, letterLesson, writeStep, choose, arrange, stepNext, bindSay, done, reading, listLesson, chunk, sayTiles, chips };
 })();
