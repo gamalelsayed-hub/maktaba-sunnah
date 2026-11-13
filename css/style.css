@@ -779,3 +779,12 @@ img.tc[src$="face.png"] { border-radius: 50%; background: #fff; box-shadow: 0 2p
 .tc-react { position: fixed; bottom: calc(env(safe-area-inset-bottom) + 10px); left: 8px; width: 130px; height: 130px; object-fit: contain; z-index: 120; pointer-events: none; opacity: 0; transform: translateY(40px) scale(.7); transition: opacity .25s, transform .35s cubic-bezier(.3,1.6,.5,1); }
 .tc-react.on { opacity: 1; transform: none; }
 body:not(.learn-mode) .tc-react { display: none; }
+/* شاهد وتعلّم */
+.vd-stage { min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; animation: lrIn .4s; }
+.vd-big { font: 700 min(48vw, 220px)/1.2 Naskh, serif; color: var(--lr-a); animation: stIn .7s cubic-bezier(.3,1.6,.5,1) both; }
+.vd-big.sm { font-size: 120px; }
+.vd-row { display: flex; gap: 14px; direction: rtl; }
+.vd-row span { font: 700 64px/1.3 Naskh, serif; background: var(--panel); border-radius: 20px; padding: 6px 18px; transition: transform .3s, background .3s; }
+.vd-row span.on { transform: scale(1.18); background: #fff3c4; color: var(--lr-a); }
+.vd-ctrl { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+.lr-me.vd { background: linear-gradient(135deg, #dff3ff, #ede7ff); }

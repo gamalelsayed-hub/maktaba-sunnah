@@ -260,5 +260,40 @@
     b.querySelector('[data-par]').onclick = () => gate(() => { location.hash = '#/kids/parents'; });
   }
 
-  window.LX = { drawLetter, who, overLimit, parents, rest, gate, certificate, streak, BADGES };
+  // ===== 🎬 شاهد وتعلّم: درس الحرف كأنه فيديو يعمل وحده (الأستاذ جمال + رسم الحرف + الأصوات) =====
+  let vgen = 0;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function sayMin(key, ms = 1300) { const t = Date.now(); await say(key); const left = ms - (Date.now() - t); if (left > 0) await sleep(left); }
+  async function letterVideo(b, i, area, next) {
+    const my = ++vgen, alive = () => my === vgen && b.isConnected;
+    const L = LEARN.L, c = L[i][0];
+    const scene = html => { if (alive()) b.innerHTML = `<div class="vd-stage">${html}</div><div class="vd-ctrl"><button class="lr-btn ghost" data-rep>🔁</button>${next ? '<button class="lr-btn ok" data-nx>⏭</button>' : ''}</div>`; bind(); };
+    const bind = () => { const r = b.querySelector('[data-rep]'); if (r) r.onclick = () => letterVideo(b, i, area, next); const n = b.querySelector('[data-nx]'); if (n) n.onclick = () => { vgen++; LEARN.stop(); location.hash = next; }; };
+    scene(`${who('wave', 'lg')}<div class="vd-big">${c}</div>`); await sayMin('l' + i, 1800); if (!alive()) return;
+    scene(`<div class="row" style="align-items:center;gap:4px">${who('point', 'sm2 flip')}<div class="lr-dl"></div></div>`);
+    await new Promise(res => drawLetter(b.querySelector('.lr-dl'), c, { onEnd: res })); if (!alive()) return;
+    await sayMin('l' + i, 1200); if (!alive()) return;
+    for (const [set, mk, intro] of [['h', k => LEARN.harakah(c, k), 'p_harakat'], ['m', k => LEARN.madd(c, k), 'p_madd_intro']]) {
+      scene(`${who('listen', 'md')}<div class="vd-row">${['a', 'u', 'i'].map(k => `<span data-k="${k}">${mk(k)}</span>`).join('')}</div>`);
+      await sayMin(intro, 600); if (!alive()) return;
+      for (const k of ['a', 'u', 'i']) { b.querySelectorAll('.vd-row span').forEach(x => x.classList.toggle('on', x.dataset.k === k)); await sayMin(`${set}${i}${k}`, 1300); if (!alive()) return; }
+    }
+    const w = LEARN.PICW.find(x => x.first === c);
+    if (w) { scene(`<div class="lr-pic st-pic">${w.e}</div><div class="lr-word"><b class="hl">${esc(w.w[0])}</b>${esc(w.w.slice(1))}</div>`); await sayMin(w.id, 2000); if (!alive()) return; }
+    scene(`${who('celebrate', 'lg')}<div class="vd-big sm">${c}</div>`); LEARN.tone('win'); LEARN.mark(area, 'v' + i); await sayMin('p_char_good', 1500); if (!alive()) return;
+    if (next) { await sleep(1500); if (alive()) location.hash = next; }
+  }
+  async function watchView(sh, area, base, id, pg) {
+    const list = base + '/watch';
+    if (id == null) {
+      const b = sh('🎬 شاهد وتعلّم', base);
+      b.innerHTML = `${who('point', 'md')}<div class="muted" style="text-align:center;margin-bottom:8px">اختر حرفاً وشاهد الدرس — يعمل وحده ثم ينتقل للحرف التالي</div><div class="lr-grid">${LEARN.L.map(([ch], i) => `<a class="lr-tile kd ${pg['v' + i] ? 'done' : ''}" style="--h:${i * 13 % 360}" href="${list}/${i}"><span class="lr-g2">${ch}</span><small>▶</small>${pg['v' + i] ? '<i class="lr-ok">✓</i>' : ''}</a>`).join('')}</div>`;
+      return;
+    }
+    const i = +id;
+    letterVideo(sh('🎬 ' + LEARN.L[i][0], list), i, area, i < 27 ? `${list}/${i + 1}` : null);
+  }
+  window.addEventListener('hashchange', () => { if (!/\/watch\/\d/.test(location.hash)) vgen++; });
+
+  window.LX = { watchView, letterVideo, drawLetter, who, overLimit, parents, rest, gate, certificate, streak, BADGES };
 })();

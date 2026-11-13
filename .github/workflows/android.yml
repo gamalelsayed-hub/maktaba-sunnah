@@ -19,7 +19,7 @@ jobs:
         run: |
           cd mobile
           mkdir -p www
-          cp -r ../index.html ../css ../js ../data ../fonts ../icons ../audio ../manifest.webmanifest www/
+          cp -r ../index.html ../css ../js ../data ../fonts ../icons ../audio ../img ../manifest.webmanifest www/
           npm install --no-audit --no-fund --legacy-peer-deps
           npx cap add android
       - name: الأيقونات والصلاحيات
