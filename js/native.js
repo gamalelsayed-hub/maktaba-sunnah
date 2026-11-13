@@ -40,6 +40,19 @@
     };
   }
 
+  // ===== حفظ الملفات ومشاركتها والطباعة (نافذة الويب في أندرويد لا تنزّل الروابط ولا تطبع) =====
+  const FO = P.FileOut;
+  if (FO) window.NATIVE_FILE = {
+    async save(name, blob, mime) {
+      const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = rej; r.readAsDataURL(blob); });
+      const out = await FO.save({ name, data, mime: mime || blob.type || 'application/octet-stream' });
+      return out;
+    },
+    share: (uri, mime, title) => FO.share({ uri, mime, title: title || 'مشاركة الملف' }),
+    open: (uri, mime) => FO.open({ uri, mime }),
+    print: (html, name) => FO.print({ html, name: name || 'document' })
+  };
+
   // ===== التعرف على الكلام: محوّل بنفس واجهة SpeechRecognition في المتصفح =====
   const SRP = P.SpeechRecognition;
   if (SRP) {

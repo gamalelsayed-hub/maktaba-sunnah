@@ -14,12 +14,13 @@
     modal(html, onMount) { $('#modalBox').innerHTML = html; $('#modal').classList.remove('hidden'); onMount && onMount($('#modalBox')); },
     closeModal() { $('#modal').classList.add('hidden'); },
     ask(title, fields, initial = {}) {
+      fields = fields || [];
       return new Promise(resolve => {
         const f = fields.map(x => `<label class="muted">${esc(x.label)}</label>` + (x.type === 'textarea'
           ? `<textarea data-k="${x.key}">${esc(initial[x.key] || '')}</textarea>`
           : x.options ? `<select data-k="${x.key}" style="width:100%">${x.options.map(o => `<option ${o === initial[x.key] ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`
           : `<input type="text" data-k="${x.key}" style="width:100%" value="${esc(initial[x.key] || '')}" ${x.list ? 'list="dl-' + x.key + '"' : ''}>` + (x.list ? `<datalist id="dl-${x.key}">${x.list.map(o => `<option value="${esc(o)}">`).join('')}</datalist>` : '')) + '<div style="height:8px"></div>').join('');
-        APP.modal(`<h2 style="margin-top:0">${esc(title)}</h2>${f}<div class="row"><button class="btn primary" id="mOk">حفظ</button><button class="btn" id="mCancel">إلغاء</button></div>`, box => {
+        APP.modal(`<h2 style="margin-top:0">${esc(title)}</h2>${f}<div class="row"><button class="btn primary" id="mOk">${fields.length ? 'حفظ' : 'موافق'}</button><button class="btn" id="mCancel">إلغاء</button></div>`, box => {
           const first = box.querySelector('[data-k]'); first && first.focus();
           $('#mOk').onclick = () => { const r = {}; $$('[data-k]', box).forEach(e => r[e.dataset.k] = e.value); APP.closeModal(); resolve(r); };
           $('#mCancel').onclick = () => { APP.closeModal(); resolve(null); };
@@ -203,6 +204,19 @@
       });
     },
 
+    // أندرويد: يُحفظ الملف في «التنزيلات/Maktaba» ثم يُعرض فتحه أو مشاركته
+    async nativeSave(name, blob, type) {
+      try {
+        const r = await window.NATIVE_FILE.save(name, blob, type);
+        if (!r.uri) { APP.toast('✔ حُفظ في: ' + r.path, 6000); return; }
+        APP.modal(`<h2 style="margin-top:0">✔ حُفظ الملف</h2><div>${esc(name)}</div><div class="muted" style="font-size:13px;margin:6px 0 12px">في مجلد: ${esc(r.path.replace(/\/[^/]*$/, ''))}</div>
+          <div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="fOpen">📂 فتح</button><button class="btn" id="fShare">📤 مشاركة / إرسال</button><button class="btn" id="fClose">إغلاق</button></div>`, () => {
+          $('#fOpen').onclick = () => { APP.closeModal(); window.NATIVE_FILE.open(r.uri, type).catch(e => APP.toast(e.message || 'لا يوجد تطبيق يفتح هذا الملف — ثبّت Word أو WPS', 6000)); };
+          $('#fShare').onclick = () => { APP.closeModal(); window.NATIVE_FILE.share(r.uri, type, name); };
+          $('#fClose').onclick = () => APP.closeModal();
+        });
+      } catch (e) { APP.toast('تعذّر حفظ الملف: ' + (e.message || e), 6000); }
+    },
     copy(text) {
       const done = () => APP.toast('نُسخ مع التوثيق');
       if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
@@ -210,6 +224,7 @@
     },
     download(name, content, type = 'application/json') {
       const blob = content instanceof Blob ? content : new Blob([content], { type: type + ';charset=utf-8' });
+      if (window.NATIVE_FILE) return APP.nativeSave(name, blob, type);
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
       setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
     },

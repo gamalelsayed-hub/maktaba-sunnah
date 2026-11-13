@@ -387,7 +387,7 @@
         </aside>
         <div class="kb-main">
           <div class="row kb-tools" style="flex-wrap:wrap;gap:6px">
-            <button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm" id="kbWord">📄 Word</button><button class="btn sm" id="kbPrint">🖨 طباعة</button><button class="btn sm" id="kbSave">💾 حفظ</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}
+            <button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPrint">🧾 PDF / طباعة</button><button class="btn sm" id="kbSave">💾 حفظ</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}
             <span class="muted" style="font-size:12px">النص قابل للتعديل مباشرة — ما بين [✎ …] أماكن تكملها أنت.</span>
           </div>
           <article id="kbDoc" class="kb-doc" contenteditable="true" spellcheck="false"><div class="muted">جارٍ التجهيز…</div></article>
@@ -404,13 +404,46 @@
     wireTools(doc, () => (doc.querySelector('h1') || {}).innerText || T);
   };
 
+  // كتل المستند من النص المعروض (بعد تعديل الخطيب)
+  function blocksOf(doc) {
+    const out = [];
+    doc.querySelectorAll('h1,h2,h3,p,li').forEach(e => {
+      const refEl = e.querySelector('.kb-ref');
+      const ref = refEl ? refEl.innerText.replace(/^\[|\]$/g, '').trim() : '';
+      const c = e.cloneNode(true); const r = c.querySelector('.kb-ref'); if (r) r.remove();
+      const text = c.innerText.trim(); if (!text) return;
+      const kind = e.tagName === 'H1' ? 'title' : e.tagName === 'H2' ? 'h2' : e.tagName === 'H3' ? 'h3' : e.tagName === 'LI' ? 'li' : (['ayah', 'hadith', 'tafsir', 'edit'].find(k => e.classList.contains(k)) || 'p');
+      out.push({ text, ref, kind });
+    });
+    return out;
+  }
+  const printHtml = (doc, title) => `<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+    @page{size:A4;margin:18mm 16mm}body{font-family:'Traditional Arabic','Amiri','Noto Naskh Arabic','Simplified Arabic',serif;font-size:15pt;line-height:1.9;direction:rtl;color:#111}
+    h1{color:#14532d;text-align:center;font-size:22pt;margin:0 0 10px}h2{color:#14532d;border-bottom:1px solid #a16207;font-size:17pt;margin:18px 0 8px}h3{color:#a16207;font-size:16pt;margin:14px 0 6px}
+    p{margin:6px 0;text-align:justify}.ayah{color:#14532d;font-size:16.5pt}.hadith{color:#3b2a06}.tafsir{color:#555;font-size:13pt;border-right:3px solid #a16207;padding-right:8px}.edit{color:#b45309}.kb-ref{color:#777;font-size:10.5pt}
+    ul{margin:4px 0;padding-right:22px}h2,h3{page-break-after:avoid}p{page-break-inside:avoid}
+    </style></head><body>${doc.innerHTML}<p style="font-size:9pt;color:#999;margin-top:20px;text-align:center">أُعدّت بمُعين الخطيب — مكتبة القرآن والسنة</p></body></html>`;
+  const fileName = t => (t || 'خطبة').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80);
+
   function wireTools(doc, titleFn) {
     $('#kbCopy').onclick = () => APP.copy(docText(doc));
     $('#kbWord').onclick = () => {
-      const html = `<html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:'Traditional Arabic','Simplified Arabic',serif;font-size:17pt;direction:rtl;line-height:1.7}h1{color:#14532d;text-align:center}h2{color:#14532d;border-bottom:1px solid #a16207}h3{color:#a16207}.ayah{font-family:'KFGQPC Uthmanic Script HAFS','Traditional Arabic',serif;color:#14532d}.hadith{color:#3b2a06}.tafsir{color:#555;font-size:14pt}.kb-ref{color:#777;font-size:12pt}.edit{color:#b45309}</style></head><body>${doc.innerHTML}<hr><p style="font-size:11pt;color:#777">أُعدّت بمُعين الخطيب — مكتبة القرآن والسنة — ${new Date().toLocaleDateString('ar')}</p></body></html>`;
-      APP.download(titleFn().replace(/[\\/:*?"<>|]/g, '') + '.doc', '﻿' + html, 'application/msword');
+      try { APP.download(fileName(titleFn()) + '.docx', DOCX.build(blocksOf(doc)), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); }
+      catch (e) { APP.toast('تعذّر إنشاء ملف Word: ' + e.message); }
     };
-    $('#kbPrint').onclick = () => { document.body.classList.add('kb-printing'); window.print(); setTimeout(() => document.body.classList.remove('kb-printing'), 500); };
+    $('#kbPrint').onclick = async () => {
+      const html = printHtml(doc, titleFn());
+      if (window.NATIVE_FILE) {
+        APP.toast('اختر من الشاشة التالية «حفظ بتنسيق PDF» أو الطابعة', 5000);
+        try { await window.NATIVE_FILE.print(html, fileName(titleFn())); } catch (e) { APP.toast('تعذّرت الطباعة: ' + (e.message || e)); }
+        return;
+      }
+      // المتصفح: إطار مخفي يحوي الخطبة وحدها، ومن نافذة الطباعة يُختار «حفظ PDF»
+      const f = document.createElement('iframe'); f.style.cssText = 'position:fixed;width:0;height:0;border:0;left:-9999px';
+      document.body.appendChild(f);
+      f.onload = () => { setTimeout(() => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { window.print(); } setTimeout(() => f.remove(), 60000); }, 300); };
+      f.srcdoc = html;
+    };
     $('#kbSave').onclick = () => {
       let s = []; try { s = JSON.parse(localStorage.getItem(LS) || '[]'); } catch (e) { }
       const title = titleFn(); const i = s.findIndex(x => x.title === title);
@@ -423,7 +456,7 @@
 
   function showSaved(s) {
     const box = $('#kbR');
-    box.innerHTML = `<div class="kb-main"><div class="row kb-tools" style="flex-wrap:wrap;gap:6px"><a class="btn sm" href="#/khutba">← رجوع</a><button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm" id="kbWord">📄 Word</button><button class="btn sm" id="kbPrint">🖨 طباعة</button><button class="btn sm" id="kbSave">💾 حفظ التعديلات</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}</div>
+    box.innerHTML = `<div class="kb-main"><div class="row kb-tools" style="flex-wrap:wrap;gap:6px"><a class="btn sm" href="#/khutba">← رجوع</a><button class="btn sm" id="kbCopy">📋 نسخ</button><button class="btn sm primary" id="kbWord">📄 Word</button><button class="btn sm primary" id="kbPrint">🧾 PDF / طباعة</button><button class="btn sm" id="kbSave">💾 حفظ التعديلات</button>${window.TTS ? '<button class="btn sm" id="kbRead">🔊 استماع</button>' : ''}</div>
       <article id="kbDoc" class="kb-doc" contenteditable="true" spellcheck="false">${s.html}</article></div>`;
     wireTools($('#kbDoc'), () => s.title);
   }
