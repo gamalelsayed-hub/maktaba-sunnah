@@ -81,51 +81,96 @@
     return { done, fail, cancelled: cancelDl };
   }
 
-  // ===== المشغّل =====
-  const P = { q: [], i: 0, r: null, rep: 1, repLeft: 1, url: null, playing: false, onEnd: null };
-  const audio = new Audio(); audio.preload = 'auto';
+  // ===== المشغّل: مشغّلان متناوبان — تُحمَّل الآية التالية مسبقاً فتبدأ فور انتهاء الحالية بلا فاصل =====
+  const P = { q: [], i: 0, r: null, rep: 1, repLeft: 1, playing: false, onEnd: null };
+  const A = [new Audio(), new Audio()]; A.forEach(x => { x.preload = 'auto'; });
+  let cur = 0;
+  const audio = () => A[cur];
+  const blobUrls = [null, null];
+  const keyOf = i => P.q[i] ? P.r + '/' + P.q[i][0] + ':' + P.q[i][1] + '#' + i : '';
+  const silent = x => (x.src || '').startsWith('data:');
   let tryIdx = 0, tryList = [];
-  async function loadCur() {
-    const [s, a, isBasmala] = P.q[P.i];
-    if (P.url) { URL.revokeObjectURL(P.url); P.url = null; }
-    const b = await getBlob(P.r, s, a);
-    if (b) { P.url = URL.createObjectURL(b); audio.src = P.url; tryList = []; }
-    else { tryList = order(P.r); tryIdx = 0; audio.src = srcUrl(rec(P.r).src[tryList[0]], s, a); }
-    if (P.stopped) return;
-    highlight(isBasmala ? null : [s, a]); bar();
+  async function srcFor(i) {
+    const [s, a] = P.q[i], b = await getBlob(P.r, s, a);
+    if (b) return { url: URL.createObjectURL(b), blob: true, tries: [] };
+    const t = order(P.r); return { url: srcUrl(rec(P.r).src[t[0]], s, a), blob: false, tries: t };
   }
-  audio.onerror = () => {
-    if (P.stopped || !P.q.length || (audio.src || '').startsWith('data:')) return;
-    if (tryList.length && ++tryIdx < tryList.length) { const [s, a] = P.q[P.i]; audio.src = srcUrl(rec(P.r).src[tryList[tryIdx]], s, a); audio.play().catch(() => { }); return; }
-    P.playing = false; bar(); APP.toast('تعذر تشغيل الصوت — تحقق من الإنترنت أو نزّل السورة للاستماع بدون إنترنت', 5000);
-  };
-  audio.onplaying = () => { if (tryList.length) remember(P.r, tryList[tryIdx]); };
-  audio.onplay = () => { P.playing = true; bar(); };
-  audio.onpause = () => { P.playing = false; bar(); };
-  audio.onended = async () => {
-    if (P.stopped || !P.q.length || (audio.src || '').startsWith('data:')) return;
-    if (--P.repLeft > 0 && !P.q[P.i][2]) { audio.currentTime = 0; audio.play(); return; }
-    if (P.i + 1 < P.q.length) { P.i++; P.repLeft = P.rep; await loadCur(); if (!P.stopped) audio.play().catch(() => { }); }
-    else { P.playing = false; bar(); highlight(null); const f = P.onEnd; P.onEnd = null; f && f(); }
-  };
-  // تشغيل قائمة آيات؛ تُسبق السورة بالبسملة إن بدأت من أولها (عدا الفاتحة والتوبة)
+  function setSrc(k, src, i) {
+    if (blobUrls[k]) { URL.revokeObjectURL(blobUrls[k]); blobUrls[k] = null; }
+    if (src.blob) blobUrls[k] = src.url;
+    A[k].src = src.url; A[k]._key = keyOf(i); A[k]._tries = src.tries; A[k]._try = 0;
+  }
+  async function preload() {
+    const j = P.i + 1, k = 1 - cur;
+    if (j >= P.q.length || A[k]._key === keyOf(j)) return;
+    const src = await srcFor(j);
+    if (P.stopped || P.i + 1 !== j) { if (src.blob) URL.revokeObjectURL(src.url); return; }
+    setSrc(k, src, j); try { A[k].load(); } catch (e) { }
+  }
+  async function loadCur() {
+    const k = 1 - cur;
+    if (A[k]._key === keyOf(P.i) && A[k].src) { A[cur].pause(); cur = k; }   // التالية جاهزة مسبقاً
+    else { const src = await srcFor(P.i); if (P.stopped) return; setSrc(cur, src, P.i); }
+    tryList = audio()._tries || []; tryIdx = 0;
+    const [s, a, isBasmala] = P.q[P.i];
+    highlight(isBasmala ? null : [s, a]); bar(); mediaInfo();
+  }
+  function finish() { P.playing = false; bar(); highlight(null); keep(false); const f = P.onEnd; P.onEnd = null; f && f(); }
+  async function advance() { await loadCur(); if (P.stopped) return; audio().play().catch(() => { }); }
+  A.forEach(x => {
+    x.onerror = () => {
+      if (x !== audio()) { x._key = ''; return; } // فشل التحميل المسبق: يُعاد عند الحاجة
+      if (P.stopped || !P.q.length || silent(x)) return;
+      if (tryList.length && ++tryIdx < tryList.length) { const [s, a] = P.q[P.i]; x.src = srcUrl(rec(P.r).src[tryList[tryIdx]], s, a); x.play().catch(() => { }); return; }
+      P.playing = false; bar(); APP.toast('تعذر تشغيل الصوت — تحقق من الإنترنت أو نزّل السورة للاستماع بدون إنترنت', 5000);
+    };
+    x.onplaying = () => { if (x !== audio() || silent(x)) return; if (tryList.length) remember(P.r, tryList[tryIdx]); preload(); };
+    x.onplay = () => { if (x === audio() && !silent(x)) { P.playing = true; bar(); } };
+    x.onpause = () => { if (x === audio() && !silent(x)) { P.playing = false; bar(); } };
+    x.onended = () => {
+      if (x !== audio() || P.stopped || !P.q.length || silent(x)) return;
+      if (--P.repLeft > 0 && !P.q[P.i][2]) { x.currentTime = 0; x.play().catch(() => { }); return; }
+      if (P.i + 1 < P.q.length) { P.i++; P.repLeft = P.rep; advance(); } else finish();
+    };
+  });
   // ملف صامت قصير: يُشغَّل فوراً عند اللمس ليسمح آيفون بالتشغيل بعد ذلك
   const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-  function unlock() { if (P.unlocked) return; P.unlocked = true; try { audio.src = SILENT; const p = audio.play(); if (p) p.catch(() => { }); } catch (e) { } }
+  function unlock() { if (P.unlocked) return; P.unlocked = true; A.forEach(x => { try { x.src = SILENT; const p = x.play(); if (p) p.catch(() => { }); } catch (e) { } }); }
+  // التشغيل في الخلفية (تطبيق أندرويد) وأزرار شاشة القفل
+  function keep(on) { if (window.KEEPALIVE) on ? KEEPALIVE.start('🎧 ' + rec(P.r).n, P.q[P.i] && !P.q[P.i][2] ? 'سورة ' + AR.SURAHS[P.q[P.i][0] - 1] : 'تلاوة') : KEEPALIVE.stop(); }
+  function mediaInfo() {
+    if (!('mediaSession' in navigator) || !P.q[P.i]) return;
+    const [s, a, bs] = P.q[P.i];
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: bs ? 'البسملة' : `سورة ${AR.SURAHS[s - 1]} — الآية ${a}`, artist: rec(P.r).n, album: 'مكتبة القرآن والسنة', artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
+      navigator.mediaSession.setActionHandler('play', () => toggle());
+      navigator.mediaSession.setActionHandler('pause', () => toggle());
+      navigator.mediaSession.setActionHandler('nexttrack', () => step(1));
+      navigator.mediaSession.setActionHandler('previoustrack', () => step(-1));
+      navigator.mediaSession.setActionHandler('stop', () => { P.q = []; stop(); });
+    } catch (e) { }
+  }
+  // تشغيل قائمة آيات؛ تُسبق السورة بالبسملة إن بدأت من أولها (عدا الفاتحة والتوبة)
   async function play(list, opts = {}) {
     unlock(); // يجب أن يسبق أي await
-    if (window.ADHKAR) ADHKAR.stop();
+    if (window.MEDIA) MEDIA.claim('quran');
     P.r = opts.reciter || P.r || (await DB.setting('reciter')) || 'husary';
     P.rep = opts.rep || P.rep || 1; P.repLeft = P.rep; P.onEnd = opts.onEnd || null;
     P.q = []; list.forEach(([s, a]) => { if (a === 1 && s !== 1 && s !== 9 && !opts.noBasmala) P.q.push([1, 1, true]); P.q.push([s, a]); });
+    A.forEach(x => { x._key = ''; });
     P.i = 0; P.playing = true; P.stopped = false; await loadCur();
     if (P.stopped) return;
-    try { await audio.play(); } catch (e) { P.playing = false; }
-    bar();
+    try { await audio().play(); } catch (e) { P.playing = false; }
+    keep(true); bar();
   }
-  const stop = () => { P.stopped = true; audio.pause(); try { audio.removeAttribute('src'); audio.load(); } catch (e) { } P.playing = false; P.onEnd = null; P.unlocked = false; highlight(null); bar(); };
-  const toggle = () => { if (!P.q.length) return; if (audio.paused) { const p = audio.play(); if (p) p.catch(() => { }); P.playing = true; } else { audio.pause(); P.playing = false; } bar(); };
-  const step = async d => { const j = P.i + d; if (j < 0 || j >= P.q.length) return; P.i = j; P.repLeft = P.rep; P.stopped = false; await loadCur(); audio.play().catch(() => { }); };
+  const stop = () => {
+    P.stopped = true;
+    A.forEach((x, k) => { x.pause(); try { x.removeAttribute('src'); x.load(); } catch (e) { } x._key = ''; if (blobUrls[k]) { URL.revokeObjectURL(blobUrls[k]); blobUrls[k] = null; } });
+    P.playing = false; P.onEnd = null; P.unlocked = false; highlight(null); keep(false); bar();
+  };
+  const toggle = () => { if (!P.q.length) return; const x = audio(); if (x.paused) { const p = x.play(); if (p) p.catch(() => { }); P.playing = true; keep(true); } else { x.pause(); P.playing = false; } bar(); };
+  const step = async d => { const j = P.i + d; if (j < 0 || j >= P.q.length) return; audio().pause(); P.i = j; P.repLeft = P.rep; P.stopped = false; await loadCur(); audio().play().catch(() => { }); };
+  if (window.MEDIA) MEDIA.register('quran', () => { if (P.q.length) { P.q = []; stop(); } });
 
   function highlight(sa) {
     document.querySelectorAll('.ayah-playing').forEach(e => e.classList.remove('ayah-playing'));
@@ -139,7 +184,7 @@
     if (!b) { b = document.createElement('div'); b.id = 'qaBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
     const [s, a, bs] = P.q[P.i] || [];
     b.innerHTML = `<button class="btn sm" data-a="prev" title="السابقة">⏮</button>
-      <button class="btn sm primary" data-a="tog">${P.playing && !audio.paused ? '⏸' : '▶'}</button>
+      <button class="btn sm primary" data-a="tog">${P.playing && !audio().paused ? '⏸' : '▶'}</button>
       <button class="btn sm" data-a="next" title="التالية">⏭</button>
       <span class="qa-now">🔊 ${esc(rec(P.r).n)} — ${bs ? 'البسملة' : 'سورة ' + esc(AR.SURAHS[s - 1]) + ' ' + AR.toArabicDigits(a)}</span>
       <label class="muted">تكرار <select data-a="rep">${[1, 2, 3, 5, 7, 10].map(n => `<option ${n === P.rep ? 'selected' : ''}>${n}</option>`).join('')}</select></label>

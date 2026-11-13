@@ -25,10 +25,11 @@
     b.querySelector('[data-a=x]').onclick = stop;
   }
   function playAt(i) { if (i >= queue.length) { stop(); return; } qi = i; player.src = queue[i]; player.play().catch(() => { }); bar(); }
-  function stop() { queue = []; qi = 0; player.onended = null; try { player.pause(); player.removeAttribute('src'); player.load(); } catch (e) { } bar(); }
+  function stop() { const had = queue.length; queue = []; qi = 0; try { player.pause(); player.removeAttribute('src'); player.load(); } catch (e) { } if (had && window.KEEPALIVE) KEEPALIVE.stop(); bar(); }
+  if (window.MEDIA) MEDIA.register('adhkar', () => { if (queue.length) stop(); });
   player.onplay = player.onpause = () => bar();
   player.onended = () => playAt(qi + 1);
-  function play(urls) { if (window.QA) QA.stop(); if (window.TTS) TTS.stop(); queue = urls; playAt(0); }
+  function play(urls) { if (window.MEDIA) MEDIA.claim('adhkar'); queue = urls; playAt(0); if (window.KEEPALIVE) KEEPALIVE.start('📿 الأذكار', ''); }
   function listen(item) {
     if (item.a && navigator.onLine !== false) { play([item.a]); player.onerror = () => { stop(); if (window.TTS) TTS.read(item.t, 'ذكر'); }; return; }
     stop(); if (window.TTS) TTS.read(item.t, 'ذكر');

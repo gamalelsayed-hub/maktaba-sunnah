@@ -53,7 +53,7 @@
   // ===== الويب: مؤقتات داخل الصفحة =====
   const webTimers = {};
   const adhanAudio = new Audio(); adhanAudio.preload = 'none';
-  function playAdhan(fajr) { try { adhanAudio.src = fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3'; adhanAudio.play().catch(() => { }); } catch (e) { } }
+  function playAdhan(fajr) { if (window.MEDIA) MEDIA.claim('adhan'); try { adhanAudio.src = fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3'; adhanAudio.play().catch(() => { }); } catch (e) { } }
   function stopAdhan() { try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) { } }
   function webShow(n) {
     if (n.channel === 'adhan' || n.channel === 'adhan_fajr') playAdhan(n.channel === 'adhan_fajr');
@@ -99,5 +99,6 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) rescheduleAll(); });
   setInterval(rescheduleAll, 6 * 3600e3);
 
+  if (window.MEDIA) MEDIA.register('adhan', () => { if (!adhanAudio.paused) stopAdhan(); });
   window.NOTIFY = { native: !!LN, status, request, schedule, register, rescheduleAll, playAdhan, stopAdhan };
 })();

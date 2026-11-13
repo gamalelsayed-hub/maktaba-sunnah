@@ -39,13 +39,14 @@
   }
   function read(text, title) {
     if (!synth && !NT) { APP.toast('القراءة الصوتية غير مدعومة في هذا المتصفح'); return; }
-    if (window.QA) QA.stop();
+    if (window.MEDIA) MEDIA.claim('tts');
     if (NT) NT.stop(); else synth.cancel();
+    if (window.KEEPALIVE) KEEPALIVE.start('🗣️ القراءة الصوتية', title || '');
     S.chunks = split(text); S.i = 0; S.on = true; S.title = title || '';
     if (!NT && !voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
     bar(); speakNext();
   }
-  function stop() { S.on = false; S.paused = false; S.gen = (S.gen || 0) + 1; if (NT) NT.stop(); else if (synth) { synth.cancel(); setTimeout(() => synth.cancel(), 120); } bar(); }
+  function stop() { if (S.on && window.KEEPALIVE) KEEPALIVE.stop(); S.on = false; S.paused = false; S.gen = (S.gen || 0) + 1; if (NT) NT.stop(); else if (synth) { synth.cancel(); setTimeout(() => synth.cancel(), 120); } bar(); }
   const pause = () => {
     if (NT) { if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; NT.stop(); } bar(); return; }
     // الإيقاف المؤقت غير موثوق في سفاري: نوقف ونستأنف من الجملة نفسها
@@ -84,5 +85,6 @@
   }
   if (synth) synth.onvoiceschanged = () => { };
 
+  if (window.MEDIA) MEDIA.register('tts', () => { if (S.on || S.paused) stop(); });
   window.TTS = { read, stop, settingsHtml, bindSettings, split };
 })();

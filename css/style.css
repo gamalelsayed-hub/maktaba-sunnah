@@ -409,3 +409,40 @@ body.dark .dk-fadl { background: #2a2312; color: #e9c46a; }
 .sah-card h2::before, .sah-card h2::after { content: none; }
 .sah-t th { width: 120px; white-space: nowrap; }
 @media (max-width: 860px) { .sah-t th { width: 92px; white-space: normal; font-size: 12.5px; } }
+
+/* مراتب الرواة */
+.gr-sahabi { background: #fef3c7; color: #78350f; border-color: #fcd34d; }
+.gr-top { background: #dcfce7; color: #14532d; border-color: #86efac; }
+.gr-good { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
+.gr-ok { background: #fef9c3; color: #713f12; border-color: #fde047; }
+.gr-weak { background: #ffedd5; color: #7c2d12; border-color: #fdba74; }
+.gr-bad { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+body.dark .gr-sahabi, body.dark .gr-top, body.dark .gr-good, body.dark .gr-ok, body.dark .gr-weak, body.dark .gr-bad { filter: brightness(.85) saturate(.9); }
+.rawi-name { font-weight: 700; font-size: 16px; color: var(--brand-d); font-family: var(--text); }
+body.dark .rawi-name { color: var(--brand); }
+
+/* ===== مُعين الخطيب ===== */
+.kb-wrap { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: 14px; align-items: start; }
+.kb-side { position: sticky; top: 70px; max-height: calc(100vh - 90px); overflow: auto; padding: 10px; }
+.kb-side details { margin: 8px 0; }
+.kb-pick { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; padding: 5px 2px; border-bottom: 1px dashed var(--line, #ddd); cursor: pointer; line-height: 1.6; }
+.kb-pick input { margin-top: 4px; flex: none; }
+.kb-tools { margin-bottom: 8px; }
+.kb-doc { background: var(--card, #fff); border: 1px solid var(--line, #ddd); border-radius: 14px; padding: 18px 22px; line-height: 2; font-size: 17px; outline: none; }
+.kb-doc:focus { box-shadow: 0 0 0 2px rgba(20, 83, 45, .25); }
+.kb-doc h1.kb-t { text-align: center; font-size: 24px; margin: 0 0 10px; }
+.kb-doc h2 { border-bottom: 1px solid rgba(161, 98, 7, .4); padding-bottom: 4px; margin-top: 22px; }
+.kb-doc h3 { color: #a16207; margin-top: 18px; }
+.kb-doc p { margin: 8px 0; }
+.kb-doc .ayah { font-family: 'AmiriQuran', 'Amiri', serif; font-size: 20px; color: #14532d; line-height: 2.2; }
+.kb-doc .hadith { color: #3b2a06; }
+.kb-doc .tafsir { color: #555; font-size: 15px; border-right: 3px solid #a16207; padding-right: 8px; }
+.kb-doc .edit { color: #b45309; }
+.kb-ref { color: #888; font-size: 12px; }
+body.dark .kb-doc .ayah { color: #8fd8a8; }
+body.dark .kb-doc .hadith { color: #f1e3c0; }
+body.dark .kb-doc .tafsir { color: #bbb; }
+body.dark .kb-doc .edit { color: #fbbf24; }
+body.dark .kb-doc h3 { color: #e0b45a; }
+@media (max-width: 820px) { .kb-wrap { grid-template-columns: 1fr; } .kb-side { position: static; max-height: none; } .kb-doc { padding: 14px; font-size: 16px; } }
+@media print { body.kb-printing #view > :not(#kbR), body.kb-printing .kb-side, body.kb-printing .kb-tools, body.kb-printing .warn { display: none !important; } body.kb-printing .kb-wrap { display: block; } body.kb-printing .kb-doc { border: 0; padding: 0; } }
