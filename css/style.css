@@ -720,3 +720,4 @@ html.dark body.learn-mode, body.dark.learn-mode { --lr-pad: #ffffff; }
 .match-col { display: flex; flex-direction: column; gap: 10px; }
 .match-col .lr-tile { min-height: 76px; }
 .lr-dots { display: flex; gap: 6px; } .lr-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line2); } .lr-dots i.on { background: var(--lr-a); }
+.kd-ayah.ayah-playing { border-color: #2e9e5b; background: #e3f7ea; }

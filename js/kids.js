@@ -2,7 +2,8 @@
 (() => {
   const V = APP.views, { L, W, S, NUM, AD, esc } = LEARN;
   const say = LEARN.say;
-  const SUR = [1, 112, 113, 114, 108, 103, 110, 111, 105, 106, 107, 109, 97, 99, 102, 101, 100, 95, 94, 93];
+  // الفاتحة ثم جزء عمّ كاملاً من الناس إلى النبأ (ترتيب الحفظ المعتاد)
+  const SUR = [1, ...Array.from({ length: 37 }, (_, i) => 114 - i)];
 
   // زر الخروج: ضغط مطوّل (حتى لا يخرج الطفل بالخطأ)
   const exitBtn = '<button class="lr-ic" data-exit aria-label="خروج (اضغط مطولاً)">🚪</button>';
@@ -244,31 +245,39 @@
       await SET[id].run(b);
       return finish(b, sec[0] + id, back);
     }
-    if (sec === 'quran') {
-      if (id == null) {
-        const b = sh('📖 قرآني', '#/kids');
-        b.innerHTML = `<div class="lr-grid g2">${SUR.map((s, i) => `<a class="lr-tile kd sur ${k['q' + s] ? 'done' : ''}" href="#/kids/quran/${s}" style="--h:${i * 37 % 360}"><b>${AR.SURAHS[s - 1]}</b>${k['q' + s] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
-        return;
-      }
-      const s = +id, back = '#/kids/quran';
-      const b = sh('سورة ' + AR.SURAHS[s - 1], back);
-      const ay = (await DB.byIndex('items', 'bookId', 'quran')).filter(a => a.surah === s).sort((x, y) => x.ayah - y.ayah);
-      const heard = new Set(); wasQ = true;
-      b.innerHTML = `<div class="kd-quran">
-        <div class="row" style="justify-content:center;gap:10px;flex-wrap:wrap"><button class="lr-btn ok" data-all>▶ لقّنّي السورة</button><button class="lr-btn ghost" data-stop>⏹</button></div>
-        <div class="muted" style="text-align:center;margin:8px 0">👆 اضغط على الآية لتسمعها ثم ردّدها</div>
-        ${ay.map(a => `<button class="kd-ayah" data-a="${a.ayah}"><span>${esc(noBasm(a.text, s, a.ayah))}</span> <i>${AD(a.ayah)}</i></button>`).join('')}</div>`;
-      const opt = { reciter: 'husary-muallim', noBasmala: s !== 1 };
-      b.querySelector('[data-all]').onclick = () => { LEARN.stop(); QA.play(ay.map(a => [s, a.ayah]), Object.assign({}, opt, { onEnd: () => finish(b, 'q' + s, back) })); };
-      b.querySelector('[data-stop]').onclick = () => QA.stop();
-      b.querySelectorAll('[data-a]').forEach(x => x.onclick = () => {
-        LEARN.stop(); b.querySelectorAll('.kd-ayah').forEach(y => y.classList.remove('on')); x.classList.add('on');
-        const a = +x.dataset.a; heard.add(a); QA.play([[s, a]], opt);
-        if (heard.size === ay.length) LEARN.mark('kids', 'q' + s);
-      });
-    }
+    if (sec === 'quran') return quran(sh, 'kids', '#/kids', id, k);
   };
+
+  // قرآني: الفاتحة وجزء عمّ بالتلقين (الحصري المعلّم) — مشترك بين الأطفال ومحو الأمية
+  async function quran(sh, area, base, id, pg) {
+    const list = `${base}/quran`;
+    if (id == null) {
+      const b = sh(area === 'kids' ? '📖 قرآني' : '📖 جزء عمّ', base);
+      b.innerHTML = `<div class="lr-grid g2">${SUR.map((s, i) => `<a class="lr-tile kd sur ${pg['q' + s] ? 'done' : ''}" href="${list}/${s}" style="--h:${i * 37 % 360}"><b>${AR.SURAHS[s - 1]}</b><small>${AD(s)}</small>${pg['q' + s] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
+      return;
+    }
+    const s = +id;
+    const b = sh('سورة ' + AR.SURAHS[s - 1], list);
+    const ay = (await DB.byIndex('items', 'bookId', 'quran')).filter(a => a.surah === s).sort((x, y) => x.ayah - y.ayah);
+    const heard = new Set(); wasQ = true;
+    b.innerHTML = `<div class="kd-quran">
+      <div class="row" style="justify-content:center;gap:10px;flex-wrap:wrap"><button class="lr-btn ok" data-all>▶ لقّنّي السورة</button><button class="lr-btn ghost" data-stop>⏹</button></div>
+      <div class="muted" style="text-align:center;margin:8px 0">👆 اضغط على الآية لتسمعها ثم ردّدها</div>
+      ${ay.map(a => `<button class="kd-ayah" data-a="${a.ayah}" data-card="quran:${s}:${a.ayah}"><span>${esc(noBasm(a.text, s, a.ayah))}</span> <i>${AD(a.ayah)}</i></button>`).join('')}</div>`;
+    const opt = { reciter: 'husary-muallim', noBasmala: s !== 1 };
+    const on = a => { b.querySelectorAll('.kd-ayah').forEach(y => y.classList.toggle('on', +y.dataset.a === a)); const el = b.querySelector(`[data-a="${a}"]`); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
+    b.querySelector('[data-all]').onclick = () => {
+      LEARN.stop(); on(null);
+      QA.play(ay.map(a => [s, a.ayah]), Object.assign({}, opt, { onEnd: () => LIT.done(b, area, 'q' + s, list) }));
+    };
+    b.querySelector('[data-stop]').onclick = () => QA.stop();
+    b.querySelectorAll('[data-a]').forEach(x => x.onclick = () => {
+      LEARN.stop(); const a = +x.dataset.a; on(a); heard.add(a); QA.play([[s, a]], opt);
+      if (heard.size === ay.length) LEARN.mark(area, 'q' + s);
+    });
+  }
+  window.KIDSQ = { quran, SUR };
   function noBasm(t, s, a) { const w = t.split(' '); return s !== 1 && a === 1 && w.length > 4 && /^ب/.test(w[0]) && /رحيم/.test(AR.normalize(w[3])) ? w.slice(4).join(' ') : t; }
   let wasQ = false;
-  window.addEventListener('hashchange', () => { const q = /^#\/kids\/quran\/\d/.test(location.hash); if (wasQ && window.QA) QA.stop(); wasQ = q; });
+  window.addEventListener('hashchange', () => { const q = /^#\/(kids|literacy)\/quran\/\d/.test(location.hash); if (wasQ && window.QA) QA.stop(); wasQ = q; });
 })();

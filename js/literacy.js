@@ -260,7 +260,7 @@
       const n = re => Object.keys(lit).filter(k => re.test(k)).length;
       const TH = themesFor('lit'), nW = TH.reduce((a, t) => a + chunk(t.words, 6).length, 0), nD = LEARN.DECODE.reduce((a, d) => a + chunk(d.words, 6).length, 0), nS = LEARN.S.length + LEARN.SA.length;
       const lv = [['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['forms', '🔗', 'l_forms', n(/^f\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28],
-        ['decode', '🔡', 'l_decode', n(/^d_/), nD], ['words', '🖼️', 'l_words', n(/^w_/), nW], ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
+        ['decode', '🔡', 'l_decode', n(/^d_/), nD], ['words', '🖼️', 'l_words', n(/^w_/), nW], ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['quran', '📖', 'l_quran', n(/^q\d/), 38], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
       const b = sh('تعلّم القراءة والكتابة', '', () => say('p_lit_intro'));
       b.innerHTML = `<div class="lr-path">${lv.map(([k, ic, key, d, tot], i) => `<a class="lr-level" href="#/literacy/${k}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
       sayTiles(b);
@@ -268,6 +268,7 @@
       return;
     }
     if (sec === 'grad') return gradTest(sh('🎓 الاختبار', '#/literacy'));
+    if (sec === 'quran') return KIDSQ.quran(sh, 'lit', '#/literacy', id, lit);
     if (!(await reading({ sec, id, sub, area: 'lit', base: '#/literacy', pg: lit, sh }))) location.hash = '#/literacy';
   };
 
