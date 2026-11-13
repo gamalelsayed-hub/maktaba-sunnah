@@ -767,3 +767,9 @@ html.dark body.learn-mode, body.dark.learn-mode { --lr-pad: #ffffff; }
 .pr-bar i { width: 100%; background: var(--lr-a); border-radius: 8px 8px 0 0; min-height: 3px; }
 .pr-bar small { font-size: 11px; } .pr-bar em { font-style: normal; font-size: 11px; color: var(--muted); }
 .pr-log { margin: 0; padding-inline-start: 18px; line-height: 1.9; }
+/* القصص المتحركة */
+.st-pic { animation: stIn .7s cubic-bezier(.3,1.6,.5,1) both, stFloat 3s 0.8s ease-in-out infinite; }
+@keyframes stIn { from { transform: scale(.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes stFloat { 50% { transform: translateY(-10px) rotate(3deg); } }
+.st-sent span { display: inline-block; opacity: 0; animation: stWord .5s ease forwards; }
+@keyframes stWord { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

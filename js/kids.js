@@ -121,7 +121,7 @@
   // ===== القصص =====
   async function story(b, st, back) {
     await say('stt_' + st.id);
-    for (const pg of st.pages) await LIT.stepNext(b, `<div class="lr-pic">${pg.e}</div><div class="lr-sent" data-say="${pg.id}">${esc(pg.t)}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
+    for (const pg of st.pages) await LIT.stepNext(b, `<div class="lr-pic st-pic">${pg.e}</div><div class="lr-sent st-sent" data-say="${pg.id}">${pg.t.split(' ').map((w, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${esc(w)}</span>`).join(' ')}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
     const pg = LEARN.shuffle(st.pages.filter(x => x.t.split(' ').length >= 3))[0];
     if (pg) await LIT.arrange(b, pg.id, pg.t);
     return LIT.done(b, 'kids', 'st_' + st.id, back);
