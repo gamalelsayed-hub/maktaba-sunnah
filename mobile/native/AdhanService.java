@@ -56,14 +56,23 @@ public class AdhanService extends Service {
 
         release();
         try {
-            int res = getResources().getIdentifier(fajr ? "adhan_fajr" : "adhan", "raw", getPackageName());
-            AssetFileDescriptor afd = getResources().openRawResourceFd(res);
+            // الصوت المختار: من الإعدادات (أو من طلب التجربة)، وملفات المستخدم تُحفظ داخل التطبيق
+            String voice = intent != null && intent.getStringExtra("voice") != null ? intent.getStringExtra("voice")
+                : getSharedPreferences("adhan", MODE_PRIVATE).getString(fajr ? "voice_fajr" : "voice", fajr ? "shayba" : "afasy");
             mp = new MediaPlayer();
             mp.setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
-            mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-            afd.close();
+            java.io.File custom = new java.io.File(getFilesDir(), fajr ? "adhan_custom_fajr.mp3" : "adhan_custom.mp3");
+            if ("custom".equals(voice) && custom.exists()) {
+                mp.setDataSource(custom.getAbsolutePath());
+            } else {
+                String raw = "makkah".equals(voice) ? "adhan_makkah" : "shayba".equals(voice) ? "adhan_fajr" : "afasy".equals(voice) ? "adhan" : (fajr ? "adhan_fajr" : "adhan");
+                int res = getResources().getIdentifier(raw, "raw", getPackageName());
+                AssetFileDescriptor afd = getResources().openRawResourceFd(res);
+                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                afd.close();
+            }
             mp.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
             mp.setOnCompletionListener(m -> finish(true));
             mp.setOnErrorListener((m, w, x) -> { finish(true); return true; });

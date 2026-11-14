@@ -69,7 +69,10 @@
         <div class="filters">
           <label>صوت الأذان <select id="snd"><option value="adhan" ${c.sound === 'adhan' ? 'selected' : ''}>أذان كامل</option><option value="beep" ${c.sound === 'beep' ? 'selected' : ''}>تنبيه قصير فقط</option></select></label>
           <label>تذكير قبل الأذان <select id="pre">${[0, 5, 10, 15, 20, 30].map(m => `<option value="${m}" ${+c.pre === m ? 'selected' : ''}>${m ? m + ' دقيقة' : 'بدون'}</option>`).join('')}</select></label>
-          <button class="btn sm" id="test">▶ جرّب الأذان</button><button class="btn sm" id="stopA">⏹</button></div></div>
+          <button class="btn sm" id="test">▶ جرّب الأذان</button><button class="btn sm" id="stopA">⏹</button></div>
+        <div class="filters">${[[false, 'reg', 'صوت المؤذن'], [true, 'fajr', 'صوت أذان الفجر']].map(([fj, k, lab]) => `<label>${lab} <select data-voice="${k}">${Object.entries(NOTIFY.VOICES).filter(([id, v]) => fj ? (v.fajr || id === 'custom') : !v.fajr).map(([id, v]) => `<option value="${id}" ${NOTIFY.getVoice()[k] === id ? 'selected' : ''}>${v.n}</option>`).join('')}</select></label><button class="btn sm" data-try="${k}" title="استمع">▶</button>`).join('')}
+          <input type="file" id="adFile" accept="audio/*" hidden></div>
+        <div class="muted" style="font-size:12.5px">«ملف من جهازك»: اختر أي تسجيل أذان تحبه (mp3 وغيره) ليُرفع به الأذان.</div></div>
 
       <div class="card"><h2 style="margin-top:0">🧭 اتجاه القبلة</h2>
         <div class="row" style="gap:18px;align-items:center"><div class="compass" id="comp"><div class="needle" style="transform:rotate(${q.deg}deg)"><span>🕋</span></div><b class="cN">ش</b></div>
@@ -103,6 +106,15 @@
     $('#pre').onchange = async e => { c.pre = +e.target.value; await persist(); };
     $('#test').onclick = () => NOTIFY.playAdhan(false);
     $('#stopA').onclick = () => NOTIFY.stopAdhan();
+    let pickFor = null;
+    const fileIn = $('#adFile');
+    fileIn.onchange = async () => { const f = fileIn.files[0]; if (!f || !pickFor) return; try { await NOTIFY.setCustom(pickFor === 'fajr', f); APP.toast('تم حفظ صوت الأذان من جهازك'); NOTIFY.playAdhan(pickFor === 'fajr'); } catch (e) { APP.toast('تعذر حفظ الملف'); } fileIn.value = ''; };
+    el.querySelectorAll('[data-voice]').forEach(sel => sel.onchange = async () => {
+      const fj = sel.dataset.voice === 'fajr';
+      if (sel.value === 'custom') { pickFor = sel.dataset.voice; fileIn.click(); return; }
+      await NOTIFY.setVoice(fj, sel.value); NOTIFY.playAdhan(fj);
+    });
+    el.querySelectorAll('[data-try]').forEach(b => b.onclick = () => NOTIFY.playAdhan(b.dataset.try === 'fajr'));
     $('#saveS').onclick = async () => { c.method = $('#meth').value; c.asr = $('#asr').value; el.querySelectorAll('[data-adj]').forEach(i => { c.adj[i.dataset.adj] = +i.value || 0; }); await persist(); APP.toast('✔ حُفظ'); APP.rerender(); };
     // البوصلة الحية: اتجاه الجوال من مستشعر الاتجاه
     $('#live').onclick = async () => {

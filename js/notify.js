@@ -56,7 +56,26 @@
   // ===== الويب: مؤقتات داخل الصفحة =====
   const webTimers = {};
   const adhanAudio = new Audio(); adhanAudio.preload = 'none';
-  function playAdhan(fajr) { if (AD) { AD.test({ fajr: !!fajr }).catch(() => { }); return; } if (window.MEDIA) MEDIA.claim('adhan'); try { adhanAudio.src = fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3'; adhanAudio.play().catch(() => { }); } catch (e) { } }
+  // أصوات الأذان المرفقة (ولأذان الفجر «الصلاة خير من النوم» فلا يُستعمل لغيره)، ويمكن إضافة ملف من الجهاز
+  const VOICES = { afasy: { n: 'مشاري العفاسي', f: 'audio/adhan.mp3' }, makkah: { n: 'أذان المسجد الحرام', f: 'audio/adhan_makkah.mp3' }, shayba: { n: 'مالك شيبة الحمد (أذان الفجر)', f: 'audio/adhan_fajr.mp3', fajr: true }, custom: { n: '📁 ملف من جهازك' } };
+  const getVoice = () => { try { return Object.assign({ reg: 'afasy', fajr: 'shayba' }, JSON.parse(localStorage.getItem('adhan-voice') || '{}')); } catch (e) { return { reg: 'afasy', fajr: 'shayba' }; } };
+  async function setVoice(fajr, v) { const c = getVoice(); c[fajr ? 'fajr' : 'reg'] = v; localStorage.setItem('adhan-voice', JSON.stringify(c)); if (AD && AD.setVoice) await AD.setVoice({ fajr: !!fajr, voice: v }).catch(() => { }); }
+  async function setCustom(fajr, file) {
+    if (AD && AD.setCustom) { const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(',')[1]); fr.readAsDataURL(file); }); await AD.setCustom({ fajr: !!fajr, data: b64 }); }
+    await DB.setting(fajr ? 'adhan-custom-fajr' : 'adhan-custom', file);
+    await setVoice(fajr, 'custom');
+  }
+  let customUrl = null;
+  async function srcFor(fajr, voice) {
+    const v = voice || getVoice()[fajr ? 'fajr' : 'reg'];
+    if (v === 'custom') { const f = await DB.setting(fajr ? 'adhan-custom-fajr' : 'adhan-custom'); if (f) { if (customUrl) URL.revokeObjectURL(customUrl); return (customUrl = URL.createObjectURL(f)); } }
+    return (VOICES[v] && VOICES[v].f) || (fajr ? 'audio/adhan_fajr.mp3' : 'audio/adhan.mp3');
+  }
+  async function playAdhan(fajr, voice) {
+    if (AD) { AD.test(Object.assign({ fajr: !!fajr }, voice ? { voice } : {})).catch(() => { }); return; }
+    if (window.MEDIA) MEDIA.claim('adhan');
+    try { adhanAudio.src = await srcFor(fajr, voice); adhanAudio.play().catch(() => { }); } catch (e) { }
+  }
   function stopAdhan() { if (AD) { AD.stop().catch(() => { }); return; } try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) { } }
   function webShow(n) {
     if (n.channel === 'adhan' || n.channel === 'adhan_fajr') playAdhan(n.channel === 'adhan_fajr');
@@ -109,5 +128,5 @@
   setInterval(rescheduleAll, 6 * 3600e3);
 
   if (window.MEDIA) MEDIA.register('adhan', () => { if (!adhanAudio.paused) stopAdhan(); });
-  window.NOTIFY = { native: !!LN, status, request, schedule, register, rescheduleAll, playAdhan, stopAdhan };
+  window.NOTIFY = { VOICES, getVoice, setVoice, setCustom, native: !!LN, status, request, schedule, register, rescheduleAll, playAdhan, stopAdhan };
 })();
