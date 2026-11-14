@@ -77,7 +77,7 @@
     grad_fail: 'تحتاج مراجعة قليلة ثم أعد الاختبار',
     kgrad_pass: 'مبارك يا بطل! أنت الآن تقرأ وتكتب',
     t_exam: 'اختبار البطل', t_duas: 'أدعيتي',
-    exit_hold: 'اضغط مطولا للخروج',
+    exit_hold: 'اضغط مرتين للخروج',
     lit_intro: 'ابدأ من الأعلى: الحروف، ثم الحركات والمدود، ثم الكلمات واللافتات، ثم الجمل، ثم الاختبار',
     t_letters: 'حروفي', t_write: 'أكتب', t_numbers: 'أرقامي', t_quran: 'قرآني', t_games: 'ألعابي',
     t_nlearn: 'تعلّم الأرقام', t_count: 'عُدّ', t_add: 'اجمع', t_sub: 'اطرح',
@@ -269,13 +269,26 @@
     if (!on) document.body.classList.remove('learn-kids', 'learn-lit');
   }
   window.addEventListener('hashchange', syncMode);
+  // داخل الأطفال ومحو الأمية: التنقل لا يكدّس الصفحات، وزر الرجوع يصعد مستوى واحداً
+  document.addEventListener('click', e => {
+    if (!document.body.classList.contains('learn-mode')) return;
+    const a = e.target.closest && e.target.closest('a[href^="#/"]');
+    if (!a || a.target) return;
+    e.preventDefault(); location.replace(a.getAttribute('href'));
+  });
+  function back() {
+    const b = document.querySelector('.lr-top a.lr-back');
+    if (b) { location.replace(b.getAttribute('href')); return true; }
+    if (!/^#\/start/.test(location.hash)) { location.replace('#/start'); return true; }
+    return false;
+  }
   function shell(el, o) {
     document.body.classList.add('learn-mode');
     document.body.classList.toggle('learn-kids', o.theme === 'kids');
     document.body.classList.toggle('learn-lit', o.theme === 'lit');
     el.innerHTML = `<div class="lr-wrap">
       <div class="lr-top">
-        ${o.back ? `<a class="lr-ic" href="${o.back}" aria-label="رجوع">➜</a>` : '<span></span>'}
+        ${o.back ? `<a class="lr-ic lr-back" href="${o.back}" aria-label="رجوع">➜</a>` : '<span></span>'}
         <div class="lr-title">${o.title || ''}</div>
         <div class="row" style="gap:6px">${o.stars != null ? `<span class="lr-stars">⭐ ${AD(o.stars)}</span>` : ''}${o.repeat ? '<button class="lr-ic" data-rep aria-label="أعد السماع">🔊</button>' : ''}${o.exit || ''}</div>
       </div>
@@ -380,5 +393,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { miss, react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { back, miss, react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

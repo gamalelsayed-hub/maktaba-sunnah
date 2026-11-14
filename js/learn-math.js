@@ -88,7 +88,7 @@
       b.innerHTML = `<div class="lr-path">${SET.map((x, i) => `<a class="lr-level" href="${list}/${x.id}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic" style="font-size:28px">${x.ic}</span><b>${x.t}</b><span class="lr-bar"><i style="width:${pg['mt_' + x.id] ? 100 : 0}%"></i></span><small>${pg['mt_' + x.id] ? '✓' : ''}</small></a>`).join('')}</div>`;
       return;
     }
-    const x = SET.find(y => y.id === id); if (!x) { location.hash = list; return; }
+    const x = SET.find(y => y.id === id); if (!x) { location.replace(list); return; }
     const b = sh(x.ic + ' ' + x.t, list);
     await x.run(b);
     if (b.isConnected) C().done(b, area, 'mt_' + x.id, list);

@@ -54,6 +54,7 @@
           <a class="btn sm gold" href="#/wird">☀️ وردي اليوم</a></div>
       </section>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
+      <div class="aud-switch"><a href="#/kids" data-aud="kids"><span>🧒</span>الأطفال</a><a href="#/literacy" data-aud="lit"><span>✍️</span>تعلّم القراءة والكتابة</a></div>
       <div class="grid" style="margin-bottom:6px">${prTile}${dkTile}</div>
       ${dash}
       <h2>ابدأ من هنا</h2>

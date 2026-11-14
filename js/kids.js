@@ -6,15 +6,17 @@
   const SUR = [1, ...Array.from({ length: 37 }, (_, i) => 114 - i)];
 
   // زر الخروج: ضغط مطوّل (حتى لا يخرج الطفل بالخطأ)
-  const exitBtn = '<button class="lr-ic" data-exit aria-label="خروج (اضغط مطولاً)">🚪</button>';
+  const exitBtn = '<button class="lr-ic" data-exit aria-label="خروج (اضغط مرتين)">🚪</button>';
   function bindExit(el) {
     const x = el.querySelector('[data-exit]'); if (!x) return;
-    let t = null;
-    const start = e => { e.preventDefault(); x.classList.add('holding'); t = setTimeout(() => { location.hash = '#/start'; }, 1500); };
-    const end = () => { clearTimeout(t); x.classList.remove('holding'); };
-    x.addEventListener('pointerdown', start); x.addEventListener('pointerup', end); x.addEventListener('pointerleave', end);
-    x.addEventListener('click', () => say('p_exit_hold'));
+    let last = 0;
+    x.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - last < 800) { last = 0; x.classList.remove('holding'); LX.switcher('kids'); return; }
+      last = now; x.classList.add('holding'); say('p_exit_hold'); setTimeout(() => x.classList.remove('holding'), 800);
+    });
   }
+
 
   async function rounds(b, n, mk) { let ok = 0; for (let r = 0; r < n; r++) { if (LIT.gone(b)) return LIT.gone(b); if (await mk(r)) ok++; } return ok; }
 
@@ -149,11 +151,11 @@
       await rounds(b, 6, () => { const i = R0(DU.length), d = DU[i]; return LIT.choose(b, { show: `<div style="font-size:60px">${d.e}</div><div class="lr-cap" style="font-size:22px">${esc(d.w)}</div>`, hear: ['duw' + i], options: LEARN.pick(DU.map((_, j) => j), 3, i).map(j => ({ html: `<span style="font:700 20px/1.7 Naskh,serif">${esc(DU[j].t)}</span>`, ok: j === i })) }); });
       return LIT.done(b, 'kids', 'duq', list);
     }
-    const i = +id, d = DU[i]; if (!d) { location.hash = list; return; }
+    const i = +id, d = DU[i]; if (!d) { location.replace(list); return; }
     const b = sh(d.e + ' ' + d.w, list);
     await LIT.stepNext(b, `${LX.who('read', 'md')}<div style="font-size:64px">${d.e}</div><div class="lr-cap" style="font-size:22px" data-say="duw${i}">${esc(d.w)}</div><div class="lr-sent" data-say="du${i}">${esc(d.t)}</div><div class="muted">رواه ${esc(d.src)}</div>`, bb => { LIT.bindSay(bb); say('duw' + i).then(() => say('du' + i)); });
     await LEARN.mark('kids', 'du' + i);
-    location.hash = i < DU.length - 1 ? `${list}/${i + 1}` : list;
+    location.replace(i < DU.length - 1 ? `${list}/${i + 1}` : list);
   }
 
   // ===== القصص =====
@@ -233,7 +235,7 @@
     if (sec === 'math') return LMATH.view({ sh, area: 'kids', base: '#/kids/numbers', list: '#/kids/math', id, pg: k });
     if (sec === 'duas') return duasView(sh, id, k);
     if (sec === 'exam') return LIT.gradTest(sh('🏆 اختبار البطل', '#/kids'), 'kids');
-    if (sec === 'dict' || sec === 'review') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.hash = '#/kids'; return; }
+    if (sec === 'dict' || sec === 'review') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.replace('#/kids'); return; }
     if (sec === 'shapes') return shapesLesson(sh('🔷 الأشكال', '#/kids/numbers'), '#/kids/numbers');
     if (sec === 'parents') return LX.parents(sh('🔒 للأهل', '#/kids'));
     if (sec === 'rest' || await LX.overLimit()) return LX.rest(sh('🌙', ''));
@@ -255,17 +257,17 @@
           .map(([r, ic, key, d, tot], i) => `<a class="lr-level" href="#/kids/read/${r}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
         LIT.sayTiles(b); return;
       }
-      if (!(await LIT.reading({ sec: id, id: sub, sub: sub2, area: 'kids', base: '#/kids/read', pg: k, sh }))) location.hash = '#/kids/read';
+      if (!(await LIT.reading({ sec: id, id: sub, sub: sub2, area: 'kids', base: '#/kids/read', pg: k, sh }))) location.replace('#/kids/read');
       return;
     }
-    if (sec === 'words' || sec === 'sent') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.hash = '#/kids'; return; }
+    if (sec === 'words' || sec === 'sent') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.replace('#/kids'); return; }
     if (sec === 'stories') {
       if (id == null) {
         const b = sh('📚 قصصي', '#/kids');
         b.innerHTML = `${LX.who('read', 'md')}<div class="lr-grid g2">${LEARN.STORIES.map((st, i) => `<a class="lr-tile kd sur ${k['st_' + st.id] ? 'done' : ''}" href="#/kids/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${k['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
         LIT.sayTiles(b); return;
       }
-      const st = LEARN.STORIES.find(x => x.id === id); if (!st) { location.hash = '#/kids/stories'; return; }
+      const st = LEARN.STORIES.find(x => x.id === id); if (!st) { location.replace('#/kids/stories'); return; }
       return story(sh(st.ic + ' ' + st.t, '#/kids/stories'), st, '#/kids/stories');
     }
     if (sec === 'write') {

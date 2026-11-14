@@ -95,6 +95,7 @@
     const modal = document.getElementById('modal'), side = document.getElementById('sidebar');
     if (modal && !modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
     if (side && side.classList.contains('open')) { window.APP && APP.closeMenu && APP.closeMenu(); return; }
+    if (document.body.classList.contains('learn-mode') && window.LEARN) { if (!LEARN.back()) App.exitApp(); return; }
     if (location.hash && location.hash !== '#/' && history.length > 1) history.back();
     else App.exitApp();
   });

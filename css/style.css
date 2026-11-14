@@ -812,3 +812,12 @@ body:not(.learn-mode) .tc-react { display: none; }
 .shp { width: min(50vw, 200px); height: min(50vw, 200px); }
 .lr-opts .shp { width: 90px; height: 90px; }
 .lr-me.rv { background: linear-gradient(135deg, #ffe0e0, #fff3c4); }
+/* الانتقال بين الأقسام */
+.aud-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 12px; }
+.aud-switch a { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-radius: 16px; color: #fff; font-weight: 700; text-decoration: none; }
+.aud-switch a span { font-size: 28px; }
+.aud-switch a:first-child { background: linear-gradient(135deg, #ff7043, #ec407a); } .aud-switch a:last-child { background: linear-gradient(135deg, #1e88e5, #3949ab); }
+.sw-card { min-width: min(86vw, 380px); }
+.sw-card .st-card { width: 100%; box-sizing: border-box; }
+body.learn-mode, body.learn-mode * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+body.learn-mode input, body.learn-mode textarea { -webkit-user-select: text; user-select: text; }

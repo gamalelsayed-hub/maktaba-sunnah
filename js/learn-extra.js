@@ -119,7 +119,7 @@
     if (document.hidden || !document.body.classList.contains('learn-mode')) return;
     const p = await LEARN.prog(); p.days = p.days || {}; const t = today(); p.days[t] = p.days[t] || { n: 0, s: 0 }; p.days[t].s += 15;
     await DB.setting('learn', p);
-    if (document.body.classList.contains('learn-kids') && !/^#\/kids\/(rest|parents)/.test(location.hash) && await overLimit(p)) location.hash = '#/kids/rest';
+    if (document.body.classList.contains('learn-kids') && !/^#\/kids\/(rest|parents)/.test(location.hash) && await overLimit(p)) location.replace('#/kids/rest');
   }, 15000);
   async function overLimit(p) {
     p = p || await LEARN.prog(); const c = Object.assign({ limit: 0, extra: {} }, p.cfg || {});
@@ -208,7 +208,7 @@
         <a class="lr-btn ok" href="#/learnme/certs">📜 شهاداتي</a>
         ${kids ? '<button class="lr-btn" data-par>🔒 للأهل</button>' : '<button class="lr-btn" data-set>⚙️ الهدف والتذكير</button>'}
       </div>`;
-    const pb = b.querySelector('[data-par]'); if (pb) pb.onclick = () => gate(() => { location.hash = '#/kids/parents'; });
+    const pb = b.querySelector('[data-par]'); if (pb) pb.onclick = () => gate(() => { location.replace('#/kids/parents'); });
     const sb = b.querySelector('[data-set]'); if (sb) sb.onclick = () => settingsForm(false);
   };
 
@@ -261,13 +261,13 @@
         <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="lr-btn ok" data-set>✏️ تعديل</button>${c.limit ? '<button class="lr-btn" data-more>➕ ١٥ دقيقة لليوم</button>' : ''}</div>
         <p class="muted" style="font-size:13px">ننصح بجلسات قصيرة (١٥–٢٠ دقيقة) مع مشاركة الأهل. التطبيق لا يجمع أي بيانات، وكل هذا محفوظ على الجهاز فقط.</p></div>`;
     b.querySelector('[data-set]').onclick = () => settingsForm(true);
-    const mb = b.querySelector('[data-more]'); if (mb) mb.onclick = async () => { const cc = await cfg(); cc.extra = { [today()]: ((cc.extra || {})[today()] || 0) + 15 }; await saveCfg(cc); APP.toast('أُضيفت ١٥ دقيقة لليوم'); location.hash = '#/kids'; };
+    const mb = b.querySelector('[data-more]'); if (mb) mb.onclick = async () => { const cc = await cfg(); cc.extra = { [today()]: ((cc.extra || {})[today()] || 0) + 15 }; await saveCfg(cc); APP.toast('أُضيفت ١٥ دقيقة لليوم'); location.replace('#/kids'); };
   }
   function rest(b) {
     b.innerHTML = `<div class="lr-step lr-done">${who('bye', 'lg')}<div class="lr-trophy" style="font-size:90px">🌙</div><div class="lr-cap">أحسنت! نكمل غداً إن شاء الله</div>
       <div class="lr-foot"><button class="lr-btn ghost" data-par>🔒 للأهل</button></div></div>`;
     say('p_rest');
-    b.querySelector('[data-par]').onclick = () => gate(() => { location.hash = '#/kids/parents'; });
+    b.querySelector('[data-par]').onclick = () => gate(() => { location.replace('#/kids/parents'); });
   }
 
   // ===== 🎬 شاهد وتعلّم: درس الحرف كأنه فيديو يعمل وحده (الأستاذ جمال + رسم الحرف + الأصوات) =====
@@ -278,7 +278,7 @@
     const my = ++vgen, alive = () => my === vgen && b.isConnected;
     const L = LEARN.L, c = L[i][0];
     const scene = html => { if (alive()) b.innerHTML = `<div class="vd-stage">${html}</div><div class="vd-ctrl"><button class="lr-btn ghost" data-rep>🔁</button>${next ? '<button class="lr-btn ok" data-nx>⏭</button>' : ''}</div>`; bind(); };
-    const bind = () => { const r = b.querySelector('[data-rep]'); if (r) r.onclick = () => letterVideo(b, i, area, next); const n = b.querySelector('[data-nx]'); if (n) n.onclick = () => { vgen++; LEARN.stop(); location.hash = next; }; };
+    const bind = () => { const r = b.querySelector('[data-rep]'); if (r) r.onclick = () => letterVideo(b, i, area, next); const n = b.querySelector('[data-nx]'); if (n) n.onclick = () => { vgen++; LEARN.stop(); location.replace(next); }; };
     scene(`${who('wave', 'lg')}<div class="vd-big">${c}</div>`); await sayMin('l' + i, 1800); if (!alive()) return;
     scene(`<div class="row" style="align-items:center;gap:4px">${who('point', 'sm2 flip')}<div class="lr-dl"></div></div>`);
     await new Promise(res => drawLetter(b.querySelector('.lr-dl'), c, { onEnd: res })); if (!alive()) return;
@@ -291,7 +291,7 @@
     const w = LEARN.PICW.find(x => x.first === c);
     if (w) { scene(`<div class="lr-pic st-pic">${w.e}</div><div class="lr-word"><b class="hl">${esc(w.w[0])}</b>${esc(w.w.slice(1))}</div>`); await sayMin(w.id, 2000); if (!alive()) return; }
     scene(`${who('celebrate', 'lg')}<div class="vd-big sm">${c}</div>`); LEARN.tone('win'); LEARN.mark(area, 'v' + i); await sayMin('p_char_good', 1500); if (!alive()) return;
-    if (next) { await sleep(1500); if (alive()) location.hash = next; }
+    if (next) { await sleep(1500); if (alive()) location.replace(next); }
   }
   async function watchView(sh, area, base, id, pg) {
     const list = base + '/watch';
@@ -305,5 +305,16 @@
   }
   window.addEventListener('hashchange', () => { if (!/\/watch\/\d/.test(location.hash)) vgen++; });
 
-  window.LX = { watchView, letterVideo, drawLetter, who, overLimit, parents, rest, gate, certificate, streak, BADGES };
+  // نافذة الانتقال لقسم آخر (من الأطفال أو محو الأمية)
+  function switcher(from) {
+    const opts = [['kids', '#/kids', '🧒', 'الأطفال'], ['lit', '#/literacy', '✍️', 'تعلّم القراءة والكتابة'], ['adult', '#/', '📚', 'الشباب والكبار']].filter(o => o[0] !== from);
+    const d = document.createElement('div'); d.className = 'bd-pop';
+    d.innerHTML = `<div class="bd-card sw-card">${opts.map(([k, h, ic, t]) => `<a class="st-card ${k}" href="${h}" data-aud="${k}"><span class="st-ic">${ic}</span><b>${t}</b></a>`).join('')}<button class="lr-btn ghost" data-x>✖ رجوع</button></div>`;
+    document.body.appendChild(d);
+    d.querySelector('[data-x]').onclick = () => d.remove();
+    d.addEventListener('click', e => { if (e.target === d) d.remove(); });
+    d.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => { try { localStorage.setItem('audience', a.dataset.aud); } catch (x) { } LEARN.stop(); setTimeout(() => d.remove(), 50); }));
+  }
+
+  window.LX = { switcher, watchView, letterVideo, drawLetter, who, overLimit, parents, rest, gate, certificate, streak, BADGES };
 })();

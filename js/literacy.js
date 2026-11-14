@@ -352,10 +352,10 @@
   }
 
   // ===== شاشة محو الأمية =====
-  const exitBtn = '<a class="lr-ic" href="#/start" aria-label="خروج">🚪</a>';
+  const exitBtn = '<button class="lr-ic" data-switch aria-label="الأقسام">🔄</button>';
   V.literacy = async (el, [sec, id, sub]) => {
     const p = await LEARN.prog(), lit = p.lit || {};
-    const sh = (title, back, repeat) => LEARN.shell(el, { theme: 'lit', title, back, stars: p.stars || 0, repeat, exit: back ? '' : exitBtn });
+    const sh = (title, back, repeat) => { const b = LEARN.shell(el, { theme: 'lit', title, back, stars: p.stars || 0, repeat, exit: back ? '' : exitBtn }); const sw = el.querySelector('[data-switch]'); if (sw) sw.onclick = () => LX.switcher('lit'); return b; };
     if (!sec) {
       const n = re => Object.keys(lit).filter(k => re.test(k)).length;
       const TH = themesFor('lit'), nW = TH.reduce((a, t) => a + chunk(t.words, 6).length, 0), nD = LEARN.DECODE.reduce((a, d) => a + chunk(d.words, 6).length, 0), nS = LEARN.S.length + LEARN.SA.length;
@@ -375,7 +375,7 @@
     if (sec === 'quran') return KIDSQ.quran(sh, 'lit', '#/literacy', id, lit);
     if (sec === 'math') return LMATH.view({ sh, area: 'lit', base: '#/literacy', id, pg: lit });
     if (sec === 'watch') return LX.watchView(sh, 'lit', '#/literacy', id, lit);
-    if (!(await reading({ sec, id, sub, area: 'lit', base: '#/literacy', pg: lit, sh }))) location.hash = '#/literacy';
+    if (!(await reading({ sec, id, sub, area: 'lit', base: '#/literacy', pg: lit, sh }))) location.replace('#/literacy');
   };
 
   window.LIT = { gradTest, itemOf, dictationLesson, reviewLesson, watch, gone, letterLesson, writeStep, choose, arrange, stepNext, bindSay, done, reading, listLesson, chunk, sayTiles, chips };

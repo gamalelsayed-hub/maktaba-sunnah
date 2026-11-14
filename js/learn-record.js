@@ -10,7 +10,7 @@
       <a class="st-card lit" href="#/literacy" data-aud="lit"><span class="st-ic">✍️</span><b>تعلّم القراءة والكتابة</b><small>لمن لا يعرف القراءة — بالصوت والصور</small></a>
       <a class="st-card adult" href="#/" data-aud="adult"><span class="st-ic">📚</span><b>الشباب والكبار</b><small>المصحف والتفسير والحديث والفقه</small></a>
     </div>
-    <div class="muted" style="text-align:center;margin-top:14px;font-size:13px">يمكنك التغيير لاحقاً من القائمة: «الأطفال ومحو الأمية». <a href="#/learnrec">🎙️ استوديو تسجيل الأصوات</a></div>`;
+    <div class="muted" style="text-align:center;margin-top:14px;font-size:13px">وتستطيع الانتقال بين الأقسام الثلاثة من داخل كل قسم. <a href="#/learnrec">🎙️ استوديو تسجيل الأصوات</a></div>`;
     b.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
       try { localStorage.setItem('audience', a.dataset.aud); } catch (e) { } LEARN.stop();
       if (a.dataset.aud === 'adult') setTimeout(() => { try { if (!localStorage.getItem('tour-done') && window.GUIDE) GUIDE.tour(0); } catch (e) { } }, 1500);
@@ -20,12 +20,9 @@
 
   // التوجيه عند فتح التطبيق حسب الفئة المختارة
   try {
-    const aud = localStorage.getItem('audience'), h = location.hash;
-    if (!h || h === '#/' || h === '#') {
-      if (aud === 'kids') location.replace('#/kids');
-      else if (aud === 'lit') location.replace('#/literacy');
-      else if (!aud && !localStorage.getItem('tour-done')) location.replace('#/start');
-    }
+    const h = location.hash;
+    // عند كل فتح للتطبيق: شاشة الاختيار (إلا إن فُتح على رابط محدد كإشعار)
+    if (!h || h === '#/' || h === '#') location.replace('#/start');
   } catch (e) { }
 
   // ===== استوديو التسجيل =====
