@@ -3,6 +3,10 @@
   const AD = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const LV = [[1, '🌱', 'المستوى الأول — قصص قصيرة'], [2, '🌿', 'المستوى الثاني — قصص أطول'], [3, '🌳', 'المستوى الثالث — قصص الأنبياء والقيم']];
+  const LV_A = [[1, '🌱', 'المستوى الأول — مواقف قصيرة من الحياة'], [2, '🌿', 'المستوى الثاني — قصص من الحياة'], [3, '🌳', 'المستوى الثالث — قصص أطول من الحياة'], [4, '🕌', 'قصص الأنبياء والقيم']];
+  // قصص كل قسم: الأطفال لهم قصصهم، والكبار مواقف من الحياة + قصص الأنبياء
+  const listFor = area => area === 'lit' ? LEARN.STORIES_A.concat(LEARN.STORIES.filter(s => s.lvl === 3).map(s => Object.assign({}, s, { lvl: 4 }))) : LEARN.STORIES;
+  const findSt = id => LEARN.STORIES_A.find(x => x.id === id) || LEARN.STORIES.find(x => x.id === id);
   const DECOR = {
     night: ['🌙', '⭐', '✨'], sky: ['☁️', '☀️', '🕊️'], sea: ['🌊', '🐚', '⛵'], lake: ['🌿', '💧', '🪷'], garden: ['🌼', '🦋', '🌷'],
     desert: ['🏜️', '☀️', '🌴'], mountain: ['⛰️', '☁️', '🦅'], mosque: ['🕌', '🌙', '✨'], home: ['🪴', '🖼️', '💡'],
@@ -32,7 +36,7 @@
   function anim(st, i) {
     const pg = st.pages[i], t = plain(pg.t);
     const m = (MOT.find(([, re]) => re.test(t)) || [i === 0 ? 'walk' : 'idle'])[0];
-    let actor = CAST[st.id] != null ? CAST[st.id] : st.ic; const prop = pg.e;
+    let actor = CAST[st.id] != null ? CAST[st.id] : (st.cast || st.ic); const prop = pg.e;
     if (actor === prop) actor = '';
     const fx = [];
     if (FX.rain.test(t)) for (let k = 0; k < 10; k++) fx.push(`<b class="fx-drop" style="--x:${(k * 37) % 100}%;--d:${(k % 5) * 0.3}s">💧</b>`);
@@ -50,16 +54,16 @@
   const shown = t => esc(t).replace(/^– ([^:–«]{1,30}):/, '– <b class="spk">$1:</b>').replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
 
   // قائمة القصص مقسّمة على المستويات + رف كتب السيرة
-  function shelf(b, base, pg) {
-    const S = LEARN.STORIES, B = window.LIB_BOOKS || [];
+  function shelf(b, base, pg, area) {
+    const S = listFor(area), B = window.LIB_BOOKS || [], LVS = area === 'lit' ? LV_A : LV;
     const tile = (st, i) => `<a class="lr-tile kd sur ${pg['st_' + st.id] ? 'done' : ''}" href="${base}/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${pg['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`;
     const nDone = xs => xs.filter(st => pg['st_' + st.id]).length;
-    b.innerHTML = `<div class="lib-tabs">${LV.map(([l, ic]) => `<button data-lv="${l}">${ic} ${AD(l)}</button>`).join('')}<button data-lv="b">📚 كيلاني</button></div>` +
-      LV.map(([l, ic, t]) => { const xs = S.filter(s => (s.lvl || 1) === l); return `<section class="lib-sec" data-sec="${l}"><h3>${ic} ${t} <small>${AD(nDone(xs))}/${AD(xs.length)}</small></h3><div class="lr-grid g2">${xs.map(st => tile(st, S.indexOf(st))).join('')}</div></section>`; }).join('') +
-      `<section class="lib-sec" data-sec="b"><h3>📚 المستوى الرابع — كتب كامل كيلاني: السيرة النبوية ومسرحية</h3><div class="lib-books">${B.map(bk => { const d = bk.s.filter((_, n) => pg[`bk_${bk.id}_${n}`]).length; return `<a class="lib-book" href="${base}/books/${bk.id}">${scene(bk.bg, `<span class="lr-emo">${bk.ic}</span>`)}<b>${esc(bk.t)}</b><span class="lr-bar"><i style="width:${Math.round(d / bk.s.length * 100)}%"></i></span><small>${AD(d)} / ${AD(bk.s.length)} فصل</small></a>`; }).join('')}</div><p class="lib-src">نصوص هذه الكتب للأديب كامل كيلاني (ت ١٩٥٩م) — رائد أدب الأطفال — عن طبعة مؤسسة هنداوي، والنص في الملكية العامة.</p></section>`;
-    const show = lv => { b.querySelectorAll('.lib-sec').forEach(s => s.hidden = s.dataset.sec !== String(lv)); b.querySelectorAll('[data-lv]').forEach(x => x.classList.toggle('on', x.dataset.lv === String(lv))); try { localStorage.setItem('lib_lv', lv); } catch (e) { } };
+    b.innerHTML = `<div class="lib-tabs">${LVS.map(([l, ic]) => `<button data-lv="${l}">${ic} ${AD(l)}</button>`).join('')}<button data-lv="b">📚 كيلاني</button></div>` +
+      LVS.map(([l, ic, t]) => { const xs = S.filter(s => (s.lvl || 1) === l); return `<section class="lib-sec" data-sec="${l}"><h3>${ic} ${t} <small>${AD(nDone(xs))}/${AD(xs.length)}</small></h3><div class="lr-grid g2">${xs.map(st => tile(st, S.indexOf(st))).join('')}</div></section>`; }).join('') +
+      `<section class="lib-sec" data-sec="b"><h3>📚 كتب كامل كيلاني: السيرة النبوية ومسرحية</h3><div class="lib-books">${B.map(bk => { const d = bk.s.filter((_, n) => pg[`bk_${bk.id}_${n}`]).length; return `<a class="lib-book" href="${base}/books/${bk.id}">${scene(bk.bg, `<span class="lr-emo">${bk.ic}</span>`)}<b>${esc(bk.t)}</b><span class="lr-bar"><i style="width:${Math.round(d / bk.s.length * 100)}%"></i></span><small>${AD(d)} / ${AD(bk.s.length)} فصل</small></a>`; }).join('')}</div><p class="lib-src">نصوص هذه الكتب للأديب كامل كيلاني (ت ١٩٥٩م) — رائد أدب الأطفال — عن طبعة مؤسسة هنداوي، والنص في الملكية العامة.</p></section>`;
+    const show = lv => { b.querySelectorAll('.lib-sec').forEach(s => s.hidden = s.dataset.sec !== String(lv)); b.querySelectorAll('[data-lv]').forEach(x => x.classList.toggle('on', x.dataset.lv === String(lv))); try { localStorage.setItem('lib_lv_' + area, lv); } catch (e) { } };
     b.querySelectorAll('[data-lv]').forEach(x => x.onclick = () => show(x.dataset.lv));
-    let lv = '1'; try { lv = localStorage.getItem('lib_lv') || '1'; } catch (e) { }
+    let lv = '1'; try { lv = localStorage.getItem('lib_lv_' + area) || '1'; } catch (e) { }
     if (!b.querySelector(`[data-sec="${lv}"]`)) lv = '1';
     show(lv);
   }
@@ -93,8 +97,8 @@
   // موجّه مشترك: sec = 'stories' أو 'books'
   async function route(sh, area, base, sec, id, sub, pg) {
     if (sec === 'stories') {
-      if (id == null) { const b = sh('📚 مكتبة القصص', base); shelf(b, base, pg); LIT.sayTiles(b); return true; }
-      const st = LEARN.STORIES.find(x => x.id === id); if (!st) return false;
+      if (id == null) { const b = sh('📚 مكتبة القصص', base); shelf(b, base, pg, area); LIT.sayTiles(b); return true; }
+      const st = findSt(id); if (!st) return false;
       await KIDSQ.story(sh(st.ic + ' ' + st.t, `${base}/stories`), st, `${base}/stories`, area); return true;
     }
     if (sec === 'books') {
@@ -106,5 +110,5 @@
     return false;
   }
 
-  window.LIB = { route, scene, shelf, anim };
+  window.LIB = { route, scene, shelf, anim, listFor };
 })();

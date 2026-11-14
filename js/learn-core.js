@@ -38,7 +38,8 @@
   const DECODE = D.DECODE.map(d => Object.assign({}, d, { words: d.w.map(w => ({ id: 'd_' + w, w, e: '' })) }));
   const SK = D.SENT_K.map((t, i) => ({ id: 'sk' + i, t })), SA = D.SENT_A.map((t, i) => ({ id: 'sa' + i, t }));
   const SIGNS = D.SIGNS.map(([t, c], i) => ({ id: 'g' + i, t, c }));
-  const STORIES = D.STORIES.map(st => Object.assign({}, st, { pages: st.p.map(([t, e], i) => ({ id: `st_${st.id}_${i}`, t, e })) }));
+  const mkSt = st => Object.assign({}, st, { pages: st.p.map(([t, e], i) => ({ id: `st_${st.id}_${i}`, t, e })) });
+  const STORIES = D.STORIES.map(mkSt), STORIES_A = (D.STORIES_A || []).map(mkSt);
 
   const S = [
     'السلام عليكم', 'بسم الله الرحمن الرحيم', 'الحمد لله رب العالمين', 'أنا أحب أمي', 'الشمس في السماء', 'القطة تشرب الماء',
@@ -133,7 +134,7 @@
     Object.entries(P).filter(([k]) => /^[tl]_/.test(k)).forEach(([k, t]) => add('p_' + k, t, null, '٤. أسماء الأقسام والألعاب'));
     THEMES.forEach(th => add('th_' + th.id, th.t, th.ic + ' ' + th.t, '٤. أسماء الأقسام والألعاب'));
     DECODE.forEach(d => add('dt_' + d.id, d.t, null, '٤. أسماء الأقسام والألعاب'));
-    STORIES.forEach(st => add('stt_' + st.id, st.t, st.ic + ' ' + st.t, '٤. أسماء الأقسام والألعاب'));
+    STORIES.concat(STORIES_A).forEach(st => add('stt_' + st.id, st.t, st.ic + ' ' + st.t, '٤. أسماء الأقسام والألعاب'));
     NUM.forEach((n, i) => add('n' + i, n, AD(i) + ' — ' + n, '٥. الأرقام'));
     const seen = new Set();
     THEMES.forEach(th => th.words.forEach(x => { if (seen.has(x.id)) return; seen.add(x.id); add(x.id, x.w, (x.e ? x.e + ' ' : '') + x.w, `٦. الكلمات — ${th.t}`); }));
@@ -145,7 +146,7 @@
     SK.forEach(x => add(x.id, x.t, null, '١١. جمل الأطفال'));
     SA.forEach(x => add(x.id, x.t, null, '١٢. جمل الحياة اليومية (الكبار)'));
     SIGNS.forEach(x => add(x.id, x.t, null, '١٣. اللافتات'));
-    STORIES.forEach(st => st.pages.forEach(pg => add(pg.id, pg.t, pg.e + ' ' + pg.t, '١٤. القصص — ' + st.t)));
+    STORIES.concat(STORIES_A).forEach(st => st.pages.forEach(pg => add(pg.id, pg.t, pg.e + ' ' + pg.t, '١٤. القصص — ' + st.t)));
     D.DUAS.forEach((d, i) => { add('du' + i, d.t, d.e + ' ' + d.t, '١٧. أدعية اليوم'); add('duw' + i, d.w, d.e + ' ' + d.w, '١٧. أدعية اليوم'); });
     D.SHAPES.forEach(([id, n]) => add('sh_' + id, n, null, '١٨. الأشكال'));
     D.TEXTS.forEach(x => { add('txt_' + x.id, x.t, x.ic + ' ' + x.t, '١٩. نصوص من الحياة'); add('tx_' + x.id, x.l.join('، '), x.l.join(' / '), '١٩. نصوص من الحياة'); x.q.forEach((q, j) => add(`txq_${x.id}_${j}`, q[0], null, '١٩. نصوص من الحياة')); });
@@ -393,5 +394,5 @@
   }
   const sameWord = (heard, w) => { const h = ' ' + AR.normalize(heard) + ' ', c = AR.normalize(w); return h.includes(c) || h.includes(' ال' + c) || h.includes(c.replace(/ه$/, '')); };
 
-  window.LEARN = { back, miss, react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
+  window.LEARN = { back, miss, react, THEMES, ALLW, PICW, DECODE, SK, SA, SIGNS, STORIES, STORIES_A, firstOf, L, HAR, TAN, W, S, NUM, P, ANIMALS, AD, harakah, tanween, madd, forms, clips, VS, say, sayAll, stop, tone, burst, praise, prog, mark, shuffle, pick, shell, pad, listen, sameWord, esc, syncMode };
 })();

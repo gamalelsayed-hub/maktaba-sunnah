@@ -372,7 +372,7 @@
   function skills(b, lit, back) {
     const TH = themesFor('lit');
     const TOT = { D: LEARN.DECODE.reduce((a, d) => a + chunk(d.words, 6).length, 0), W: TH.reduce((a, t) => a + chunk(t.words, 6).length, 0), DC: Math.ceil(LEARN.PICW.filter(x => !/\s/.test(x.w)).length / 6),
-      S: LEARN.S.length + LEARN.SA.length, ST: LEARN.STORIES.length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0), M: LMATH.ADULT.length, G: Math.ceil(LEARN.SIGNS.length / 5) };
+      S: LEARN.S.length + LEARN.SA.length, ST: LIB.listFor('lit').length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0), M: LMATH.ADULT.length, G: Math.ceil(LEARN.SIGNS.length / 5) };
     const keys = Object.keys(lit);
     const prog = src => { let d = 0, t = 0; for (const [m, n] of src) { if (typeof m === 'string') { t++; d += lit[m] ? 1 : 0; } else { const tot = typeof n === 'number' ? n : TOT[n]; t += tot; d += Math.min(tot, keys.filter(k => m.test(k)).length); } } return t ? d / t : null; };
     const rows = SKILLS.map(([ic, t, ds, src, t1, t2], i) => {
@@ -402,7 +402,7 @@
       const nR = LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + chunk(d.words, 6).length, 0), nB = nD - nR, nDc = Math.ceil(LEARN.PICW.filter(x => !/\s/.test(x.w)).length / 6);
       const lv = [['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['forms', '🔗', 'l_forms', n(/^f\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28],
         ['decode', '🔡', 'l_decode', n(/^d_(sukun|shadda|shams|verbs)_/), nB], ['rules', '✍️', 'l_rules', n(/^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/), nR], ['words', '🖼️', 'l_words', n(/^w_/), nW], ['dict', '🎧', 'l_dict', n(/^dc\d/), nDc],
-        ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['math', '🔢', 'l_math', n(/^mt_/), LMATH.ADULT.length], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['texts', '📰', 'l_texts', n(/^tx_/), LEARN_DATA.TEXTS.length], ['stories', '📚', 'l_stories', n(/^st_|^bk_/), LEARN.STORIES.length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0)],
+        ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['math', '🔢', 'l_math', n(/^mt_/), LMATH.ADULT.length], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['texts', '📰', 'l_texts', n(/^tx_/), LEARN_DATA.TEXTS.length], ['stories', '📚', 'l_stories', n(/^st_|^bk_/), LIB.listFor('lit').length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0)],
         ['quran', '📖', 'l_quran', n(/^q\d/), 38], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
       const nMiss = Object.keys(p.miss || {}).length;
       const b = sh('تعلّم القراءة والكتابة', '', () => say('p_lit_intro'));
