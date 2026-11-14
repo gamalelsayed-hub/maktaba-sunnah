@@ -260,6 +260,7 @@
       try { await view(el, parts.slice(1), params); }
       catch (e) { console.error(e); el.innerHTML = `<div class="warn">حدث خطأ: ${esc(e.message)}</div>`; }
       APP.renderNotes();
+      el.classList.remove('v-in'); void el.offsetWidth; el.classList.add('v-in');
       if (!APP._keepScroll) window.scrollTo(0, 0);
       APP._keepScroll = false;
     },

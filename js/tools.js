@@ -412,6 +412,7 @@
       <div class="card"><h3>نوع العرض</h3><div class="row"><button class="btn ${APP.state.profile === 'aam' ? 'on' : ''}" data-p="aam">🙂 مسلم (مبسط)</button><button class="btn ${APP.state.profile === 'talib' ? 'on' : ''}" data-p="talib">🎓 طالب علم / باحث</button></div></div>
       <div class="card"><h3>القراءة</h3><div class="row">حجم الخط: <input type="range" id="fs" min="14" max="28" value="${fs}"> <span id="fsv">${fs}</span></div><label><input type="checkbox" id="dark" ${dark ? 'checked' : ''}> الوضع الليلي</label></div>
       ${window.UPDATER && UPDATER.native ? `<div class="card"><div class="row"><h2 style="margin:0">⬆️ تحديث التطبيق</h2><span class="spacer"></span><span class="muted" id="appVer"></span></div><div class="sub" style="margin:6px 0">يتحقق التطبيق يومياً من وجود نسخة أحدث ويخبرك بها.</div><button class="btn primary" id="chkUp">تحقّق الآن</button></div>` : ''}
+      <div class="card"><h3>✨ الإحساس باللمس</h3><label><input type="checkbox" id="hapt" ${(() => { try { return localStorage.getItem('haptics') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> اهتزاز خفيف عند الضغط على الأزرار (في تطبيق الجوال)</label><br><label><input type="checkbox" id="motion" ${(() => { try { return localStorage.getItem('motion') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> حركات انتقال ناعمة بين الصفحات</label></div>
       ${window.TTS ? TTS.settingsHtml() : ''}
       <div class="card"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
         ? `<div class="row"><span class="tag st-ok">وضع المراجع مفتوح على هذا الجهاز</span><button class="btn" id="rvLock">قفل وضع المراجع</button><button class="btn" id="rvPass">تغيير كلمة السر</button></div>
@@ -422,6 +423,8 @@
       <div class="card"><h3>إعادة الضبط</h3><button class="btn" id="reset" style="color:var(--red)">حذف كل البيانات والبدء من جديد</button></div>`;
     el.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { APP.setProfile(b.dataset.p); APP.rerender(); });
     $('#fs').oninput = e => { $('#fsv').textContent = e.target.value; DB.setting('fontSize', +e.target.value); APP.applyLook({ fontSize: +e.target.value, dark: $('#dark').checked }); };
+    $('#hapt').onchange = e => { try { localStorage.setItem('haptics', e.target.checked ? '1' : '0'); } catch (x) { } };
+    $('#motion').onchange = e => { try { localStorage.setItem('motion', e.target.checked ? '1' : '0'); } catch (x) { } document.body.classList.toggle('no-motion', !e.target.checked); };
     $('#dark').onchange = e => { DB.setting('dark', e.target.checked); APP.applyLook({ fontSize: +$('#fs').value, dark: e.target.checked }); };
     if ($('#rvUnlock')) $('#rvUnlock').onclick = () => APP.unlockReviewer();
     if ($('#rvLock')) $('#rvLock').onclick = () => APP.lockReviewer();

@@ -1047,3 +1047,22 @@ span.tk-chk { cursor: default; }
 .fam-learn a { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 14px; background: var(--panel, #fff); border: 1px solid var(--line, #e3dccb); color: inherit; text-decoration: none; }
 .fam-learn a span { font-size: 28px; } .fam-learn b { display: block; } .fam-learn small { color: var(--muted); font-size: 12px; line-height: 1.6; }
 @media (max-width: 420px) { .fam-learn { grid-template-columns: 1fr; } }
+/* ✨ لمسات الرفاهية */
+@keyframes vIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes popIn { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+#view.v-in { animation: vIn .28s cubic-bezier(.2,.7,.3,1) both; }
+#view.v-in .grid > *, #view.v-in .quick > *, #view.v-in .tk-row, #view.v-in .fam-learn > a { animation: vIn .35s cubic-bezier(.2,.7,.3,1) both; }
+#view.v-in .grid > *:nth-child(2), #view.v-in .quick > *:nth-child(2), #view.v-in .tk-row:nth-child(2) { animation-delay: .04s; }
+#view.v-in .grid > *:nth-child(3), #view.v-in .quick > *:nth-child(3), #view.v-in .tk-row:nth-child(3) { animation-delay: .08s; }
+#view.v-in .grid > *:nth-child(4), #view.v-in .quick > *:nth-child(4), #view.v-in .tk-row:nth-child(4) { animation-delay: .12s; }
+#view.v-in .grid > *:nth-child(n+5), #view.v-in .quick > *:nth-child(n+5) { animation-delay: .16s; }
+.btn, .tile, .tk-row, .fam-learn a, .sp-main, .sp-card, .sidebar a, .quick > * { transition: transform .12s ease, box-shadow .2s ease, background .2s ease; }
+.btn:active, .tile:active, .fam-learn a:active, .sp-main:active, .sp-card:active, .sidebar a:active, .quick > *:active { transform: scale(.97); }
+@media (hover: hover) { .tile:hover, .fam-learn a:hover, .sp-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(20,83,45,.12); } }
+.tk-chk.on { animation: popIn .35s ease; }
+.toast { animation: vIn .25s ease both; }
+.nav-sec > a { animation: none; }
+.nav-sec[open] > a { animation: vIn .22s ease both; }
+@media (max-width: 900px) { .scrim { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); } }
+body.no-motion:not(.learn-mode) *, body.no-motion:not(.learn-mode) *::before, body.no-motion:not(.learn-mode) *::after { animation-duration: .001s !important; animation-delay: 0s !important; transition-duration: .001s !important; }
+@media (prefers-reduced-motion: reduce) { #view.v-in, #view.v-in * { animation: none !important; } }

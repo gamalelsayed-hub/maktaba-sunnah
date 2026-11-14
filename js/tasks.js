@@ -74,7 +74,7 @@
         <label class="fld"><input type="checkbox" data-auto="learn" ${t.auto.learn ? 'checked' : ''}> أظهر درس اليوم للأطفال أو تعلّم القراءة</label>
       </div>`;
     $('#tkAdd', el).onclick = () => edit();
-    el.querySelectorAll('[data-chk]').forEach(b => b.onclick = async () => { const t2 = await get(); t2.done[k] = t2.done[k] || {}; if (t2.done[k][b.dataset.chk]) delete t2.done[k][b.dataset.chk]; else t2.done[k][b.dataset.chk] = 1; Object.keys(t2.done).sort().slice(0, -60).forEach(x => delete t2.done[x]); await save(t2); view(el); });
+    el.querySelectorAll('[data-chk]').forEach(b => b.onclick = async () => { const t2 = await get(); t2.done[k] = t2.done[k] || {}; if (t2.done[k][b.dataset.chk]) delete t2.done[k][b.dataset.chk]; else t2.done[k][b.dataset.chk] = 1; Object.keys(t2.done).sort().slice(0, -60).forEach(x => delete t2.done[x]); await save(t2); if (window.FEEL && t2.done[k][b.dataset.chk]) FEEL.success(); view(el); });
     el.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!confirm('حذف المهمة؟')) return; const t2 = await get(); t2.tasks = t2.tasks.filter(x => x.id !== b.dataset.del); await save(t2); NOTIFY.rescheduleAll(); view(el); });
     el.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => edit(t.tasks.find(x => x.id === b.dataset.edit)));
     el.querySelectorAll('[data-auto]').forEach(c => c.onchange = async () => { const t2 = await get(); t2.auto[c.dataset.auto] = c.checked; await save(t2); view(el); });
@@ -141,7 +141,7 @@
       ${!all ? '<div class="muted" style="margin-top:6px">أضف أول مهمة وتذكير لك — دواء، ورد، صلة رحم، أي شيء. <a href="#/tasks">➕ أضف</a></div>' : pend.length ? `<div style="margin-top:8px">${pend.map(item).join('')}</div>` : '<div class="tk-cheer" style="margin-top:8px">🌟 أتممت مهام اليوم — تقبّل الله منك</div>'}</div>`;
   }
   function bindHome(el) {
-    el.querySelectorAll('[data-hchk]').forEach(b => b.onclick = async () => { const t = await get(), k = dayKey(); t.done[k] = t.done[k] || {}; t.done[k][b.dataset.hchk] = 1; await save(t); b.classList.add('on'); b.textContent = '✔'; setTimeout(() => APP.rerender(), 400); });
+    el.querySelectorAll('[data-hchk]').forEach(b => b.onclick = async () => { const t = await get(), k = dayKey(); t.done[k] = t.done[k] || {}; t.done[k][b.dataset.hchk] = 1; await save(t); b.classList.add('on'); b.textContent = '✔'; if (window.FEEL) FEEL.success(); setTimeout(() => APP.rerender(), 400); });
   }
 
   APP.views.tasks = el => view(el);
