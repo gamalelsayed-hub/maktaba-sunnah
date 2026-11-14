@@ -31,6 +31,9 @@
   };
   const BY = { 'ا': 'deep', 'ء': 'deep', 'أ': 'deep', 'ه': 'deep', 'ع': 'midT', 'ح': 'midT', 'غ': 'nearT', 'خ': 'nearT', 'ق': 'q', 'ك': 'k', 'ج': 'mid', 'ش': 'mid', 'ي': 'mid', 'ض': 'dad', 'ل': 'lam', 'ن': 'nun', 'ر': 'ra', 'ت': 'td', 'د': 'td', 'ط': 'td', 'ث': 'th', 'ذ': 'th', 'ظ': 'th', 'ص': 's', 'س': 's', 'ز': 's', 'ف': 'f', 'ب': 'lips', 'م': 'lips', 'و': 'w' };
 
+  // صور فم الأستاذ جمال (تُضاف في img/teacher/v-*.png): تظهر الصورة المناسبة لكل مرحلة من النطق
+  const VIS = ['rest', 'open', 'teeth', 'th', 'f', 'closed', 'round'];
+  const VGRP = { deep: 'open', midT: 'open', nearT: 'open', q: 'open', k: 'open', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
   function html(ch) {
     const g = G[BY[ch]]; if (!g) return '';
     const [tg, x, y, lip, jaw, name] = g;
@@ -38,16 +41,7 @@
     const lbl = (x, y, tx, ty, t, cls = '') => `<line class="m-ld" x1="${x}" y1="${y}" x2="${tx}" y2="${ty}"/><text class="m-lb ${cls}" x="${tx}" y="${ty + (ty > y ? 9 : -2)}">${t}</text>`;
     return `<div class="mouth" data-mouth="${id}" data-ch="${ch}" data-tg="${tg}" data-jaw="${jaw}" data-lip="${lip}" data-grp="${BY[ch]}">
       <div class="m-views">
-      <svg class="m-front" viewBox="70 15 180 205" aria-hidden="true">
-        <image href="img/teacher/face-talk.png" x="0" y="0" width="320" height="320"/>
-        <g transform="translate(70 -10) scale(1.5)">
-        <ellipse class="m-cav f-open" cx="60" cy="108" rx="14" ry="1"/>
-        <rect class="m-tooth f-tu" x="49" y="104" width="22" height="5" rx="1.5"/>
-        <rect class="m-tooth f-tl" x="50" y="109" width="20" height="4" rx="1.5"/>
-        <ellipse class="m-tongue f-tg" cx="60" cy="112" rx="9" ry="3"/>
-        <path class="m-lip f-ul" d=""/><path class="m-lip f-ll" d=""/>
-        </g>
-      </svg>
+      <div class="m-front2" hidden>${VIS.map(v => `<img data-v="${v}" alt="" src="img/teacher/v-${v}.png">`).join('')}</div>
       <svg viewBox="10 20 290 225" role="img" aria-label="مخرج الحرف ${ch}">
         <path class="m-skin" d="M20 20 L185 22 C200 30 207 45 208 62 C212 74 228 88 239 98 C241 103 236 107 224 108 C229 110 234 115 234 121 C234 126 230 129 226 130 C231 133 234 137 234 142 C234 149 228 152 220 154 C222 162 230 170 230 178 C228 192 210 198 180 204 C172 214 170 230 170 245 L20 245 Z"/>
         <path class="m-hair" d="M20 20 L176 22 C160 24 140 24 120 26 C90 30 60 38 40 50 L20 56 Z"/>
@@ -107,6 +101,7 @@
     q('.f-ul').setAttribute('d', `M${cx - W - 2} ${cy} C${cx - W / 2} ${cy - H - 7} ${cx - 3} ${cy - H - 4} ${cx} ${cy - H - 3} C${cx + 3} ${cy - H - 4} ${cx + W / 2} ${cy - H - 7} ${cx + W + 2} ${cy} C${cx + W / 2} ${cy - H - 1} ${cx - W / 2} ${cy - H - 1} ${cx - W - 2} ${cy} Z`);
     q('.f-ll').setAttribute('d', `M${cx - W - 2} ${cy} C${cx - W / 2} ${cy + lo + 1} ${cx + W / 2} ${cy + lo + 1} ${cx + W + 2} ${cy} C${cx + W / 2} ${cy + lo + 9} ${cx - W / 2} ${cy + lo + 9} ${cx - W - 2} ${cy} Z`);
   }
+  const setV = (m, v) => { const f = m.querySelector('.m-front2'); if (!f || f.hidden || f.dataset.v === v) return; f.dataset.v = v; f.querySelectorAll('img').forEach(i => i.classList.toggle('on', i.dataset.v === v)); };
   const mixF = (a, b, t) => [0, 1, 2, 3, 4, 5].map(i => (a[i] || 0) + ((b[i] || 0) - (a[i] || 0)) * t);
   function play(root, opt = {}) {
     const ms = root.classList && root.classList.contains('mouth') ? [root] : [...(root.querySelectorAll ? root : document).querySelectorAll('.mouth')];
@@ -121,7 +116,7 @@
       const step = now => {
         if (!m.isConnected) return;
         const el = now - t0, loop = Math.floor(el / DUR), t = (el % DUR) / DUR;
-        if (loop >= LOOPS) { tongue.setAttribute('d', T.rest); jg.setAttribute('transform', ''); lo.setAttribute('transform', ''); up.setAttribute('transform', ''); frontAt(m, REST); m.classList.remove('hold'); return; }
+        if (loop >= LOOPS) { tongue.setAttribute('d', T.rest); jg.setAttribute('transform', ''); lo.setAttribute('transform', ''); up.setAttribute('transform', ''); setV(m, 'rest'); m.classList.remove('hold'); return; }
         // المراحل: سكون ← المخرج ← ثبات ← «آ» ← سكون
         let a = 0, b = 0; // a: نحو المخرج، b: نحو «آ»
         if (t < 0.12) a = 0; else if (t < 0.32) a = ease((t - 0.12) / 0.2); else if (t < 0.58) a = 1;
@@ -131,7 +126,7 @@
         jg.setAttribute('transform', `rotate(${ang.toFixed(2)} 120 115)`);
         lo.setAttribute('transform', `translate(${(LO[0] * a).toFixed(2)} ${(LO[1] * a).toFixed(2)})`);
         up.setAttribute('transform', `translate(${(UP[0] * a).toFixed(2)} ${(UP[1] * a).toFixed(2)})`);
-        frontAt(m, b > 0 ? mixF(F, AA, b) : mixF(REST, F, a));
+        setV(m, b > 0.5 ? 'open' : a > 0.5 ? (VGRP[m.dataset.grp] || 'open') : 'rest');
         m.classList.toggle('hold', a > 0.9);
         if (!said && opt.sound && t > 0.3) { said = true; opt.sound(); }
         m._raf = requestAnimationFrame(step);
@@ -140,7 +135,7 @@
     });
   }
   function bind(root, sound) {
-    root.querySelectorAll('.mouth').forEach(m => { frontAt(m, REST); const b = m.querySelector('.m-play'); if (b) b.onclick = () => play(m, { sound, loops: 2 }); });
+    root.querySelectorAll('.mouth').forEach(m => { const f = m.querySelector('.m-front2'), r = f && f.querySelector('img'); if (r) { const ok = () => { f.hidden = false; setV(m, 'rest'); }; if (r.complete && r.naturalWidth) ok(); else r.onload = ok; } const b = m.querySelector('.m-play'); if (b) b.onclick = () => play(m, { sound, loops: 2 }); });
     setTimeout(() => play(root, { loops: 2 }), 300);
   }
   window.MOUTH = { html, play, bind, has: ch => !!BY[ch] };

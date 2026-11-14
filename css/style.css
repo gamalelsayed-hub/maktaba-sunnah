@@ -999,3 +999,6 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .m-front .m-cav { fill: #5a1620; }
 .m-beard { fill: #b5683a; opacity: .9; } .m-must { fill: #9c5530; }
 .m-hair { fill: #3b2a20; }
+.m-front2 { position: relative; flex: 0 0 34%; aspect-ratio: 1; }
+.m-front2 img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .08s; }
+.m-front2 img.on { opacity: 1; }
