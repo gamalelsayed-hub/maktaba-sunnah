@@ -985,3 +985,13 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .m-iris { fill: #6b4a2e; } .m-pupil { fill: #1d1410; }
 .m-lid { fill: none; stroke: #3a2a20; stroke-width: 1.8; stroke-linecap: round; }
 .m-lip { fill: #eaa3ad; stroke: #c97b88; stroke-width: 1; }
+/* الفم المتحرك بالـ JS: وجه أمامي + مقطع جانبي */
+.m-views { display: flex; gap: 6px; align-items: center; width: 100%; }
+.m-views .m-front { flex: 0 0 34%; max-height: 200px; }
+.m-views svg:not(.m-front) { flex: 1; min-width: 0; }
+.mouth { max-width: 520px; }
+.m-nosef { fill: none; stroke: #c4916a; stroke-width: 1.6; stroke-linecap: round; }
+.mouth .m-pt { opacity: 0; transition: opacity .2s; } .mouth .m-ring { opacity: 0; }
+.mouth.hold .m-pt { opacity: 1; } .mouth.hold .m-ring { animation: mRing .9s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.mouth.hold .m-trill { animation: mTrill .12s linear infinite; }
+.mouth.on .m-pt, .mouth.on .m-ring { animation: none; }

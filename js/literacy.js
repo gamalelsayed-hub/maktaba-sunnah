@@ -19,7 +19,7 @@
   function bindSay(b) { b.querySelectorAll('[data-say]').forEach(x => x.addEventListener('click', () => { x.classList.add('lr-pulse'); setTimeout(() => x.classList.remove('lr-pulse'), 600); say(x.dataset.say, x.dataset.t); })); }
 
   const showLetter = (b, i) => stepNext(b, `<div class="lr-glyph" data-say="l${i}">${L[i][0]}</div><div class="lr-cap">${L[i][1]}</div>${window.MOUTH ? MOUTH.html(L[i][0]) : ''}`,
-    bb => { bindSay(bb); say('l' + i); if (window.MOUTH) { MOUTH.bind(bb); const g = bb.querySelector('.lr-glyph'); if (g) g.addEventListener('click', () => MOUTH.play(bb)); } });
+    bb => { bindSay(bb); say('l' + i); if (window.MOUTH) { MOUTH.bind(bb, () => say('l' + i)); const g = bb.querySelector('.lr-glyph'); if (g) g.addEventListener('click', () => MOUTH.play(bb, { loops: 1 })); } });
 
   // مجموعة بطاقات يضغط المتعلم على كل واحدة ويسمعها قبل المتابعة
   const showSet = (b, items, intro) => gone(b) || new Promise(res => {
