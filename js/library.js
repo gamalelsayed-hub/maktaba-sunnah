@@ -13,6 +13,39 @@
     const d = DECOR[bg] || DECOR.sky;
     return `<div class="scene sc-${bg || 'sky'}"><i class="sc-a">${d[0]}</i><i class="sc-b">${d[1]}</i><i class="sc-c">${d[2]}</i><i class="sc-d">${d[1]}</i><div class="sc-in">${inner}</div></div>`;
   };
+  // ===== محرّك تجسيد القصة: بطل القصة يتحرك حسب الفعل في الجملة =====
+  // قصص الأنبياء والصحابة: لا يُجسَّد فيها أي شخص، بل الأشياء والمكان فقط
+  const CAST = {
+    cat: '🐈', masjid: '🧒', tree: '🧒', rain: '👧', race: '🐇', bee: '🐝', wudu: '🧒', honest: '🧒', garden: '👧', share: '🧒', ramadan: '🧒', eid: '👧',
+    kitten: '🐱', market: '👧', sleep: '🧒', ant: '🐜', school1: '🧒', guests: '👧', dove: '🕊️', clean: '🧒', ball: '🧒', fish: '🐟', moon: '🧒', bird: '🐦',
+    apple: '👧', car: '🚗', rabbit: '🐇', sun: '🧒', milk: '🧒', kitty: '🐈', duck: '🐥', bigtree: '🧒', drops: '☁️', kite: '🧒', cup: '🧒', quran: '🧒',
+    sick: '🧒', camel: '🐪', tap: '👧', granny: '🧒', friday: '🧒', bike: '🚲', seed: '👧', lost: '🧒', sparrow: '🐦', smile: '🧒', beach: '🧒', thanks: '🧒',
+    amana: '🐪', team: '🧒', stars: '🚙', patient: '👧',
+    nuh: '', yunus: '', ibrahim: '', ant2: '🐜', cave: '', fil: '🐘', hira: '', hijra: '🐪'
+  };
+  const MOT = [['fall', /سقط|وقع|انكسر|هدم|برك/], ['sleep', /نام|ينام|تنام|النوم|ناموا|نمت/], ['fly', /طار|يطير|تطير|طارت|طيرا|حلق/], ['swim', /يسبح|تسبح|سبح|نزلت إلى الماء|البحر|الحوت/],
+    ['eat', /اكل|اكلها|شرب|يأكل|تأكل|شبع/], ['sad', /حزين|خاف|بكى|يبك|تائه|مريض|جائع|عطش|غضب|وحيد|ظلمات/], ['happy', /تحب|يحب|احب|فرح|سعيد|ضحك|ابتسم|احسنت|الحمد|سعداء|يحتضن|احتضن/],
+    ['grow', /نبت|كبر|ظهر|صار|طلع|ارتفع|نجى|نجاه/], ['give', /اعطى|اعطت|وضع|حمل|ساعد|احضر|اخذ|رمت|رمى|اشترت|اشترى/], ['run', /جرى|يجري|اسرع|بسرعة|قفز|ركض|تلعب|يلعب|لعب|يلعبون|نلعب/],
+    ['walk', /ذهب|مشى|يمشي|رجع|دخل|خرج|جاء|ركب|زار|سافر|وصل|يسير|ذهبنا|ركبنا/]];
+  const FX = { rain: /مطر|المطر|نزل منها/, night: /الليل|القمر|النجوم|ظلمات/, wind: /الهواء|الريح|طارت في/ };
+  const plain = t => t.replace(/[ً-ْٰ]/g, '').replace(/[أإآ]/g, 'ا');
+  function anim(st, i) {
+    const pg = st.pages[i], t = plain(pg.t);
+    const m = (MOT.find(([, re]) => re.test(t)) || [i === 0 ? 'walk' : 'idle'])[0];
+    let actor = CAST[st.id] != null ? CAST[st.id] : st.ic; const prop = pg.e;
+    if (actor === prop) actor = '';
+    const fx = [];
+    if (FX.rain.test(t)) for (let k = 0; k < 10; k++) fx.push(`<b class="fx-drop" style="--x:${(k * 37) % 100}%;--d:${(k % 5) * 0.3}s">💧</b>`);
+    if (FX.night.test(t)) for (let k = 0; k < 6; k++) fx.push(`<b class="fx-star" style="--x:${8 + k * 16}%;--y:${6 + (k * 23) % 30}%;--d:${k * 0.4}s">⭐</b>`);
+    if (m === 'happy') for (let k = 0; k < 5; k++) fx.push(`<b class="fx-up" style="--x:${20 + k * 15}%;--d:${k * 0.5}s">${['❤️', '✨', '🌟', '💛', '✨'][k]}</b>`);
+    if (m === 'sleep') for (let k = 0; k < 3; k++) fx.push(`<b class="fx-up z" style="--x:${70 - k * 6}%;--d:${k * 0.9}s">💤</b>`);
+    if (m === 'sad') fx.push('<b class="fx-tear">💧</b>');
+    if (m === 'fall') fx.push('<b class="fx-boom">💥</b>');
+    if (FX.wind.test(t)) fx.push('<b class="fx-wind">🌬️</b>');
+    const d = DECOR[st.bg] || DECOR.sky;
+    return `<div class="scene anim sc-${st.bg || 'sky'} m-${m}${actor ? '' : ' solo'}"><i class="sc-a">${d[0]}</i><i class="sc-b">${d[1]}</i><i class="sc-c">${d[2]}</i>${fx.join('')}${actor ? `<span class="act"><i>${actor}</i></span>` : ''}<span class="prop"><i>${prop}</i></span></div>`;
+  }
+
   const spoken = t => t.replace(/ﷺ/g, 'صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ').replace(/^[–-]\s*/, '');
   const shown = t => esc(t).replace(/^– ([^:–«]{1,30}):/, '– <b class="spk">$1:</b>').replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
 
@@ -73,5 +106,5 @@
     return false;
   }
 
-  window.LIB = { route, scene, shelf };
+  window.LIB = { route, scene, shelf, anim };
 })();
