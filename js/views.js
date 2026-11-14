@@ -41,6 +41,7 @@
       if (ay.length) { const d = Math.floor(Date.now() / 864e5); ayah = ay[(d * 7919) % ay.length]; }
     } catch (e) { }
     const dash = APP.homeDashboard ? await APP.homeDashboard() : '';
+    const tasksCard = window.TASKS ? await TASKS.homeCard() : '';
     const prTile = APP.nextPrayerTile ? await APP.nextPrayerTile() : '';
     const hr = new Date().getHours(), dkTile = `<a class="tile" href="#/adhkar/${hr >= 3 && hr < 14 ? 'sabah' : 'masa'}"><span class="ic c2">📿</span><b>أذكار ${hr >= 3 && hr < 14 ? 'الصباح' : 'المساء'}</b><small>بعدّاد وتسجيل صوتي — وحصن المسلم كاملاً</small></a>`;
     const ADVQ = ['#/khutba', '#/qawaid', '#/sahaba', '#/fiqh', '#/search', '#/talab', '#/rijal', '#/mymushaf'];
@@ -56,6 +57,7 @@
       </section>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
       <div class="aud-switch"><a href="#/kids" data-aud="kids"><span>🧒</span>الأطفال</a><a href="#/literacy" data-aud="lit"><span>✍️</span>تعلّم القراءة والكتابة</a></div>
+      ${tasksCard}
       <div class="grid" style="margin-bottom:6px">${prTile}${dkTile}</div>
       ${dash}
       <h2>ابدأ من هنا</h2>
@@ -70,6 +72,7 @@
       <h2 class="adv">مكتبتك</h2>
       <div class="stats adv"><div><b>${AR.toArabicDigits(bs.filter(b => b.count).length)}</b>كتاباً مثبتاً</div><div><b>${total.toLocaleString('ar')}</b>نصاً</div><div><b>+١٢٬٠٠٠</b>كتاب للتحميل</div><div><a href="#/library" class="btn sm">📚 المكتبة</a></div></div>`;
     if (APP.bindHomeDashboard) APP.bindHomeDashboard(el);
+    if (window.TASKS) TASKS.bindHome(el);
     const sa = el.querySelector('#showAll'); if (sa) sa.onclick = e => { e.preventDefault(); document.body.classList.add('show-adv'); };
     const hp = el.querySelector('#heroPlay'); if (hp && window.QA) hp.onclick = () => QA.play([[ayah.surah, ayah.ayah]], { noBasmala: true });
   };

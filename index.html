@@ -30,25 +30,25 @@
   <nav class="sidebar" id="sidebar" aria-label="القائمة الرئيسية">
     <div class="side-head"><img src="icons/icon-192.png" alt=""><div><b>نبراس</b><br><small>العلم يرفع بيتاً لا عماد له — وقف لله</small></div></div>
     <a href="#/" data-nav="home"><i class="ni c1">🏠</i><span>الرئيسية</span></a>
+    <details class="nav-sec" data-sec="day" open><summary>يومي</summary>
+    <a href="#/tasks" data-nav="tasks"><i class="ni c4">📋</i><span>مهامي</span></a>
     <a href="#/wird" data-nav="wird"><i class="ni c2">☀️</i><span>وردي اليومي</span></a>
-    <details class="nav-sec" open><summary>عباداتي اليومية</summary>
+    <a href="#/khatma" data-nav="khatma"><i class="ni c2">📅</i><span>خطة الختمة</span></a>
     <a href="#/prayer" data-nav="prayer"><i class="ni c1">🕌</i><span>مواقيت الصلاة والقبلة</span></a>
     <a href="#/adhkar" data-nav="adhkar"><i class="ni c2">📿</i><span>الأذكار وحصن المسلم</span></a>
-    <a href="#/hijri" data-nav="hijri"><i class="ni c3">📅</i><span>التقويم الهجري والصيام</span></a>
-    <a href="#/zakat" data-nav="zakat"><i class="ni c6">💰</i><span>الزكاة</span></a>
     </details>
-    <details class="nav-sec" open><summary>القرآن الكريم</summary>
+    <details class="nav-sec" data-sec="quran"><summary>القرآن الكريم</summary>
     <a href="#/quran" data-nav="quran"><i class="ni c1">📖</i><span>المصحف والتفسير</span></a>
     <a href="#/mushaf" data-nav="mushaf"><i class="ni c1">📄</i><span>المصحف بالصفحات</span></a>
     <a href="#/mymushaf" data-nav="mymushaf" class="adv"><i class="ni c2">📕</i><span>مصحفي الخاص</span></a>
-    <a href="#/tasks" data-nav="tasks"><i class="ni c4">📋</i><span>مهامي</span></a>
-    <a href="#/khatma" data-nav="khatma"><i class="ni c2">📅</i><span>خطة الختمة</span></a>
     <a href="#/listen" data-nav="listen"><i class="ni c3">🎧</i><span>الاستماع للقرآن</span></a>
+    </details>
+    <details class="nav-sec" data-sec="hifz"><summary>الحفظ والتجويد</summary>
     <a href="#/tajweed" data-nav="tajweed"><i class="ni c5">🎙️</i><span>تعلّم التجويد</span></a>
     <a href="#/tasmee?new=1" data-nav="tasmee"><i class="ni c2">📝</i><span>اختبار الحفظ</span></a>
     <a href="#/hifz" data-nav="hifz"><i class="ni c4">🧠</i><span>مراجعة الحفظ</span><span class="badge" id="dueBadge"></span></a>
     </details>
-    <details class="nav-sec" open><summary>السنة والعلوم</summary>
+    <details class="nav-sec" data-sec="sunnah"><summary>السنة والعلوم</summary>
     <a href="#/hadith" data-nav="hadith"><i class="ni c2">📜</i><span>الحديث وشروحه</span></a>
     <a href="#/fiqh" data-nav="fiqh"><i class="ni c6">⚖️</i><span>الفقه المقارن</span></a>
     <a href="#/qawaid" data-nav="qawaid" class="adv"><i class="ni c7">🧩</i><span>القواعد الفقهية</span></a>
@@ -56,14 +56,21 @@
     <a href="#/sahaba" data-nav="sahaba"><i class="ni c3">👥</i><span>سير الصحابة</span></a>
     <a href="#/rijal" data-nav="rijal" class="adv"><i class="ni c8">🔗</i><span>الرواة</span></a>
     </details>
-    <details class="nav-sec" open><summary>أدواتي</summary>
+    <details class="nav-sec" data-sec="learn"><summary>التعلّم</summary>
+    <a href="#/kids" data-nav="kids"><i class="ni c3">🧒</i><span>الأطفال</span></a>
+    <a href="#/literacy" data-nav="literacy"><i class="ni c5">✍️</i><span>تعلّم القراءة والكتابة</span></a>
+    <a href="#/literacy/stories" data-nav="stories"><i class="ni c6">📚</i><span>مكتبة القصص</span></a>
+    </details>
+    <details class="nav-sec" data-sec="tools"><summary>أدواتي</summary>
     <a href="#/ask" data-nav="ask"><i class="ni c5">❓</i><span>اسأل عن مسألة</span></a>
     <a href="#/khutba" data-nav="khutba" class="adv"><i class="ni c1">🎤</i><span>مُعين الخطيب والداعية</span></a>
     <a href="#/search" data-nav="search" class="adv"><i class="ni c3">🔎</i><span>البحث المتقدم</span></a>
     <a href="#/talab" data-nav="talab" class="adv"><i class="ni c7">🎓</i><span>طلب العلم</span></a>
     <a href="#/saved" data-nav="saved"><i class="ni c2">⭐</i><span>محفوظاتي وهوامشي</span></a>
+    <a href="#/hijri" data-nav="hijri"><i class="ni c3">📅</i><span>التقويم الهجري والصيام</span></a>
+    <a href="#/zakat" data-nav="zakat"><i class="ni c6">💰</i><span>الزكاة</span></a>
     </details>
-    <details class="nav-sec" open><summary>الإدارة</summary>
+    <details class="nav-sec" data-sec="admin"><summary>الإعدادات</summary>
     <a href="#/review" data-nav="review" class="hidden"><i class="ni c1">✔️</i><span>المراجعة العلمية</span></a>
     <a href="#/library" data-nav="library"><i class="ni c6">📚</i><span>المكتبة وتحميل الكتب</span></a>
     <a href="#/guide" data-nav="guide"><i class="ni c3">📘</i><span>دليل الاستخدام</span></a>

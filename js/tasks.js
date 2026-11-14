@@ -128,6 +128,22 @@
   // ملخص للرئيسية
   async function summary() { const t = await get(), auto = await autoItems(t), dn = t.done[dayKey()] || {}, mine = t.tasks.filter(x => dueOn(x, new Date())); return { all: auto.length + mine.length, done: auto.filter(x => x.done).length + mine.filter(x => dn[x.id]).length }; }
 
+  // كارت «راجع مهامك» في الرئيسية
+  async function homeCard() {
+    const t = await get(), auto = await autoItems(t), k = dayKey(), dn = t.done[k] || {}, now = new Date();
+    const mine = t.tasks.filter(x => dueOn(x, now)).sort((a, b) => (a.time || '99').localeCompare(b.time || '99'));
+    const all = auto.length + mine.length, doneN = auto.filter(x => x.done).length + mine.filter(x => dn[x.id]).length;
+    const pend = [...mine.filter(x => !dn[x.id]).map(x => ({ ...x, manual: 1 })), ...auto.filter(x => !x.done)].slice(0, 3);
+    const pct = all ? Math.round(doneN / all * 100) : 0;
+    const item = x => `<div class="tk-row sm">${x.manual ? `<button class="tk-chk" data-hchk="${x.id}"></button>` : '<span class="tk-chk"></span>'}<span class="tk-ic">${x.ic || '📌'}</span><div class="tk-b"><b>${esc(x.t)}</b>${x.time ? `<small>⏰ ${AD(x.time)}</small>` : ''}</div>${x.href ? `<a class="btn sm primary" href="${x.href}">افتح</a>` : ''}</div>`;
+    return `<div class="card tk-home"><div class="row"><b>📋 راجع مهامك</b><span class="spacer"></span><a class="btn sm" href="#/tasks">كل مهامي ←</a></div>
+      ${all ? `<div class="muted" style="font-size:13px;margin:4px 0">أنجزت ${AD(doneN)} من ${AD(all)}</div><div class="kh-prog"><i style="width:${pct}%"></i></div>` : ''}
+      ${!all ? '<div class="muted" style="margin-top:6px">أضف أول مهمة وتذكير لك — دواء، ورد، صلة رحم، أي شيء. <a href="#/tasks">➕ أضف</a></div>' : pend.length ? `<div style="margin-top:8px">${pend.map(item).join('')}</div>` : '<div class="tk-cheer" style="margin-top:8px">🌟 أتممت مهام اليوم — تقبّل الله منك</div>'}</div>`;
+  }
+  function bindHome(el) {
+    el.querySelectorAll('[data-hchk]').forEach(b => b.onclick = async () => { const t = await get(), k = dayKey(); t.done[k] = t.done[k] || {}; t.done[k][b.dataset.hchk] = 1; await save(t); b.classList.add('on'); b.textContent = '✔'; setTimeout(() => APP.rerender(), 400); });
+  }
+
   APP.views.tasks = el => view(el);
-  window.TASKS = { view, summary, hadithOfDay };
+  window.TASKS = { view, summary, hadithOfDay, homeCard, bindHome };
 })();

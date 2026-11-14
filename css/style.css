@@ -1025,3 +1025,6 @@ span.tk-chk { cursor: default; }
 .gl-pop { position: absolute; inset-inline: 12px; z-index: 50; background: #fffaf0; border: 2px solid #e2b04a; border-radius: 14px; padding: 10px 12px; font: 400 18px/1.8 'Plex Arabic', sans-serif; color: #333; box-shadow: 0 6px 18px rgba(0,0,0,.15); }
 .gl-pop b { color: #8a5a12; }
 .lr-step, .lib-page { position: relative; }
+.tk-home { margin: 10px 0; } .tk-row.sm { padding: 6px 10px; margin-bottom: 6px; } .tk-row.sm .tk-ic { font-size: 20px; }
+.nav-sec > summary { font-size: 14px; color: var(--ink, #333); padding: 12px 10px 6px; }
+.nav-sec:not([open]) > summary { border-bottom: 1px solid var(--line, #eee); }
