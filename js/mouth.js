@@ -113,7 +113,7 @@
       const LO = lip === 'close' ? [0, -4] : lip === 'f' ? [-5, -6] : lip === 'round' ? [5, -1] : [0, 0];
       const UP = lip === 'close' ? [0, 2] : lip === 'round' ? [5, 1] : [0, 0];
       const DUR = 2600, LOOPS = opt.loops || 2, t0 = performance.now();
-      let said = false;
+      let said = -1;
       const step = now => {
         if (!m.isConnected) return;
         const el = now - t0, loop = Math.floor(el / DUR), t = (el % DUR) / DUR;
@@ -129,7 +129,7 @@
         up.setAttribute('transform', `translate(${(UP[0] * a).toFixed(2)} ${(UP[1] * a).toFixed(2)})`);
         setV(m, b > 0.5 ? 'half' : a > 0.5 ? (VCH[m.dataset.ch] || VGRP[m.dataset.grp] || 'half') : 'rest');
         m.classList.toggle('hold', a > 0.9);
-        if (!said && opt.sound && t > 0.3) { said = true; opt.sound(); }
+        if (said !== loop && opt.sound && t > 0.25) { said = loop; opt.sound(); }
         m._raf = requestAnimationFrame(step);
       };
       m._raf = requestAnimationFrame(step);
@@ -137,7 +137,7 @@
   }
   function bind(root, sound) {
     root.querySelectorAll('.mouth').forEach(m => { const f = m.querySelector('.m-front2'), r = f && f.querySelector('img'); if (r) { const ok = () => { f.hidden = false; setV(m, 'rest'); }; if (r.complete && r.naturalWidth) ok(); else r.onload = ok; } const b = m.querySelector('.m-play'); if (b) b.onclick = () => play(m, { sound, loops: 2 }); });
-    setTimeout(() => play(root, { loops: 2 }), 300);
+    setTimeout(() => play(root, { loops: 1, sound }), 150);
   }
   window.MOUTH = { html, play, bind, has: ch => !!BY[ch] };
 })();

@@ -18,8 +18,10 @@
   }
   function bindSay(b) { b.querySelectorAll('[data-say]').forEach(x => x.addEventListener('click', () => { x.classList.add('lr-pulse'); setTimeout(() => x.classList.remove('lr-pulse'), 600); say(x.dataset.say, x.dataset.t); })); }
 
-  const showLetter = (b, i) => stepNext(b, `<div class="lr-glyph" data-say="l${i}">${L[i][0]}</div><div class="lr-cap">${L[i][1]}</div>${window.MOUTH ? MOUTH.html(L[i][0]) : ''}`,
-    bb => { bindSay(bb); say('l' + i); if (window.MOUTH) { MOUTH.bind(bb, () => say('l' + i)); const g = bb.querySelector('.lr-glyph'); if (g) g.addEventListener('click', () => MOUTH.play(bb, { loops: 1 })); } });
+  // مع الفم المتحرك: الصوت يخرج من حركة الفم نفسها (مرة مع كل نطقة) حتى يتطابقا
+  const showLetter = (b, i) => window.MOUTH && MOUTH.has(L[i][0])
+    ? stepNext(b, `<div class="lr-glyph" style="cursor:pointer">${L[i][0]}</div><div class="lr-cap">${L[i][1]}</div>${MOUTH.html(L[i][0])}`, bb => { const snd = () => say('l' + i); MOUTH.bind(bb, snd); bb.querySelector('.lr-glyph').onclick = () => { LEARN.stop(); MOUTH.play(bb, { loops: 1, sound: snd }); }; })
+    : stepNext(b, `<div class="lr-glyph" data-say="l${i}">${L[i][0]}</div><div class="lr-cap">${L[i][1]}</div>`, bb => { bindSay(bb); say('l' + i); });
 
   // مجموعة بطاقات يضغط المتعلم على كل واحدة ويسمعها قبل المتابعة
   const showSet = (b, items, intro) => gone(b) || new Promise(res => {
