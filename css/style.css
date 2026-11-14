@@ -995,3 +995,7 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .mouth.hold .m-pt { opacity: 1; } .mouth.hold .m-ring { animation: mRing .9s ease-out infinite; transform-box: fill-box; transform-origin: center; }
 .mouth.hold .m-trill { animation: mTrill .12s linear infinite; }
 .mouth.on .m-pt, .mouth.on .m-ring { animation: none; }
+.m-front .m-lip { fill: #e8a09a; stroke: #b9706a; stroke-width: .8; }
+.m-front .m-cav { fill: #5a1620; }
+.m-beard { fill: #b5683a; opacity: .9; } .m-must { fill: #9c5530; }
+.m-hair { fill: #3b2a20; }

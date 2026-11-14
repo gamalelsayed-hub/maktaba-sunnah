@@ -38,23 +38,20 @@
     const lbl = (x, y, tx, ty, t, cls = '') => `<line class="m-ld" x1="${x}" y1="${y}" x2="${tx}" y2="${ty}"/><text class="m-lb ${cls}" x="${tx}" y="${ty + (ty > y ? 9 : -2)}">${t}</text>`;
     return `<div class="mouth" data-mouth="${id}" data-ch="${ch}" data-tg="${tg}" data-jaw="${jaw}" data-lip="${lip}" data-grp="${BY[ch]}">
       <div class="m-views">
-      <svg class="m-front" viewBox="0 0 120 150" aria-hidden="true">
-        <path class="m-hair" d="M18 62 C14 26 40 8 60 8 C84 8 106 26 102 62 C98 40 84 30 60 30 C38 30 22 40 18 62 Z"/>
-        <ellipse class="m-ear" cx="17" cy="78" rx="7" ry="13"/><ellipse class="m-ear" cx="103" cy="78" rx="7" ry="13"/>
-        <path class="m-skin" d="M20 60 C20 32 40 26 60 26 C80 26 100 32 100 60 L100 92 C100 122 82 142 60 142 C38 142 20 122 20 92 Z"/>
-        <path class="m-brow" d="M33 54 C38 49 46 49 51 52"/><path class="m-brow" d="M69 52 C74 49 82 49 87 54"/>
-        <path class="m-eyew" d="M34 64 C38 59 48 59 52 64 C48 68 38 68 34 64 Z"/><path class="m-eyew" d="M68 64 C72 59 82 59 86 64 C82 68 72 68 68 64 Z"/>
-        <circle class="m-iris" cx="43" cy="64" r="3.3"/><circle class="m-iris" cx="77" cy="64" r="3.3"/><circle class="m-pupil" cx="43" cy="64" r="1.5"/><circle class="m-pupil" cx="77" cy="64" r="1.5"/>
-        <path class="m-nosef" d="M60 66 L56 86 C58 89 62 89 64 86"/>
+      <svg class="m-front" viewBox="70 15 180 205" aria-hidden="true">
+        <image href="img/teacher/face-talk.png" x="0" y="0" width="320" height="320"/>
+        <g transform="translate(70 -10) scale(1.5)">
         <ellipse class="m-cav f-open" cx="60" cy="108" rx="14" ry="1"/>
         <rect class="m-tooth f-tu" x="49" y="104" width="22" height="5" rx="1.5"/>
         <rect class="m-tooth f-tl" x="50" y="109" width="20" height="4" rx="1.5"/>
         <ellipse class="m-tongue f-tg" cx="60" cy="112" rx="9" ry="3"/>
         <path class="m-lip f-ul" d=""/><path class="m-lip f-ll" d=""/>
+        </g>
       </svg>
       <svg viewBox="10 20 290 225" role="img" aria-label="مخرج الحرف ${ch}">
         <path class="m-skin" d="M20 20 L185 22 C200 30 207 45 208 62 C212 74 228 88 239 98 C241 103 236 107 224 108 C229 110 234 115 234 121 C234 126 230 129 226 130 C231 133 234 137 234 142 C234 149 228 152 220 154 C222 162 230 170 230 178 C228 192 210 198 180 204 C172 214 170 230 170 245 L20 245 Z"/>
-        <path class="m-hair" d="M20 20 L185 22 C170 24 150 26 120 30 C90 34 60 40 40 50 L20 56 Z"/>
+        <path class="m-hair" d="M20 20 L176 22 C160 24 140 24 120 26 C90 30 60 38 40 50 L20 56 Z"/>
+        <path class="m-beard" d="M219 153 C228 158 234 168 233 180 C231 194 214 200 182 206 L176 190 C198 186 212 180 214 172 C215 164 214 159 212 156 Z"/>
         <path class="m-ear" d="M70 70 C58 66 50 76 52 90 C54 104 62 112 72 108 C78 104 76 96 74 90 C78 84 78 74 70 70 Z"/>
         <path class="m-ear-in" d="M66 80 C60 84 60 96 66 102"/>
         <path class="m-brow" d="M160 46 C168 41 180 41 192 46"/>
@@ -72,6 +69,7 @@
         <ellipse class="m-uvula" cx="107" cy="129" rx="3.5" ry="5"/>
         <path class="m-gum" d="M203 104 L216 104 L216 112 L203 112 Z"/>
         <path class="m-tooth" d="M205 109 L215 109 L217 127 C215 130 210 130 208 127 Z"/>
+        <path class="m-must" d="M212 104 C220 101 232 104 238 112 C230 110 220 110 212 110 Z"/>
         <g class="m-up"><path class="m-lip" d="M214 108 C224 108 234 114 234 121 C233 127 224 128 214 127 Z"/></g>
         <g class="m-jawg">
           <path class="m-gum" d="M203 146 L216 146 L216 154 L203 154 Z"/>
