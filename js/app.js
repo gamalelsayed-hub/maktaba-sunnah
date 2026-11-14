@@ -298,6 +298,9 @@
     applyLook(s) {
       document.documentElement.style.setProperty('--fs', (s.fontSize || 17) + 'px');
       document.body.classList.toggle('dark', !!s.dark);
+      if (s.theme && s.theme !== 'emerald') document.body.dataset.theme = s.theme; else delete document.body.dataset.theme;
+      // لون شريط الحالة في الجوال يتبع السمة
+      setTimeout(() => { const c = getComputedStyle(document.body).getPropertyValue('--brand-d').trim(), m = document.querySelector('meta[name=theme-color]'); if (c && m) m.setAttribute('content', c); }, 0);
     },
 
     // الكتب الاختيارية (التفاسير والشروح والفقه...) غير المثبتة
@@ -355,7 +358,7 @@
       const sv = window.SAMPLE_DATA.items.length + ':' + window.SAMPLE_DATA.books.length;
       if ((await DB.setting('sampleVersion')) !== sv) { await IMPORT.loadSample(); await DB.setting('sampleVersion', sv); }
       await APP.loadMeta();
-      const s = { fontSize: await DB.setting('fontSize'), dark: await DB.setting('dark') };
+      const s = { fontSize: await DB.setting('fontSize'), dark: await DB.setting('dark'), theme: await DB.setting('theme') };
       APP.applyLook(s);
       APP.state.hideUnreviewed = !!(await DB.setting('hideUnreviewed'));
       APP.state.reviewerUnlocked = !!(await DB.setting('reviewerUnlocked'));

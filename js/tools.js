@@ -407,11 +407,12 @@
 
   // ================= الإعدادات =================
   V.settings = async el => {
-    const fs = (await DB.setting('fontSize')) || 17, dark = !!(await DB.setting('dark'));
+    const fs = (await DB.setting('fontSize')) || 17, dark = !!(await DB.setting('dark')), theme = await DB.setting('theme');
     el.innerHTML = `<h1>⚙️ الإعدادات</h1>
       <div class="card"><h3>نوع العرض</h3><div class="row"><button class="btn ${APP.state.profile === 'aam' ? 'on' : ''}" data-p="aam">🙂 مسلم (مبسط)</button><button class="btn ${APP.state.profile === 'talib' ? 'on' : ''}" data-p="talib">🎓 طالب علم / باحث</button></div></div>
       <div class="card"><h3>القراءة</h3><div class="row">حجم الخط: <input type="range" id="fs" min="14" max="28" value="${fs}"> <span id="fsv">${fs}</span></div><label><input type="checkbox" id="dark" ${dark ? 'checked' : ''}> الوضع الليلي</label></div>
       ${window.UPDATER && UPDATER.native ? `<div class="card"><div class="row"><h2 style="margin:0">⬆️ تحديث التطبيق</h2><span class="spacer"></span><span class="muted" id="appVer"></span></div><div class="sub" style="margin:6px 0">يتحقق التطبيق يومياً من وجود نسخة أحدث ويخبرك بها.</div><button class="btn primary" id="chkUp">تحقّق الآن</button></div>` : ''}
+      <div class="card"><h3>🎨 ألوان التطبيق</h3><div class="th-sw">${[['emerald', 'زمردي', '#0d5c3f'], ['royal', 'أزرق ملكي', '#1e3a8a'], ['teal', 'فيروزي', '#0f5e66'], ['sand', 'رملي', '#7a4a1d'], ['ruby', 'عنّابي', '#6e1f30'], ['slate', 'رمادي فاخر', '#2f3b4c']].map(([k, n, c]) => `<button data-theme="${k}" class="${(theme || 'emerald') === k ? 'on' : ''}"><i style="background:linear-gradient(135deg,${c},#b0852b)"></i>${n}</button>`).join('')}</div><div class="muted" style="font-size:12px;margin-top:6px">تعمل مع الوضع الليلي أيضاً.</div></div>
       <div class="card"><h3>✨ الإحساس باللمس</h3><label><input type="checkbox" id="hapt" ${(() => { try { return localStorage.getItem('haptics') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> اهتزاز خفيف عند الضغط على الأزرار (في تطبيق الجوال)</label><br><label><input type="checkbox" id="motion" ${(() => { try { return localStorage.getItem('motion') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> حركات انتقال ناعمة بين الصفحات</label></div>
       ${window.TTS ? TTS.settingsHtml() : ''}
       <div class="card"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
@@ -422,10 +423,11 @@
       <div class="card"><h3>🔒 الخصوصية</h3><div>التطبيق لا يجمع أي بيانات، وكل ما تحفظه يبقى على جهازك. <a href="https://gamalelsayed-hub.github.io/maktaba-sunnah/privacy.html" target="_blank" rel="noopener">سياسة الخصوصية</a></div></div><div class="card"><h3>المصادر والتراخيص</h3>${Object.values(APP.state.books).filter(b => b.count && (b.source || b.license)).map(b => `<div style="margin-bottom:8px"><b>${esc(b.title)}</b>: ${esc(b.source || '')}${b.id === 'quran' ? ' — <a href="https://tanzil.net" target="_blank" rel="noopener">tanzil.net</a>' : ''}${b.license ? `<details><summary>نص الترخيص</summary><pre style="white-space:pre-wrap;font-size:12px">${esc(b.license)}</pre></details>` : ''}</div>`).join('') || '<div class="muted">—</div>'}</div>
       <div class="card"><h3>إعادة الضبط</h3><button class="btn" id="reset" style="color:var(--red)">حذف كل البيانات والبدء من جديد</button></div>`;
     el.querySelectorAll('[data-p]').forEach(b => b.onclick = () => { APP.setProfile(b.dataset.p); APP.rerender(); });
-    $('#fs').oninput = e => { $('#fsv').textContent = e.target.value; DB.setting('fontSize', +e.target.value); APP.applyLook({ fontSize: +e.target.value, dark: $('#dark').checked }); };
+    $('#fs').oninput = e => { $('#fsv').textContent = e.target.value; DB.setting('fontSize', +e.target.value); APP.applyLook({ fontSize: +e.target.value, dark: $('#dark').checked, theme: document.body.dataset.theme }); };
+    el.querySelectorAll('[data-theme]').forEach(b => b.onclick = async () => { await DB.setting('theme', b.dataset.theme); APP.applyLook({ fontSize: +$('#fs').value, dark: $('#dark').checked, theme: b.dataset.theme }); el.querySelectorAll('[data-theme]').forEach(x => x.classList.toggle('on', x === b)); });
     $('#hapt').onchange = e => { try { localStorage.setItem('haptics', e.target.checked ? '1' : '0'); } catch (x) { } };
     $('#motion').onchange = e => { try { localStorage.setItem('motion', e.target.checked ? '1' : '0'); } catch (x) { } document.body.classList.toggle('no-motion', !e.target.checked); };
-    $('#dark').onchange = e => { DB.setting('dark', e.target.checked); APP.applyLook({ fontSize: +$('#fs').value, dark: e.target.checked }); };
+    $('#dark').onchange = e => { DB.setting('dark', e.target.checked); APP.applyLook({ fontSize: +$('#fs').value, dark: e.target.checked, theme: document.body.dataset.theme }); };
     if ($('#rvUnlock')) $('#rvUnlock').onclick = () => APP.unlockReviewer();
     if ($('#rvLock')) $('#rvLock').onclick = () => APP.lockReviewer();
     if ($('#rvPass')) $('#rvPass').onclick = async () => { const r = await APP.ask('كلمة سر جديدة', [{ key: 'p', label: 'كلمة السر الجديدة' }]); if (r && r.p) { await DB.setting('reviewerPass', await APP.hash(r.p)); APP.toast('تم تغيير كلمة السر'); } };
