@@ -32,8 +32,9 @@
   const BY = { 'ا': 'deep', 'ء': 'deep', 'أ': 'deep', 'ه': 'deep', 'ع': 'midT', 'ح': 'midT', 'غ': 'nearT', 'خ': 'nearT', 'ق': 'q', 'ك': 'k', 'ج': 'mid', 'ش': 'mid', 'ي': 'mid', 'ض': 'dad', 'ل': 'lam', 'ن': 'nun', 'ر': 'ra', 'ت': 'td', 'د': 'td', 'ط': 'td', 'ث': 'th', 'ذ': 'th', 'ظ': 'th', 'ص': 's', 'س': 's', 'ز': 's', 'ف': 'f', 'ب': 'lips', 'م': 'lips', 'و': 'w' };
 
   // صور فم الأستاذ جمال (تُضاف في img/teacher/v-*.jpg): تظهر الصورة المناسبة لكل مرحلة من النطق
-  const VIS = ['rest', 'open', 'teeth', 'th', 'f', 'closed', 'round'];
-  const VGRP = { deep: 'open', midT: 'open', nearT: 'open', q: 'teeth', k: 'teeth', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
+  const VIS = ['rest', 'open', 'half', 'teeth', 'sh', 'ee', 'l', 'emph', 'o', 'th', 'f', 'closed', 'round'];
+  const VCH = { 'ي': 'ee', 'ش': 'sh', 'ج': 'sh', 'ص': 'emph', 'ض': 'emph', 'ط': 'emph', 'ظ': 'emph', 'ل': 'l', 'ن': 'l', 'ر': 'l' };
+  const VGRP = { deep: 'half', midT: 'half', nearT: 'half', q: 'half', k: 'half', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
   function html(ch) {
     const g = G[BY[ch]]; if (!g) return '';
     const [tg, x, y, lip, jaw, name] = g;
@@ -126,7 +127,7 @@
         jg.setAttribute('transform', `rotate(${ang.toFixed(2)} 120 115)`);
         lo.setAttribute('transform', `translate(${(LO[0] * a).toFixed(2)} ${(LO[1] * a).toFixed(2)})`);
         up.setAttribute('transform', `translate(${(UP[0] * a).toFixed(2)} ${(UP[1] * a).toFixed(2)})`);
-        setV(m, b > 0.5 ? 'open' : a > 0.5 ? (VGRP[m.dataset.grp] || 'open') : 'rest');
+        setV(m, b > 0.5 ? 'half' : a > 0.5 ? (VCH[m.dataset.ch] || VGRP[m.dataset.grp] || 'half') : 'rest');
         m.classList.toggle('hold', a > 0.9);
         if (!said && opt.sound && t > 0.3) { said = true; opt.sound(); }
         m._raf = requestAnimationFrame(step);
