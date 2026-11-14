@@ -1002,3 +1002,4 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .m-front2 { position: relative; flex: 0 0 34%; aspect-ratio: 1; }
 .m-front2 img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .08s; }
 .m-front2 img.on { opacity: 1; }
+.m-front2 img { transition: none; }
