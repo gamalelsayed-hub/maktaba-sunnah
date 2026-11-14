@@ -154,6 +154,7 @@
         <label class="row" style="gap:4px" title="الافتراضي: الكلمة نفسها فقط (الربا، بالربا، والربا). هذا الخيار يوسّع البحث لكل كلمة تحتوي الحروف"><input type="checkbox" name="loose" value="1" ${p.loose ? 'checked' : ''}> بحث موسّع (أجزاء الكلمات)</label>
         <button class="btn primary">بحث</button>
       </form><div id="sr"></div>`;
+    if (APP.optHint) APP.optHint(el.querySelector('#sf'));
     $('#sf').onsubmit = e => { e.preventDefault(); const f = new FormData(e.target); const sp = new URLSearchParams([...f].filter(([, v]) => v)); sp.set('nodirect', '1'); location.hash = '#/search?' + sp.toString(); };
     if (!q && !p.hukm) return;
     const box = $('#sr'); box.innerHTML = '<div class="muted">جارٍ البحث… (أول بحث يجهّز الفهرس ويأخذ ثوانٍ)</div>';

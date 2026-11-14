@@ -3,6 +3,7 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const esc = AR.escapeHtml;
+  const AD = n => String(n).replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
 
   const APP = {
     state: { profile: 'aam', reviewer: false, hideUnreviewed: false, books: {}, names: {}, gharib: [], route: '', review: {}, bookmarks: [], comments: [] },
@@ -296,6 +297,42 @@
       document.body.classList.toggle('dark', !!s.dark);
     },
 
+    // الكتب الاختيارية (التفاسير والشروح والفقه...) غير المثبتة
+    optMissing() {
+      const opt = (window.PACK_MANIFEST || []).filter(m => m.optional);
+      const miss = opt.filter(m => { const b = APP.state.books[m.id]; return !(b && b.count && !b.sample); });
+      return { opt, miss, mb: Math.round(miss.reduce((s, m) => s + m.size, 0) / 1e6) };
+    },
+    async optInstall(onMsg) {
+      const { miss } = APP.optMissing();
+      await IMPORT.installPacks((i, n, title, m) => onMsg && onMsg(`(${i}/${n}) ${title} — ${m}`), miss.map(m => m.id));
+      await APP.loadMeta(); DB.invalidate();
+    },
+    // رسالة أول مرة لطالب العلم: تحميل التفاسير والشروح
+    async optPrompt(force) {
+      const { miss, mb } = APP.optMissing();
+      if (!miss.length || (!force && await DB.setting('optPromptShown'))) return;
+      await DB.setting('optPromptShown', 1);
+      APP.modal(`<h2 style="margin-top:0">📚 تحميل التفاسير والشروح</h2>
+        <p>القرآن وكتب الحديث مثبتة ويعمل فيها البحث الآن. لتوسيع البحث والدراسة حمّل ${AD(miss.length)} كتاباً: تفاسير ابن كثير والطبري والقرطبي والسعدي، وفتح الباري وشروح السنن، ومسند أحمد، والمغني والمحلى، والسيرة والتراجم.</p>
+        <p class="muted">الحجم نحو ${AD(mb)} ميجا — يُفضَّل على واي فاي. تُحمَّل مرة واحدة وتعمل بعدها بدون إنترنت.</p>
+        <div class="progress hidden" id="optP"><div id="optBar" style="width:5%"></div></div><div class="muted" id="optM"></div>
+        <div class="row"><button class="btn primary" id="optNow">⬇️ حمّل الآن</button><button class="btn" id="optLater">لاحقاً</button></div>`, box => {
+        $('#optLater', box).onclick = () => { APP.closeModal(); APP.toast('تجدها لاحقاً في «المكتبة» ← تثبيت الكل'); };
+        $('#optNow', box).onclick = async () => {
+          $('#optNow', box).disabled = true; $('#optP', box).classList.remove('hidden');
+          try { await APP.optInstall(m => { $('#optM', box).textContent = m; const r = /\((\d+)\/(\d+)\)/.exec(m); if (r) $('#optBar', box).style.width = Math.round(r[1] / r[2] * 100) + '%'; }); APP.closeModal(); APP.toast('تم تحميل الكتب'); APP.rerender(); }
+          catch (e) { $('#optM', box).textContent = 'تعذر التحميل: ' + e.message + ' — تأكد من الاتصال وحاول لاحقاً'; $('#optNow', box).disabled = false; }
+        };
+      });
+    },
+    // تنبيه في البحث: النتائج من الكتب المثبتة فقط
+    optHint(anchor) {
+      const { miss, mb } = APP.optMissing(); if (!miss.length || !anchor) return;
+      anchor.insertAdjacentHTML('afterend', `<div class="info opt-hint">🔎 البحث يشمل القرآن وكتب الحديث المثبتة فقط. لتوسيعه إلى التفاسير والشروح وكتب الفقه والسيرة: <button class="btn sm primary" id="optHintBtn">حمّل ${AD(miss.length)} كتاباً (${AD(mb)} ميجا)</button></div>`);
+      const b = document.getElementById('optHintBtn'); if (b) b.onclick = () => APP.optPrompt(true);
+    },
+
     chooseProfile(first) {
       return new Promise(res => APP.modal(`
         <h2 style="margin-top:0">${first ? 'أهلاً بك في مكتبة القرآن والسنة' : 'تغيير نوع العرض'}</h2>
@@ -303,7 +340,7 @@
         <div class="choice">
           <button data-p="aam"><b>🙂 مسلم يريد أن يعرف</b>خلاصة واضحة: الحكم، رأي الجمهور، الدليل باختصار، مع إمكانية فتح التفاصيل.</button>
           <button data-p="talib"><b>🎓 طالب علم / باحث</b>كل التفاصيل مفتوحة: الأسانيد، أحكام المحدثين وعللها، الأقوال وأدلتها، سبب الخلاف، التوثيق.</button>
-        </div>`, box => $$('[data-p]', box).forEach(b => b.onclick = () => { APP.setProfile(b.dataset.p); APP.closeModal(); res(); APP.rerender(); }))
+        </div>`, box => $$('[data-p]', box).forEach(b => b.onclick = () => { APP.setProfile(b.dataset.p); APP.closeModal(); res(); APP.rerender(); if (b.dataset.p === 'talib') setTimeout(() => APP.optPrompt(), 600); }))
       );
     },
 
@@ -337,6 +374,7 @@
       APP.bindGlobal();
       await APP.route();
       if (!p) APP.chooseProfile(true);
+      else if (p === 'talib') setTimeout(() => APP.optPrompt(), 1500);
     },
 
     // قفل وضع المراجع بكلمة سر (تُحفظ مُجزّأة SHA-256 على هذا الجهاز)
