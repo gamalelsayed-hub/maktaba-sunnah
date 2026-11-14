@@ -4,25 +4,32 @@
 
   // ===== شاشة البداية: من أنت؟ =====
   V.start = async el => {
-    const b = LEARN.shell(el, { title: 'نبراس', repeat: () => LEARN.say('p_welcome') });
-    b.innerHTML = `<div class="st-motto">«العلمُ يرفعُ بيتاً لا عِمادَ له»</div>${LX.who('wave', 'tch')}<div class="st-grid">
-      <a class="st-card kids" href="#/kids" data-aud="kids"><span class="st-ic">🧒</span><b>الأطفال</b><small>حروف، كتابة، أرقام، قرآن، ألعاب</small></a>
-      <a class="st-card lit" href="#/literacy" data-aud="lit"><span class="st-ic">✍️</span><b>تعلّم القراءة والكتابة</b><small>لمن لا يعرف القراءة — بالصوت والصور</small></a>
-      <a class="st-card adult" href="#/" data-aud="adult"><span class="st-ic">📚</span><b>الشباب والكبار</b><small>المصحف والتفسير والحديث والفقه</small></a>
-    </div>
-    <div class="muted" style="text-align:center;margin-top:14px;font-size:13px">وتستطيع الانتقال بين الأقسام الثلاثة من داخل كل قسم. <a href="#/learnrec">🎙️ استوديو تسجيل الأصوات</a></div>`;
-    b.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
+    document.body.classList.add('learn-mode'); document.body.classList.remove('learn-kids', 'learn-lit');
+    el.innerHTML = `<div class="sp">
+      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>نبراس</h1><div class="sp-motto">العلمُ يرفعُ بيتاً لا عِمادَ له</div></div>
+      <a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">📚</span><div><b>المكتبة</b><small>القرآن الكريم وتفسيره، والحديث وشروحه، والفقه والسيرة، والأذكار والمواقيت</small></div><span class="sp-go">‹</span></a>
+      <div class="sp-sub">🎓 التعلّم للأسرة</div>
+      <div class="sp-two">
+        <a class="sp-card" href="#/kids" data-aud="kids"><span class="sp-ic">🧒</span><b>الأطفال</b><small>الحروف والكتابة والأرقام وجزء عمّ</small></a>
+        <a class="sp-card" href="#/literacy" data-aud="lit"><span class="sp-ic">✍️</span><b>تعلّم القراءة والكتابة</b><small>للكبار، بالصوت والصورة</small></a>
+      </div>
+      <div class="sp-note">يحفظ التطبيق اختيارك ويفتح عليه في المرات القادمة، وتنتقل بين الأقسام من القائمة متى شئت.</div>
+    </div>`;
+    el.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
       try { localStorage.setItem('audience', a.dataset.aud); } catch (e) { } LEARN.stop();
       if (a.dataset.aud === 'adult') setTimeout(() => { try { if (!localStorage.getItem('tour-done') && window.GUIDE) GUIDE.tour(0); } catch (e) { } }, 1500);
     }));
-    setTimeout(() => LEARN.say('p_welcome'), 400);
   };
 
-  // التوجيه عند فتح التطبيق حسب الفئة المختارة
+  // عند فتح التطبيق: أول مرة شاشة الاختيار، وبعدها يفتح على آخر قسم اختاره (إلا إن فُتح على رابط محدد كإشعار)
   try {
     const h = location.hash;
-    // عند كل فتح للتطبيق: شاشة الاختيار (إلا إن فُتح على رابط محدد كإشعار)
-    if (!h || h === '#/' || h === '#') location.replace('#/start');
+    if (!h || h === '#/' || h === '#') {
+      const aud = localStorage.getItem('audience');
+      if (!aud) location.replace('#/start');
+      else if (aud === 'kids') location.replace('#/kids');
+      else if (aud === 'lit') location.replace('#/literacy');
+    }
   } catch (e) { }
 
   // ===== استوديو التسجيل =====

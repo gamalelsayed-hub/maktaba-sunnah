@@ -10,6 +10,11 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(FileOutPlugin.class);
         registerPlugin(AdhanPlugin.class);
         super.onCreate(savedInstanceState);
+        // تكبير الصفحة بإصبعين (بلا أزرار تكبير ظاهرة)
+        try {
+            android.webkit.WebSettings ws = bridge.getWebView().getSettings();
+            ws.setSupportZoom(true); ws.setBuiltInZoomControls(true); ws.setDisplayZoomControls(false);
+        } catch (Exception ignored) { }
     }
 
     /** أثناء التشغيل في الخلفية: لا نوقف صفحة التطبيق عند قفل الشاشة حتى يكمل الصوت */

@@ -1028,3 +1028,22 @@ span.tk-chk { cursor: default; }
 .tk-home { margin: 10px 0; } .tk-row.sm { padding: 6px 10px; margin-bottom: 6px; } .tk-row.sm .tk-ic { font-size: 20px; }
 .nav-sec > summary { font-size: 14px; color: var(--ink, #333); padding: 12px 10px 6px; }
 .nav-sec:not([open]) > summary { border-bottom: 1px solid var(--line, #eee); }
+/* شاشة البداية الوقورة */
+.sp { max-width: 560px; margin: 0 auto; padding: 28px 18px 30px; display: flex; flex-direction: column; gap: 14px; min-height: 100vh; justify-content: center; }
+.sp-brand { text-align: center; }
+.sp-brand img { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 6px 20px rgba(20,83,45,.25); }
+.sp-brand h1 { font: 700 44px/1.3 'Amiri', Naskh, serif; color: var(--brand, #14532d); margin: 10px 0 0; }
+.sp-motto { font: 400 20px/1.8 'Amiri', Naskh, serif; color: #8a6a1d; }
+.sp-main { display: flex; align-items: center; gap: 14px; padding: 20px 18px; border-radius: 20px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #14532d, #1f7a47); box-shadow: 0 10px 26px rgba(20,83,45,.28); border: 1px solid rgba(201,162,39,.5); }
+.sp-main b { font-size: 24px; display: block; } .sp-main small { opacity: .9; line-height: 1.7; display: block; margin-top: 2px; }
+.sp-main .sp-ic { font-size: 40px; } .sp-main > div { flex: 1; } .sp-go { font-size: 30px; opacity: .8; }
+.sp-sub { margin-top: 6px; font-weight: 700; color: var(--muted); text-align: center; }
+.sp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sp-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 14px 10px; border-radius: 16px; background: var(--panel, #fff); border: 1px solid var(--line, #e3dccb); color: inherit; text-decoration: none; }
+.sp-card .sp-ic { font-size: 30px; } .sp-card b { font-size: 16px; } .sp-card small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.sp-note { text-align: center; color: var(--muted); font-size: 12px; margin-top: 4px; }
+/* التعلّم للأسرة في الرئيسية */
+.fam-learn { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.fam-learn a { display: flex; gap: 10px; align-items: center; padding: 12px; border-radius: 14px; background: var(--panel, #fff); border: 1px solid var(--line, #e3dccb); color: inherit; text-decoration: none; }
+.fam-learn a span { font-size: 28px; } .fam-learn b { display: block; } .fam-learn small { color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media (max-width: 420px) { .fam-learn { grid-template-columns: 1fr; } }

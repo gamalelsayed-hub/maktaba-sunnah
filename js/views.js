@@ -56,10 +56,11 @@
           <a class="btn sm gold" href="#/wird">☀️ وردي اليوم</a></div>
       </section>
       ${sampleOnly ? `<div class="warn">المكتبة الآن فيها <b>عينة تجريبية</b> فقط. لاستيراد الكتب كاملة اذهب إلى <a href="#/library">المكتبة وتحميل الكتب</a>.</div>` : ''}
-      <div class="aud-switch"><a href="#/kids" data-aud="kids"><span>🧒</span>الأطفال</a><a href="#/literacy" data-aud="lit"><span>✍️</span>تعلّم القراءة والكتابة</a></div>
       ${tasksCard}
       <div class="grid" style="margin-bottom:6px">${prTile}${dkTile}</div>
       ${dash}
+      <h2>🎓 التعلّم للأسرة</h2>
+      <div class="fam-learn"><a href="#/kids" data-aud="kids"><span>🧒</span><div><b>الأطفال</b><small>الحروف والكتابة والأرقام وجزء عمّ والقصص</small></div></a><a href="#/literacy" data-aud="lit"><span>✍️</span><div><b>تعلّم القراءة والكتابة</b><small>للكبار من الصفر حتى قراءة المصحف</small></div></a></div>
       <h2>ابدأ من هنا</h2>
       <div class="quick">
         ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/adhkar/tasbih', '🧮', 'c3', 'المسبحة')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/mushaf', '📄', 'c1', 'المصحف بالصفحات')}${Q('#/mymushaf', '📕', 'c2', 'مصحفي الخاص')}${Q('#/khatma', '📅', 'c2', 'الختمة')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}

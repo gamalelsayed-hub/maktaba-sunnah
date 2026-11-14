@@ -268,6 +268,9 @@
     stop();
     document.body.classList.toggle('learn-mode', on);
     if (!on) document.body.classList.remove('learn-kids', 'learn-lit');
+    // تذكّر آخر قسم ليفتح عليه التطبيق في المرة القادمة
+    const aud = r === 'kids' ? 'kids' : r === 'literacy' ? 'lit' : (!on && r !== 'item') ? 'adult' : null;
+    if (aud) try { if (localStorage.getItem('audience')) localStorage.setItem('audience', aud); } catch (e) { }
   }
   window.addEventListener('hashchange', syncMode);
   // داخل الأطفال ومحو الأمية: التنقل لا يكدّس الصفحات، وزر الرجوع يصعد مستوى واحداً
