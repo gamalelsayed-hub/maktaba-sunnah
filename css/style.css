@@ -933,3 +933,6 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .sk-task input { width: 22px; height: 22px; flex: none; margin-top: 4px; accent-color: #2b8a6e; }
 .sk-task.adv { background: rgba(240,167,58,.12); }
 .lr-me.sk { background: linear-gradient(90deg, #e3f6ec, #fff); }
+.sk-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.sk-ln { font-size: 13px; padding: 4px 10px; border-radius: 12px; background: #eef4ff; color: #234; text-decoration: none; }
+.sk-ln.done { background: #dff3e8; }
