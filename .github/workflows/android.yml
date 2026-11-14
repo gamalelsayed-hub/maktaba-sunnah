@@ -20,6 +20,9 @@ jobs:
           cd mobile
           mkdir -p www
           cp -r ../index.html ../css ../js ../data ../fonts ../icons ../audio ../img ../manifest.webmanifest www/
+          # الكتب الإضافية لا تُدمج في التطبيق (تُحمَّل من الموقع عند الطلب) لتصغير الحجم
+          node -e "global.window={};require('./www/data/manifest.js');const fs=require('fs');let n=0;for(const m of window.PACK_MANIFEST)if(m.optional){fs.rmSync('www/data/'+m.file+'.js',{force:true});n++}console.log('optional packs removed:',n)"
+
           npm install --no-audit --no-fund --legacy-peer-deps
           npx cap add android
       - name: الأيقونات والصلاحيات

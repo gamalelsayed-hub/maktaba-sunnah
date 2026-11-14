@@ -90,11 +90,18 @@
   function loadScript(src) {
     return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('تعذر تحميل ' + src)); }; document.body.appendChild(s); });
   }
+  // في تطبيق الجوال لا تُدمج الكتب الإضافية (لتصغير الحجم)، فتُحمَّل من موقع التطبيق عند طلبها
+  const REMOTE = 'https://gamalelsayed-hub.github.io/maktaba-sunnah/';
+  const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+  async function loadPack(file) {
+    try { await loadScript('data/' + file + '.js'); }
+    catch (e) { if (location.protocol === 'https:' && location.host.endsWith('github.io')) throw e; await loadScript(REMOTE + 'data/' + file + '.js'); }
+  }
   async function installOne(m, onStep, i = 1, n = 1) {
     const have = await DB.get('books', m.id);
     if (have && !have.sample && have.count >= m.count && (!m.version || have.packVersion === m.version)) { onStep && onStep(i, n, m.title, 'مثبت'); return false; }
     onStep && onStep(i, n, m.title, 'جارٍ التحميل…');
-    await loadScript('data/' + m.file + '.js');
+    await loadPack(m.file);
     const P = window.PACK; window.PACK = null;
     if (have) await DB.deleteBook(m.id); // نزيل العينة أو النسخة القديمة قبل الجديدة
     await saveBook(P.book, P.items, (d, t) => onStep && onStep(i, n, m.title, 'حفظ ' + d + ' / ' + t));
@@ -105,7 +112,8 @@
     const chosen = (await DB.setting('optionalBooks')) || [];
     // كل الكتب المدمجة تُثبَّت افتراضياً (الأساسية والإضافية) — والمستخدم يقدر يحذف ما لا يريده من المكتبة
     const removed = (await DB.setting('removedBooks')) || [];
-    const list = (window.PACK_MANIFEST || []).filter(m => ids ? ids.includes(m.id) : !removed.includes(m.id));
+    // في الجوال: الأساسية تلقائياً، والإضافية فقط ما اختاره المستخدم من «المكتبة»
+    const list = (window.PACK_MANIFEST || []).filter(m => ids ? ids.includes(m.id) : !removed.includes(m.id) && (!isNative() || !m.optional || chosen.includes(m.id)));
     let i = 0;
     for (const m of list) await installOne(m, onStep, ++i, list.length);
     if (!ids) await DB.setting('packsInstalled', coreSig());
@@ -335,5 +343,5 @@
     { title: 'الدرر السنية — الموسوعة الحديثية', url: 'https://dorar.net/hadith', how: 'مرجع لأحكام المحدثين على الأحاديث (الألباني وغيره) للمراجعة والمقابلة.', license: 'للمراجعة؛ لا يُنسخ المحتوى بالجملة دون إذن.' }
   ];
 
-  window.IMPORT = { installOne, coreSig, importOpenITI, downloadOpenITI, slug, OPENITI_RAW, installPacks, detectJSON, prepareItem, saveBook, loadSample, parseCSV, rowsToItems, mergeGrades, parseTanzil, importJSON, exportBook, CSV_TEMPLATES, SOURCES };
+  window.IMPORT = { isNative, installOne, coreSig, importOpenITI, downloadOpenITI, slug, OPENITI_RAW, installPacks, detectJSON, prepareItem, saveBook, loadSample, parseCSV, rowsToItems, mergeGrades, parseTanzil, importJSON, exportBook, CSV_TEMPLATES, SOURCES };
 })();

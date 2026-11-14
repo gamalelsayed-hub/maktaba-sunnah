@@ -159,12 +159,12 @@
   }
 
   // ===== القصص =====
-  async function story(b, st, back) {
+  async function story(b, st, back, area = 'kids') {
     await say('stt_' + st.id);
-    for (const pg of st.pages) await LIT.stepNext(b, `<div class="lr-pic st-pic">${pg.e}</div><div class="lr-sent st-sent" data-say="${pg.id}">${pg.t.split(' ').map((w, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${esc(w)}</span>`).join(' ')}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
+    for (const pg of st.pages) await LIT.stepNext(b, `${LIB.scene(st.bg, `<div class="lr-pic st-pic">${pg.e}</div>`)}<div class="lr-sent st-sent" data-say="${pg.id}">${pg.t.split(' ').map((w, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${esc(w)}</span>`).join(' ')}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
     const pg = LEARN.shuffle(st.pages.filter(x => x.t.split(' ').length >= 3))[0];
     if (pg) await LIT.arrange(b, pg.id, pg.t);
-    return LIT.done(b, 'kids', 'st_' + st.id, back);
+    return LIT.done(b, area, 'st_' + st.id, back);
   }
 
   function sayName(b, w) {
@@ -261,15 +261,7 @@
       return;
     }
     if (sec === 'words' || sec === 'sent') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.replace('#/kids'); return; }
-    if (sec === 'stories') {
-      if (id == null) {
-        const b = sh('📚 قصصي', '#/kids');
-        b.innerHTML = `${LX.who('read', 'md')}<div class="lr-grid g2">${LEARN.STORIES.map((st, i) => `<a class="lr-tile kd sur ${k['st_' + st.id] ? 'done' : ''}" href="#/kids/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${k['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`).join('')}</div>`;
-        LIT.sayTiles(b); return;
-      }
-      const st = LEARN.STORIES.find(x => x.id === id); if (!st) { location.replace('#/kids/stories'); return; }
-      return story(sh(st.ic + ' ' + st.t, '#/kids/stories'), st, '#/kids/stories');
-    }
+    if (sec === 'stories' || sec === 'books') { if (!(await LIB.route(sh, 'kids', '#/kids', sec, id, sub, k))) location.replace('#/kids/stories'); return; }
     if (sec === 'write') {
       const pre = 'wr';
       if (id == null) {
@@ -327,7 +319,7 @@
       if (heard.size === ay.length) LEARN.mark(area, 'q' + s);
     });
   }
-  window.KIDSQ = { quran, SUR };
+  window.KIDSQ = { quran, SUR, story };
   function noBasm(t, s, a) { const w = t.split(' '); return s !== 1 && a === 1 && w.length > 4 && /^ب/.test(w[0]) && /رحيم/.test(AR.normalize(w[3])) ? w.slice(4).join(' ') : t; }
   let wasQ = false;
   window.addEventListener('hashchange', () => { const q = /^#\/(kids|literacy)\/quran\/\d/.test(location.hash); if (wasQ && window.QA) QA.stop(); wasQ = q; });

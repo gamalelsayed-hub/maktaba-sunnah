@@ -43,7 +43,8 @@
     const dash = APP.homeDashboard ? await APP.homeDashboard() : '';
     const prTile = APP.nextPrayerTile ? await APP.nextPrayerTile() : '';
     const hr = new Date().getHours(), dkTile = `<a class="tile" href="#/adhkar/${hr >= 3 && hr < 14 ? 'sabah' : 'masa'}"><span class="ic c2">📿</span><b>أذكار ${hr >= 3 && hr < 14 ? 'الصباح' : 'المساء'}</b><small>بعدّاد وتسجيل صوتي — وحصن المسلم كاملاً</small></a>`;
-    const Q = (href, ic, c, t) => `<a href="${href}"><span class="ic ${c}">${ic}</span>${t}</a>`;
+    const ADVQ = ['#/khutba', '#/qawaid', '#/sahaba', '#/fiqh', '#/search', '#/talab', '#/rijal', '#/mymushaf'];
+    const Q = (href, ic, c, t) => `<a href="${href}"${ADVQ.includes(href) ? ' class="adv"' : ''}><span class="ic ${c}">${ic}</span>${t}</a>`;
     el.innerHTML = `
       <section class="hero">
         <h1>${me && me.name ? greet + ' يا ' + esc(me.name) : 'السلام عليكم ورحمة الله'}</h1>
@@ -63,11 +64,13 @@
         ${Q('#/hadith', '📜', 'c8', 'الحديث')}${Q('#/ask', '❓', 'c5', 'اسأل عن حكم')}${Q('#/khutba', '🎤', 'c1', 'إعداد خطبة أو درس')}${Q('#/fiqh', '⚖️', 'c6', 'الفقه المقارن')}${Q('#/talab', '🎓', 'c7', 'طلب العلم')}
         ${Q('#/sira', '🕌', 'c1', 'السيرة')}${Q('#/sahaba', '👥', 'c3', 'الصحابة')}${Q('#/qawaid', '🧩', 'c7', 'القواعد')}${Q('#/saved', '⭐', 'c2', 'محفوظاتي')}${Q('#/guide', '📘', 'c3', 'دليل الاستخدام')}
       </div>
-      <h2>جرّب البحث</h2>
-      <div class="chips">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'صلاة المسافر'].map(s => `<a href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
-      <h2>مكتبتك</h2>
-      <div class="stats"><div><b>${AR.toArabicDigits(bs.filter(b => b.count).length)}</b>كتاباً مثبتاً</div><div><b>${total.toLocaleString('ar')}</b>نصاً</div><div><b>+١٢٬٠٠٠</b>كتاب للتحميل</div><div><a href="#/library" class="btn sm">📚 المكتبة</a></div></div>`;
+      <a class="btn sm simple-only" href="#" id="showAll" style="margin:4px 0 10px">➕ كل الأقسام والأدوات المتقدمة</a>
+      <h2 class="adv">جرّب البحث</h2>
+      <div class="chips adv">${['النية', 'الربا', 'الفاتحة خلف الإمام', 'البقرة 255', 'البخاري 1', 'أحداث سنة 2 هـ', 'الغزوات', 'جذر: ق ر ا', 'صلاة المسافر'].map(s => `<a href="#/search?q=${encodeURIComponent(s)}">${esc(s)}</a>`).join('')}</div>
+      <h2 class="adv">مكتبتك</h2>
+      <div class="stats adv"><div><b>${AR.toArabicDigits(bs.filter(b => b.count).length)}</b>كتاباً مثبتاً</div><div><b>${total.toLocaleString('ar')}</b>نصاً</div><div><b>+١٢٬٠٠٠</b>كتاب للتحميل</div><div><a href="#/library" class="btn sm">📚 المكتبة</a></div></div>`;
     if (APP.bindHomeDashboard) APP.bindHomeDashboard(el);
+    const sa = el.querySelector('#showAll'); if (sa) sa.onclick = e => { e.preventDefault(); document.body.classList.add('show-adv'); };
     const hp = el.querySelector('#heroPlay'); if (hp && window.QA) hp.onclick = () => QA.play([[ayah.surah, ayah.ayah]], { noBasmala: true });
   };
 

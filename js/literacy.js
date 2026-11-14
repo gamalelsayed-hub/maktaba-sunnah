@@ -362,7 +362,7 @@
       const nR = LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + chunk(d.words, 6).length, 0), nB = nD - nR, nDc = Math.ceil(LEARN.PICW.filter(x => !/\s/.test(x.w)).length / 6);
       const lv = [['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['forms', '🔗', 'l_forms', n(/^f\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28],
         ['decode', '🔡', 'l_decode', n(/^d_(sukun|shadda|shams|verbs)_/), nB], ['rules', '✍️', 'l_rules', n(/^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/), nR], ['words', '🖼️', 'l_words', n(/^w_/), nW], ['dict', '🎧', 'l_dict', n(/^dc\d/), nDc],
-        ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['math', '🔢', 'l_math', n(/^mt_/), LMATH.ADULT.length], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['texts', '📰', 'l_texts', n(/^tx_/), LEARN_DATA.TEXTS.length],
+        ['signs', '🪧', 'l_signs', n(/^g\d/), Math.ceil(LEARN.SIGNS.length / 5)], ['math', '🔢', 'l_math', n(/^mt_/), LMATH.ADULT.length], ['sent', '📝', 'l_sent', n(/^se_/), nS], ['texts', '📰', 'l_texts', n(/^tx_/), LEARN_DATA.TEXTS.length], ['stories', '📚', 'l_stories', n(/^st_|^bk_/), LEARN.STORIES.length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0)],
         ['quran', '📖', 'l_quran', n(/^q\d/), 38], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
       const nMiss = Object.keys(p.miss || {}).length;
       const b = sh('تعلّم القراءة والكتابة', '', () => say('p_lit_intro'));
@@ -372,6 +372,7 @@
       return;
     }
     if (sec === 'grad') return gradTest(sh('🎓 الاختبار', '#/literacy'));
+    if (sec === 'stories' || sec === 'books') { if (!(await LIB.route(sh, 'lit', '#/literacy', sec, id, sub, lit))) location.replace('#/literacy/stories'); return; }
     if (sec === 'quran') return KIDSQ.quran(sh, 'lit', '#/literacy', id, lit);
     if (sec === 'math') return LMATH.view({ sh, area: 'lit', base: '#/literacy', id, pg: lit });
     if (sec === 'watch') return LX.watchView(sh, 'lit', '#/literacy', id, lit);
