@@ -31,7 +31,7 @@
   };
   const BY = { 'ا': 'deep', 'ء': 'deep', 'أ': 'deep', 'ه': 'deep', 'ع': 'midT', 'ح': 'midT', 'غ': 'nearT', 'خ': 'nearT', 'ق': 'q', 'ك': 'k', 'ج': 'mid', 'ش': 'mid', 'ي': 'mid', 'ض': 'dad', 'ل': 'lam', 'ن': 'nun', 'ر': 'ra', 'ت': 'td', 'د': 'td', 'ط': 'td', 'ث': 'th', 'ذ': 'th', 'ظ': 'th', 'ص': 's', 'س': 's', 'ز': 's', 'ف': 'f', 'ب': 'lips', 'م': 'lips', 'و': 'w' };
 
-  // صور فم الأستاذ جمال (تُضاف في img/teacher/v-*.png): تظهر الصورة المناسبة لكل مرحلة من النطق
+  // صور فم الأستاذ جمال (تُضاف في img/teacher/v-*.jpg): تظهر الصورة المناسبة لكل مرحلة من النطق
   const VIS = ['rest', 'open', 'teeth', 'th', 'f', 'closed', 'round'];
   const VGRP = { deep: 'open', midT: 'open', nearT: 'open', q: 'open', k: 'open', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
   function html(ch) {
@@ -41,7 +41,7 @@
     const lbl = (x, y, tx, ty, t, cls = '') => `<line class="m-ld" x1="${x}" y1="${y}" x2="${tx}" y2="${ty}"/><text class="m-lb ${cls}" x="${tx}" y="${ty + (ty > y ? 9 : -2)}">${t}</text>`;
     return `<div class="mouth" data-mouth="${id}" data-ch="${ch}" data-tg="${tg}" data-jaw="${jaw}" data-lip="${lip}" data-grp="${BY[ch]}">
       <div class="m-views">
-      <div class="m-front2" hidden>${VIS.map(v => `<img data-v="${v}" alt="" src="img/teacher/v-${v}.png">`).join('')}</div>
+      <div class="m-front2" hidden>${VIS.map(v => `<img data-v="${v}" alt="" src="img/teacher/v-${v}.jpg">`).join('')}</div>
       <svg viewBox="10 20 290 225" role="img" aria-label="مخرج الحرف ${ch}">
         <path class="m-skin" d="M20 20 L185 22 C200 30 207 45 208 62 C212 74 228 88 239 98 C241 103 236 107 224 108 C229 110 234 115 234 121 C234 126 230 129 226 130 C231 133 234 137 234 142 C234 149 228 152 220 154 C222 162 230 170 230 178 C228 192 210 198 180 204 C172 214 170 230 170 245 L20 245 Z"/>
         <path class="m-hair" d="M20 20 L176 22 C160 24 140 24 120 26 C90 30 60 38 40 50 L20 56 Z"/>
