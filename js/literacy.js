@@ -351,6 +351,43 @@
     return false;
   }
 
+  // ===== مؤهلاتي: مبنية على «الإطار العربي لوصف مؤهلات المتحرر من الأمية» (الألكسو ٢٠١٩) =====
+  // لكل أداء من الأداءات الاثني عشر: الدروس التي تبنيه في التطبيق + مهمة من الحياة (أساسي ثم متقدم) يعلّمها المتعلم بنفسه
+  const SKILLS = [
+    ['🕌', 'حياتي الدينية', 'يؤدي العبادات ويفهم ما يسمع من موعظة', [[/^q\d/, 38], ['tx_ikhlas'], ['tx_hadith'], ['tx_lesson']], 'استمع إلى خطبة الجمعة واذكر لأسرتك فكرة واحدة منها', 'اقرأ حديثاً عن خُلُق، وطبّقه في موقف من يومك'],
+    ['🪪', 'المواطنة', 'يعرف حقوقه وواجباته ويُنهي معاملاته', [['tx_form']], 'املأ استمارة معاملة بنفسك، واعرف الأوراق المطلوبة لها', 'اقرأ لائحة أو تعليمات تخص عملك، وحدّد ما ينطبق عليك'],
+    ['🌍', 'العالم من حولي', 'يتابع الأخبار ويهتم بالقضايا العامة', [], 'اسمع نشرة الأخبار واحكِ خبراً واحداً لأسرتك', 'حدّد موقع بلدك على الخريطة والدول المجاورة له'],
+    ['👨‍👩‍👧', 'الأسرة والمجتمع', 'يقوم بدوره في أسرته ومجتمعه', [['tx_wedding'], ['tx_week']], 'خطّط لمناسبة عائلية: الضيوف، والأكل، والموعد', 'اقترح حلاً لمشكلة صغيرة في حيّك'],
+    ['🌱', 'العمل والتنمية', 'يعرف موارده ويحسّن دخله وعمله', [], 'اكتب ثلاثة أشياء تُتقنها يمكن أن تفيد بها غيرك', 'اكتب فكرة مشروع صغير تزيد به دخلك'],
+    ['📖', 'القراءة والكتابة', 'يقرأ ويكتب ويفهم بالعربية', [[/^l\d/, 28], [/^f\d/, 28], [/^m\d/, 28], [/^t\d/, 28], [/^d_/, 'D'], [/^w_/, 'W'], [/^dc\d/, 'DC'], [/^se_/, 'S'], [/^st_|^bk_/, 'ST']], 'اقرأ خبراً قصيراً في جريدة أو على الجوال', 'اكتب طلباً قصيراً بخط يدك إلى جهة ما'],
+    ['📱', 'الجوال والتقنية', 'يستعمل الجوال في حاجاته وتواصله', [['tx_sms']], 'اكتب رسالة على الجوال لقريب لك وأرسلها', 'افتح تطبيق بنكك أو جهة حكومية واقرأ الصفحة الأولى فيه'],
+    ['🩺', 'صحتي', 'يحفظ صحته وصحة أسرته', [['tx_med'], ['tx_appt'], ['tx_warn']], 'اقرأ ورقة دواء في بيتك واعرف الجرعة ووقتها', 'اختر وجبة متوازنة لفرد من أسرتك'],
+    ['♻️', 'بيئتي', 'يحافظ على الماء والكهرباء والنظافة', [['tx_bill']], 'اقرأ فاتورة الكهرباء أو الماء واعرف المبلغ والموعد', 'اكتب ثلاث طرق لتوفير الماء أو الكهرباء في بيتك'],
+    ['💵', 'وقتي ومالي', 'يحسب ويدير ماله ووقته بدقة', [[/^mt_/, 'M'], ['tx_list'], ['tx_week']], 'اكتب قائمة مشترياتك واحسب مجموعها قبل الدفع', 'ضع ميزانية لبيتك لشهر كامل'],
+    ['🏙️', 'مدينتي', 'يقرأ لافتات مكانه ويعرف معالمه', [[/^g\d/, 'G'], ['tx_road'], ['tx_bakery']], 'اقرأ لافتات الشارع والمحلات وأنت في طريقك', 'خطّط لزيارة مكان مهم في مدينتك مع أسرتك'],
+    ['🧠', 'حل المشكلات', 'يفكر بخطوات منظمة ليحل مشكلاته', [], 'اكتب خطوات ما تفعله إذا تعطّل جهاز في البيت', 'اكتب خطة لتطوير عملك أو مهارتك هذا العام']
+  ];
+  function skills(b, lit, back) {
+    const TH = themesFor('lit');
+    const TOT = { D: LEARN.DECODE.reduce((a, d) => a + chunk(d.words, 6).length, 0), W: TH.reduce((a, t) => a + chunk(t.words, 6).length, 0), DC: Math.ceil(LEARN.PICW.filter(x => !/\s/.test(x.w)).length / 6),
+      S: LEARN.S.length + LEARN.SA.length, ST: LEARN.STORIES.length + (window.LIB_BOOKS || []).reduce((a, x) => a + x.s.length, 0), M: LMATH.ADULT.length, G: Math.ceil(LEARN.SIGNS.length / 5) };
+    const keys = Object.keys(lit);
+    const prog = src => { let d = 0, t = 0; for (const [m, n] of src) { if (typeof m === 'string') { t++; d += lit[m] ? 1 : 0; } else { const tot = typeof n === 'number' ? n : TOT[n]; t += tot; d += Math.min(tot, keys.filter(k => m.test(k)).length); } } return t ? d / t : null; };
+    const rows = SKILLS.map(([ic, t, ds, src, t1, t2], i) => {
+      const pr = prog(src), k1 = lit['tk_' + i + '_1'], k2 = lit['tk_' + i + '_2'];
+      const score = ((pr == null ? (k1 ? 1 : 0) : pr * 0.7 + (k1 ? 0.3 : 0)) + (k2 ? 0.25 : 0));
+      return { i, ic, t, ds, pr, t1, t2, k1, k2, score: Math.min(1, score) };
+    });
+    const all = Math.round(rows.reduce((a, r) => a + r.score, 0) / rows.length * 100);
+    b.innerHTML = `<div class="sk-top">${LX.who('point', 'sm')}<div><b>🎯 مؤهلاتي</b><small>${AD(all)}٪ من مؤهلات المتحرر من الأمية</small><span class="lr-bar"><i style="width:${all}%"></i></span></div></div>
+      ${rows.map(r => `<div class="sk-card ${r.score >= 1 ? 'full' : ''}"><div class="sk-h"><span class="sk-ic">${r.ic}</span><div><b>${r.t}</b><small>${r.ds}</small></div><em>${AD(Math.round(r.score * 100))}٪</em></div>
+        ${r.pr != null ? `<span class="lr-bar"><i style="width:${Math.round(r.pr * 100)}%"></i></span><small class="sk-sub">دروسي في التطبيق: ${AD(Math.round(r.pr * 100))}٪</small>` : ''}
+        <label class="sk-task"><input type="checkbox" data-tk="tk_${r.i}_1" ${r.k1 ? 'checked' : ''}><span>🏠 <b>مهمة من حياتك:</b> ${r.t1}</span></label>
+        ${r.k1 ? `<label class="sk-task adv"><input type="checkbox" data-tk="tk_${r.i}_2" ${r.k2 ? 'checked' : ''}><span>⭐ <b>المستوى المتقدم:</b> ${r.t2}</span></label>` : ''}</div>`).join('')}
+      <p class="lib-src">هذه الشاشة مبنية على «الإطار العربي لوصف مؤهلات المتحرر من الأمية» — المنظمة العربية للتربية والثقافة والعلوم (الألكسو) ٢٠١٩، وثيقة استرشادية. المهام من الحياة يعلّمها المتعلم بنفسه أو مع معلمه بعد أن ينجزها فعلاً.</p>`;
+    b.querySelectorAll('[data-tk]').forEach(x => x.onchange = async () => { let p; if (x.checked) { p = await LEARN.mark('lit', x.dataset.tk); LEARN.tone('win'); LEARN.burst(x); } else { p = await LEARN.prog(); if (p.lit) delete p.lit[x.dataset.tk]; await DB.setting('learn', p); } skills(b, p.lit || {}, back); });
+  }
+
   // ===== شاشة محو الأمية =====
   const exitBtn = '<button class="lr-ic" data-switch aria-label="الأقسام">🔄</button>';
   V.literacy = async (el, [sec, id, sub]) => {
@@ -366,12 +403,13 @@
         ['quran', '📖', 'l_quran', n(/^q\d/), 38], ['grad', '🎓', 'l_grad', lit.grad ? 1 : 0, 1]];
       const nMiss = Object.keys(p.miss || {}).length;
       const b = sh('تعلّم القراءة والكتابة', '', () => say('p_lit_intro'));
-      b.innerHTML = `<a class="lr-me" href="#/learnme" data-sk="p_t_me">${LX.who('face', 'sm')}<b>🏅 إنجازاتي</b><span>🔥 ${AD(LX.streak(p))}</span><span>⭐ ${AD(p.stars || 0)}</span></a><a class="lr-me vd" href="#/literacy/watch" data-sk="p_t_watch">${LX.who('point', 'sm')}<b>🎬 شاهد وتعلّم</b><span>▶</span></a>${nMiss ? `<a class="lr-me rv" href="#/literacy/review" data-sk="p_l_review">${LX.who('think', 'sm')}<b>🔁 راجع أخطائي</b><span>${AD(nMiss)}</span></a>` : ''}<div class="lr-path">${lv.map(([k, ic, key, d, tot], i) => `<a class="lr-level" href="#/literacy/${k}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
+      b.innerHTML = `<a class="lr-me" href="#/learnme" data-sk="p_t_me">${LX.who('face', 'sm')}<b>🏅 إنجازاتي</b><span>🔥 ${AD(LX.streak(p))}</span><span>⭐ ${AD(p.stars || 0)}</span></a><a class="lr-me sk" href="#/literacy/skills">${LX.who('think', 'sm')}<b>🎯 مؤهلاتي</b><span>▶</span></a><a class="lr-me vd" href="#/literacy/watch" data-sk="p_t_watch">${LX.who('point', 'sm')}<b>🎬 شاهد وتعلّم</b><span>▶</span></a>${nMiss ? `<a class="lr-me rv" href="#/literacy/review" data-sk="p_l_review">${LX.who('think', 'sm')}<b>🔁 راجع أخطائي</b><span>${AD(nMiss)}</span></a>` : ''}<div class="lr-path">${lv.map(([k, ic, key, d, tot], i) => `<a class="lr-level" href="#/literacy/${k}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
       sayTiles(b);
       say('p_lit_intro');
       return;
     }
     if (sec === 'grad') return gradTest(sh('🎓 الاختبار', '#/literacy'));
+    if (sec === 'skills') return skills(sh('🎯 مؤهلاتي', '#/literacy'), lit, '#/literacy');
     if (sec === 'stories' || sec === 'books') { if (!(await LIB.route(sh, 'lit', '#/literacy', sec, id, sub, lit))) location.replace('#/literacy/stories'); return; }
     if (sec === 'quran') return KIDSQ.quran(sh, 'lit', '#/literacy', id, lit);
     if (sec === 'math') return LMATH.view({ sh, area: 'lit', base: '#/literacy', id, pg: lit });
