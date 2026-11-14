@@ -14,16 +14,16 @@
     return `<div class="scene sc-${bg || 'sky'}"><i class="sc-a">${d[0]}</i><i class="sc-b">${d[1]}</i><i class="sc-c">${d[2]}</i><i class="sc-d">${d[1]}</i><div class="sc-in">${inner}</div></div>`;
   };
   const spoken = t => t.replace(/ﷺ/g, 'صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ').replace(/^[–-]\s*/, '');
-  const shown = t => esc(t).replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
+  const shown = t => esc(t).replace(/^– ([^:–«]{1,30}):/, '– <b class="spk">$1:</b>').replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
 
   // قائمة القصص مقسّمة على المستويات + رف كتب السيرة
   function shelf(b, base, pg) {
     const S = LEARN.STORIES, B = window.LIB_BOOKS || [];
     const tile = (st, i) => `<a class="lr-tile kd sur ${pg['st_' + st.id] ? 'done' : ''}" href="${base}/stories/${st.id}" style="--h:${i * 53 % 360}" data-sk="stt_${st.id}"><span class="lr-emo" style="font-size:44px">${st.ic}</span><b>${st.t}</b>${pg['st_' + st.id] ? '<i class="lr-ok">⭐</i>' : ''}</a>`;
     const nDone = xs => xs.filter(st => pg['st_' + st.id]).length;
-    b.innerHTML = `<div class="lib-tabs">${LV.map(([l, ic]) => `<button data-lv="${l}">${ic} ${AD(l)}</button>`).join('')}<button data-lv="b">📚 السيرة</button></div>` +
+    b.innerHTML = `<div class="lib-tabs">${LV.map(([l, ic]) => `<button data-lv="${l}">${ic} ${AD(l)}</button>`).join('')}<button data-lv="b">📚 كيلاني</button></div>` +
       LV.map(([l, ic, t]) => { const xs = S.filter(s => (s.lvl || 1) === l); return `<section class="lib-sec" data-sec="${l}"><h3>${ic} ${t} <small>${AD(nDone(xs))}/${AD(xs.length)}</small></h3><div class="lr-grid g2">${xs.map(st => tile(st, S.indexOf(st))).join('')}</div></section>`; }).join('') +
-      `<section class="lib-sec" data-sec="b"><h3>📚 المستوى الرابع — السيرة النبوية مع كامل كيلاني</h3><div class="lib-books">${B.map(bk => { const d = bk.s.filter((_, n) => pg[`bk_${bk.id}_${n}`]).length; return `<a class="lib-book" href="${base}/books/${bk.id}">${scene(bk.bg, `<span class="lr-emo">${bk.ic}</span>`)}<b>${esc(bk.t)}</b><span class="lr-bar"><i style="width:${Math.round(d / bk.s.length * 100)}%"></i></span><small>${AD(d)} / ${AD(bk.s.length)} فصل</small></a>`; }).join('')}</div><p class="lib-src">نصوص كتب السيرة للأديب كامل كيلاني (ت ١٩٥٩م) — رائد أدب الأطفال — عن طبعة مؤسسة هنداوي، والنص في الملكية العامة.</p></section>`;
+      `<section class="lib-sec" data-sec="b"><h3>📚 المستوى الرابع — كتب كامل كيلاني: السيرة النبوية ومسرحية</h3><div class="lib-books">${B.map(bk => { const d = bk.s.filter((_, n) => pg[`bk_${bk.id}_${n}`]).length; return `<a class="lib-book" href="${base}/books/${bk.id}">${scene(bk.bg, `<span class="lr-emo">${bk.ic}</span>`)}<b>${esc(bk.t)}</b><span class="lr-bar"><i style="width:${Math.round(d / bk.s.length * 100)}%"></i></span><small>${AD(d)} / ${AD(bk.s.length)} فصل</small></a>`; }).join('')}</div><p class="lib-src">نصوص هذه الكتب للأديب كامل كيلاني (ت ١٩٥٩م) — رائد أدب الأطفال — عن طبعة مؤسسة هنداوي، والنص في الملكية العامة.</p></section>`;
     const show = lv => { b.querySelectorAll('.lib-sec').forEach(s => s.hidden = s.dataset.sec !== String(lv)); b.querySelectorAll('[data-lv]').forEach(x => x.classList.toggle('on', x.dataset.lv === String(lv))); try { localStorage.setItem('lib_lv', lv); } catch (e) { } };
     b.querySelectorAll('[data-lv]').forEach(x => x.onclick = () => show(x.dataset.lv));
     let lv = '1'; try { lv = localStorage.getItem('lib_lv') || '1'; } catch (e) { }

@@ -870,3 +870,4 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .lr-step > .scene { align-self: stretch; width: 100%; }
 .scene .lr-pic { font-size: 92px !important; line-height: 1.2; width: auto; height: auto; }
 .lr-step > .scene:has(.lr-emo.sm) { min-height: 96px; }
+.lib-ln .spk { color: #b5651d; }
