@@ -50,6 +50,7 @@
     if (me.goal === 'talab' || talab.track) cards.push(`<a class="tile" href="#/talab"><span class="ic c7">🎓</span><b>منهجك</b><small>${talab.track ? Object.values(talab.status || {}).filter(x => x === 'done').length + ' كتاب أنهيته — تابع من حيث وقفت' : 'اختر مسارك وابدأ'}</small></a>`);
     if (tjDone < (window.TAJWEED ? TAJWEED.LESSONS.length : 0)) cards.push(`<a class="tile" href="#/tajweed"><span class="ic c5">🎙️</span><b>التجويد</b><small>${tjDone ? tjDone + ' دروس اجتزتها — تابع' : 'صحّح تلاوتك من الصفر'}</small></a>`);
     if (me.goal === 'general') cards.push(`<a class="tile" href="#/ask"><span class="ic c5">❓</span><b>اسأل عن مسألة</b><small>ابحث عن حكم بأدلته وأقوال العلماء</small></a>`);
+    if (window.TASKS) { const sm = await TASKS.summary(); cards.unshift(`<a class="tile ${sm.all && sm.done === sm.all ? 'hl-green' : ''}" href="#/tasks"><span class="ic c4">📋</span><b>مهامي اليوم</b><small>${sm.all ? `أنجزت ${AR.toArabicDigits(sm.done)} من ${AR.toArabicDigits(sm.all)}` : 'أضف مهامك وتذكيراتك'}</small></a>`); }
     return `<h2>يومك</h2><div class="grid">${cards.join('')}</div>`;
   };
   APP.bindHomeDashboard = el => { const b = el.querySelector('#meSkip'); if (b) b.onclick = async () => { await DB.setting('me-skip', true); APP.rerender(); }; };

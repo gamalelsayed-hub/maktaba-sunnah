@@ -1005,3 +1005,23 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 .m-front2 img { transition: none; }
 .st-motto { text-align: center; font: 700 22px/1.7 Naskh, 'Amiri', serif; color: #8a5a12; margin: 2px 0 8px; }
 .st-motto.sm { font-size: 18px; margin-bottom: 6px; }
+/* 📋 مهامي */
+.tk-sum { display: flex; flex-direction: column; gap: 6px; } .tk-sum span { color: var(--muted); font-size: 14px; }
+.tk-cheer { color: #2b8a6e; font-weight: 700; }
+.tk-row { display: flex; align-items: center; gap: 10px; background: var(--panel, #fff); border: 1px solid var(--line, #e5e5e5); border-radius: 14px; padding: 10px 12px; margin-bottom: 8px; }
+.tk-row.done { opacity: .7; } .tk-row.done .tk-b b { text-decoration: line-through; }
+.tk-row.other { opacity: .75; }
+.tk-ic { font-size: 26px; } .tk-b { flex: 1; display: flex; flex-direction: column; } .tk-b small { color: var(--muted); font-size: 12px; }
+.tk-chk { width: 30px; height: 30px; flex: none; border-radius: 50%; border: 2px solid #2b8a6e; background: #fff; color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.tk-chk.on { background: #2b8a6e; }
+span.tk-chk { cursor: default; }
+.tk-act { display: flex; gap: 6px; justify-content: flex-end; margin: -4px 0 10px; }
+.tk-icons { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .tk-icons button { font-size: 22px; border: 2px solid transparent; background: var(--bg2, #f3f3f3); border-radius: 10px; padding: 4px 6px; cursor: pointer; } .tk-icons button.on { border-color: #2b8a6e; }
+.tk-days { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; } .tk-days label { display: flex; gap: 4px; align-items: center; background: var(--bg2, #f3f3f3); padding: 4px 8px; border-radius: 10px; }
+.tk-days[hidden], .fld[hidden] { display: none !important; }
+/* 📘 الكلمات الصعبة */
+.gl { border-bottom: 2px dotted #c58a1a; cursor: help; }
+.gl.on { background: #fff1c2; border-radius: 4px; }
+.gl-pop { position: absolute; inset-inline: 12px; z-index: 50; background: #fffaf0; border: 2px solid #e2b04a; border-radius: 14px; padding: 10px 12px; font: 400 18px/1.8 'Plex Arabic', sans-serif; color: #333; box-shadow: 0 6px 18px rgba(0,0,0,.15); }
+.gl-pop b { color: #8a5a12; }
+.lr-step, .lib-page { position: relative; }

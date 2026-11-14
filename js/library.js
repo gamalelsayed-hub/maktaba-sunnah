@@ -51,7 +51,7 @@
   }
 
   const spoken = t => t.replace(/ﷺ/g, 'صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ').replace(/^[–-]\s*/, '');
-  const shown = t => esc(t).replace(/^– ([^:–«]{1,30}):/, '– <b class="spk">$1:</b>').replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
+  const shown = t => String(t).split(' ').map(w => window.GL ? GL.wrap(w, esc(w)) : esc(w)).join(' ').replace(/^– ([^:–«]{1,30}):/, '– <b class="spk">$1:</b>').replace(/ﷺ/g, '<span class="saw">ﷺ</span>');
 
   // قائمة القصص مقسّمة على المستويات + رف كتب السيرة
   function shelf(b, base, pg, area) {
@@ -80,13 +80,14 @@
     const pages = []; let cur = [];
     for (const l of lines) { cur.push(l); if (cur.length >= 3 || cur.join(' ').split(' ').length > 45) { pages.push(cur); cur = []; } }
     if (cur.length) pages.push(cur);
-    const back = `${base}/books/${bk.id}`;
+    const back = `${base}/books/${bk.id}`, glDone = new Set();
     for (let p = 0; p < pages.length; p++) {
       if (!b.isConnected) return true;
       await LIT.stepNext(b, `${p === 0 ? `<div class="lib-ttl">${esc(title)}</div>` : ''}${scene(bk.bg, `<span class="lr-emo sm">${bk.ic}</span>`)}<div class="lib-page">${pages[p].map((l, k) => `<p class="lib-ln ${/^[–-]/.test(l) ? 'dlg d' + (k % 2) : ''}" data-i="${k}">${shown(l)}</p>`).join('')}</div><button class="lr-btn ghost lib-read" data-readall>🔊 اقرأ لي</button><div class="lr-dots">${pages.map((_, i) => `<i class="${i === p ? 'on' : ''}"></i>`).join('')}</div>`, bb => {
         const ps = [...bb.querySelectorAll('.lib-ln')];
-        const read = async from => { for (let i = from; i < ps.length; i++) { if (!bb.isConnected) return; ps.forEach(x => x.classList.toggle('on', x === ps[i])); await LEARN.say(null, spoken(pages[p][i])); } ps.forEach(x => x.classList.remove('on')); };
-        ps.forEach((x, i) => x.onclick = () => { LEARN.stop(); ps.forEach(y => y.classList.toggle('on', y === x)); LEARN.say(null, spoken(pages[p][i])).then(() => x.classList.remove('on')); });
+        if (window.GL) GL.bind(bb);
+        const read = async from => { for (let i = from; i < ps.length; i++) { if (!bb.isConnected) return; ps.forEach(x => x.classList.toggle('on', x === ps[i])); await LEARN.say(null, spoken(pages[p][i])); if (window.GL) await GL.explain(ps[i], pages[p][i], glDone); } ps.forEach(x => x.classList.remove('on')); };
+        ps.forEach((x, i) => x.onclick = () => { LEARN.stop(); ps.forEach(y => y.classList.toggle('on', y === x)); LEARN.say(null, spoken(pages[p][i])).then(() => window.GL && GL.explain(x, pages[p][i])).then(() => x.classList.remove('on')); });
         bb.querySelector('[data-readall]').onclick = () => { LEARN.stop(); read(0); };
       });
     }

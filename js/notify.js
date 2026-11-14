@@ -8,10 +8,11 @@
   const AD = native && C.Plugins && C.Plugins.Adhan;
   const isAdhan = n => n.channel === 'adhan' || n.channel === 'adhan_fajr';
   // نطاقات المعرّفات لكل نوع، حتى تُعاد جدولة كل نوع دون المساس بغيره
-  const RANGE = { prayer: [1000, 1999], adhkar: [2000, 2499], fasting: [3000, 3499], zakat: [4000, 4499], khatma: [4500, 4599], learn: [4600, 4699] };
+  const RANGE = { prayer: [1000, 1999], adhkar: [2000, 2499], fasting: [3000, 3499], zakat: [4000, 4499], khatma: [4500, 4599], learn: [4600, 4699], tasks: [4700, 4999] };
   const CHANNELS = [
     { id: 'adhan', name: 'الأذان', description: 'تنبيه بالأذان عند دخول وقت الصلاة', importance: 5, sound: 'adhan.mp3', visibility: 1, vibration: true },
     { id: 'adhan_fajr', name: 'أذان الفجر', description: 'أذان الفجر', importance: 5, sound: 'adhan_fajr.mp3', visibility: 1, vibration: true },
+    { id: 'alarm', name: 'منبّه المهام', description: 'منبّه مهامي بصوت أعلى وأطول', importance: 5, sound: 'alarm_tone.wav', visibility: 1, vibration: true },
     { id: 'reminders', name: 'تذكيرات', description: 'الأذكار والصيام والزكاة وما قبل الصلاة', importance: 4, visibility: 1, vibration: true },
   ];
   let ready = null;
@@ -79,6 +80,7 @@
   function stopAdhan() { if (AD) { AD.stop().catch(() => { }); return; } try { adhanAudio.pause(); adhanAudio.currentTime = 0; } catch (e) { } }
   function webShow(n) {
     if (n.channel === 'adhan' || n.channel === 'adhan_fajr') playAdhan(n.channel === 'adhan_fajr');
+    if (n.channel === 'alarm') { try { const a = new Audio('audio/alarm_tone.wav'); a.play().catch(() => { }); } catch (e) { } }
     if ('Notification' in window && Notification.permission === 'granted') {
       try { const x = new Notification(n.title, { body: n.body, icon: 'icons/icon-192.png', tag: 'mk-' + n.id, lang: 'ar', dir: 'rtl' }); x.onclick = () => { window.focus(); if (n.route) location.hash = n.route; stopAdhan(); }; } catch (e) { }
     }
@@ -106,7 +108,7 @@
         if (list.length) await LN.schedule({ notifications: list.map((n, i) => ({
           id: lo + i, title: n.title, body: n.body || '', channelId: n.channel || 'reminders',
           schedule: { at: n.at, allowWhileIdle: true }, smallIcon: 'ic_stat_notify', iconColor: '#0d5c3f',
-          sound: n.channel === 'adhan' ? 'adhan.mp3' : n.channel === 'adhan_fajr' ? 'adhan_fajr.mp3' : undefined,
+          sound: n.channel === 'adhan' ? 'adhan.mp3' : n.channel === 'adhan_fajr' ? 'adhan_fajr.mp3' : n.channel === 'alarm' ? 'alarm_tone.wav' : undefined,
           extra: { route: n.route || '' },
         })) });
       } catch (e) { console.warn('schedule', e); }

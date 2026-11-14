@@ -160,8 +160,9 @@
 
   // ===== القصص =====
   async function story(b, st, back, area = 'kids') {
+    const glDone = new Set();
     await say('stt_' + st.id);
-    for (const [pi, pg] of st.pages.entries()) await LIT.stepNext(b, `${LIB.anim(st, pi)}<div class="lr-sent st-sent" data-say="${pg.id}">${pg.t.split(' ').map((w, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${esc(w)}</span>`).join(' ')}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); say(pg.id); });
+    for (const [pi, pg] of st.pages.entries()) await LIT.stepNext(b, `${LIB.anim(st, pi)}<div class="lr-sent st-sent" data-say="${pg.id}">${pg.t.split(' ').map((w, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${window.GL ? GL.wrap(w, esc(w)) : esc(w)}</span>`).join(' ')}</div><div class="lr-dots">${st.pages.map(x => `<i class="${x === pg ? 'on' : ''}"></i>`).join('')}</div>`, bb => { LIT.bindSay(bb); if (window.GL) GL.bind(bb); say(pg.id).then(() => window.GL && GL.explain(bb, pg.t, glDone)); });
     const pg = LEARN.shuffle(st.pages.filter(x => x.t.split(' ').length >= 3))[0];
     if (pg) await LIT.arrange(b, pg.id, pg.t);
     return LIT.done(b, area, 'st_' + st.id, back);
