@@ -33,7 +33,7 @@
 
   // صور فم الأستاذ جمال (تُضاف في img/teacher/v-*.jpg): تظهر الصورة المناسبة لكل مرحلة من النطق
   const VIS = ['rest', 'open', 'teeth', 'th', 'f', 'closed', 'round'];
-  const VGRP = { deep: 'open', midT: 'open', nearT: 'open', q: 'open', k: 'open', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
+  const VGRP = { deep: 'open', midT: 'open', nearT: 'open', q: 'teeth', k: 'teeth', mid: 'teeth', dad: 'teeth', lam: 'teeth', nun: 'teeth', ra: 'teeth', td: 'teeth', s: 'teeth', th: 'th', f: 'f', lips: 'closed', w: 'round' };
   function html(ch) {
     const g = G[BY[ch]]; if (!g) return '';
     const [tg, x, y, lip, jaw, name] = g;
