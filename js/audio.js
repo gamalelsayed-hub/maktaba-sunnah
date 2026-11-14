@@ -142,7 +142,7 @@
     if (!('mediaSession' in navigator) || !P.q[P.i]) return;
     const [s, a, bs] = P.q[P.i];
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: bs ? 'البسملة' : `سورة ${AR.SURAHS[s - 1]} — الآية ${a}`, artist: rec(P.r).n, album: 'مكتبة القرآن والسنة', artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: bs ? 'البسملة' : `سورة ${AR.SURAHS[s - 1]} — الآية ${a}`, artist: rec(P.r).n, album: 'نبراس', artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
       navigator.mediaSession.setActionHandler('play', () => toggle());
       navigator.mediaSession.setActionHandler('pause', () => toggle());
       navigator.mediaSession.setActionHandler('nexttrack', () => step(1));

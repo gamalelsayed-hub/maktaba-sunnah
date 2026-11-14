@@ -205,7 +205,7 @@
       html += `<h3>${esc(APP.titleOf(it))}</h3><p>${esc(APP.cite(it))}</p>`;
       for (const c of APP.state.comments.filter(c => c.itemId === it.id)) html += `<p class="c">${c.quote ? '«' + esc(c.quote) + '»: ' : ''}${esc(c.text)}</p>`;
     }
-    html += `<hr><p style="font-size:11pt;color:#777">صُدّر من مكتبة القرآن والسنة — ${new Date().toLocaleDateString('ar')}</p></body></html>`;
+    html += `<hr><p style="font-size:11pt;color:#777">صُدّر من تطبيق نبراس — ${new Date().toLocaleDateString('ar')}</p></body></html>`;
     APP.download(folder + '.doc', '﻿' + html, 'application/msword');
   }
 

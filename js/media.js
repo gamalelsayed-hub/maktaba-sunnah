@@ -16,7 +16,7 @@
   const C = window.Capacitor, KA = C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.KeepAlive;
   let on = false;
   window.KEEPALIVE = KA ? {
-    start(title, text) { on = true; KA.start({ title: title || 'مكتبة القرآن والسنة', text: text || '' }).catch(() => { }); },
+    start(title, text) { on = true; KA.start({ title: title || 'نبراس', text: text || '' }).catch(() => { }); },
     stop() { if (!on) return; on = false; KA.stop().catch(() => { }); },
   } : null;
 })();

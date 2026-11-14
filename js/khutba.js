@@ -424,7 +424,7 @@
     h1{color:#14532d;text-align:center;font-size:22pt;margin:0 0 10px}h2{color:#14532d;border-bottom:1px solid #a16207;font-size:17pt;margin:18px 0 8px}h3{color:#a16207;font-size:16pt;margin:14px 0 6px}
     p{margin:6px 0;text-align:justify}.ayah{color:#14532d;font-size:16.5pt}.hadith{color:#3b2a06}.tafsir{color:#555;font-size:13pt;border-right:3px solid #a16207;padding-right:8px}.edit{color:#b45309}.kb-ref{color:#777;font-size:10.5pt}
     ul{margin:4px 0;padding-right:22px}h2,h3{page-break-after:avoid}p{page-break-inside:avoid}
-    </style></head><body>${doc.innerHTML}<p style="font-size:9pt;color:#999;margin-top:20px;text-align:center">أُعدّت بمُعين الخطيب — مكتبة القرآن والسنة</p></body></html>`;
+    </style></head><body>${doc.innerHTML}<p style="font-size:9pt;color:#999;margin-top:20px;text-align:center">أُعدّت بمُعين الخطيب — تطبيق نبراس</p></body></html>`;
   const fileName = t => (t || 'خطبة').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80);
 
   function wireTools(doc, titleFn) {

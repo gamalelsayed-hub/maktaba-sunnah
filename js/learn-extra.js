@@ -144,7 +144,7 @@
     await document.fonts.ready.catch(() => { });
     x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#0d5c3f';
     x.font = "700 92px Naskh, serif"; x.fillText('شهادة تقدير', W / 2, 230);
-    x.fillStyle = '#333'; x.font = "500 44px 'Plex Arabic', sans-serif"; x.fillText('يسرّ تطبيق «مكتبة القرآن والسنة» أن يشهد بأن', W / 2, 340);
+    x.fillStyle = '#333'; x.font = "500 44px 'Plex Arabic', sans-serif"; x.fillText('يسرّ تطبيق «نبراس» أن يشهد بأن', W / 2, 340);
     x.fillStyle = '#b8860b'; x.font = "700 96px Naskh, serif"; x.fillText(name || '................................', W / 2, 480);
     x.fillStyle = '#333'; x.font = "500 44px 'Plex Arabic', sans-serif"; x.fillText('قد أتمّ بنجاح', W / 2, 580);
     x.fillStyle = '#0d5c3f'; x.font = "700 64px Naskh, serif"; x.fillText(CERTS[key] || '', W / 2, 690);
