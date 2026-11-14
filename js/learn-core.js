@@ -257,7 +257,7 @@
     await DB.setting('learn', p);
   }
   const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
-  const pick = (arr, n, must) => { const rest = shuffle(arr.filter(x => x !== must)).slice(0, n - (must ? 1 : 0)); return shuffle(must ? [must, ...rest] : rest); };
+  const pick = (arr, n, must) => { const has = must !== undefined && must !== null; const rest = shuffle(arr.filter(x => x !== must)).slice(0, n - (has ? 1 : 0)); return shuffle(has ? [must, ...rest] : rest); };
 
   // ===== الإطار (شاشة كاملة بلا قوائم التطبيق) =====
   const LEARN_ROUTES = ['kids', 'literacy', 'start', 'learnrec', 'learnme'];

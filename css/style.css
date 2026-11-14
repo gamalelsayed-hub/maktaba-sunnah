@@ -957,3 +957,24 @@ body:not(.simple-ui) .simple-only, body.show-adv .simple-only { display: none !i
 @keyframes mTrill { 50% { opacity: 1; transform: translateY(-3px); } }
 .m-name { font-size: 15px; line-height: 1.7; text-align: center; } .m-name b { font: 700 22px Naskh, serif; color: #b5651d; }
 .m-play { padding: 6px 14px; font-size: 14px; }
+/* تشريح أوضح للفم */
+.mouth { max-width: 380px; }
+.mouth svg { max-height: 260px; }
+.m-skin { fill: #f3cfae; stroke: #b98a63; stroke-width: 1.6; }
+.m-eye { fill: #5b4636; }
+.m-nose { fill: #f5b5b0; stroke: #d98c86; stroke-width: 1; }
+.m-cav { fill: #5a1620; }
+.m-phar { fill: #7a2430; }
+.m-lar { fill: #c98e86; stroke: #a8645b; stroke-width: 1; }
+.m-vf { stroke: #7a2430; stroke-width: 2; }
+.m-epi { fill: none; stroke: #e08f8f; stroke-width: 4; stroke-linecap: round; }
+.m-bone { fill: none; stroke: #efe3cf; stroke-width: 7; stroke-linecap: round; }
+.m-soft { fill: none; stroke: #e98f9c; stroke-width: 7; stroke-linecap: round; }
+.m-uvula { fill: #e98f9c; }
+.m-gum { fill: #e88e97; }
+.m-tooth { fill: #fffdf7; stroke: #bfb6a6; stroke-width: 1; }
+.m-lip { fill: #c9505c; stroke: #a43d48; stroke-width: 1; }
+.m-tongue { fill: #ee8296; stroke: #b84a5e; stroke-width: 1.4; }
+.m-ld { stroke: #555; stroke-width: .8; stroke-dasharray: 2 2; }
+.m-lb { font: 700 10px 'Plex Arabic', sans-serif; fill: #333; paint-order: stroke; stroke: #fff; stroke-width: 3px; text-anchor: middle; }
+.m-lb.in { fill: #fff; stroke: #b84a5e; }
