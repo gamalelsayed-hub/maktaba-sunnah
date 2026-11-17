@@ -26,6 +26,7 @@
     keys: b => req('readonly', s => s.index('bookId').getAllKeys(b)),
     all: b => req('readonly', s => s.index('bookId').getAll(b)),
     count: b => req('readonly', s => s.index('bookId').count(b)),
+    every: () => req('readonly', s => s.getAll()),
   };
 
   // ---------- إحصاء الوقت اليومي ----------
@@ -86,19 +87,79 @@
   }
   if (window.MEDIA) MEDIA.register('libvoice', stopPlay);
 
-  // ---------- التصدير ----------
-  async function exportBook(bookId, onlyNew) {
-    const all = (await VS.all(bookId)).filter(r => !onlyNew || !r.exp);
-    if (!all.length) { APP.toast(onlyNew ? 'لا توجد تسجيلات جديدة لم تُصدَّر' : 'لا توجد تسجيلات'); return; }
-    const enc = new TextEncoder(), files = [], idx = {};
-    for (const r of all) { const name = fileOf(r.id) + '.' + extOf(r.type || ''); idx[r.id] = name; files.push({ name, data: new Uint8Array(await r.blob.arrayBuffer()) }); }
-    files.push({ name: 'index.json', data: enc.encode(JSON.stringify({ book: bookId, title: APP.bookTitle(bookId), at: new Date().toISOString(), files: idx }, null, 1)) });
-    const z = DOCX.zip(files);
-    const nm = 'voice-' + bookId + '-' + today() + (onlyNew ? '-new' : '') + '.zip';
+  // ---------- التصدير والاستيراد ----------
+  // ملف واحد فيه التسجيلات + index.json يصف كل تسجيل (الكتاب والمدة) + إحصاء الأيام
+  async function buildZip(recs) {
+    const enc = new TextEncoder(), files = [], items = {};
+    for (const r of recs) { const f = fileOf(r.id) + '.' + extOf(r.type || ''); items[r.id] = { f, b: r.bookId, s: r.sec || 0, at: r.at || 0, t: r.type || '' }; files.push({ name: f, data: new Uint8Array(await r.blob.arrayBuffer()) }); }
+    files.push({ name: 'index.json', data: enc.encode(JSON.stringify({ app: 'maktaba-libvoice', v: 2, at: new Date().toISOString(), items, stats: await stats() })) });
+    return DOCX.zip(files);
+  }
+  async function exportRecs(recs, label) {
+    if (!recs.length) { APP.toast('لا توجد تسجيلات جديدة لم تُصدَّر ✔'); return false; }
+    APP.toast('جارٍ تجهيز الملف…', 2500);
+    const z = await buildZip(recs);
+    const nm = 'voice-' + label + '-' + today() + '-' + new Date().toTimeString().slice(0, 5).replace(':', '') + '.zip';
     await APP.download(nm, new Blob([z], { type: 'application/zip' }), 'application/zip');
-    const at = Date.now(); for (const r of all) if (!r.exp) { r.exp = at; await VS.put(r); }
-    await DB.setting('libvoiceSince', 0);
-    APP.toast('صُدّر ' + AD(all.length) + ' تسجيلاً في ملف ' + nm, 5000);
+    const at = Date.now(); for (const r of recs) if (!r.exp) { r.exp = at; await VS.put(r); }
+    await DB.setting('libvoiceSince', 0); await DB.setting('libvoiceLastExport', at);
+    if (!window.NATIVE_FILE) APP.toast('صُدّر ' + AD(recs.length) + ' تسجيلاً — احفظ الملف في Google Drive', 6000);
+    return true;
+  }
+  const exportNew = async () => exportRecs((await VS.every()).filter(r => !r.exp), 'new');
+  const exportAll = async () => exportRecs(await VS.every(), 'full');
+  const exportBook = async (bookId, onlyNew) => exportRecs((await VS.all(bookId)).filter(r => !onlyNew || !r.exp), String(bookId));
+
+  // قراءة ملف zip (مخزّن أو مضغوط)
+  async function unzip(file) {
+    const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer), dec = new TextDecoder();
+    let e = buf.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('الملف ليس ملف تسجيلات (zip)');
+    const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = {};
+    for (let i = 0; i < n; i++) {
+      const method = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+      const name = dec.decode(buf.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
+      const st = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true);
+      out[name.replace(/^.*\//, '')] = { method, raw: buf.subarray(st, st + csz) };
+    }
+    return out;
+  }
+  async function inflate(x) {
+    if (x.method === 0) return x.raw;
+    if (x.method === 8 && window.DecompressionStream) return new Uint8Array(await new Response(new Blob([x.raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    throw new Error('صيغة ضغط غير مدعومة');
+  }
+  const typeOfExt = f => /\.ogg$/.test(f) ? 'audio/ogg' : /\.m4a$/.test(f) ? 'audio/mp4' : 'audio/webm';
+  async function importFiles(files) {
+    let added = 0, kept = 0;
+    for (const file of files) {
+      const z = await unzip(file);
+      if (!z['index.json']) throw new Error('الملف «' + file.name + '» ليس من تصدير التسجيلات');
+      const idx = JSON.parse(new TextDecoder().decode(await inflate(z['index.json'])));
+      // يقبل الصيغة القديمة (تصدير كتاب واحد: files) والجديدة (items)
+      const items = idx.items || Object.fromEntries(Object.entries(idx.files || {}).map(([id, f]) => [id, { f, b: idx.book, s: 0, at: 0 }]));
+      for (const [id, m] of Object.entries(items)) {
+        const ent = z[m.f]; if (!ent) continue;
+        const old = await VS.get(id).catch(() => null);
+        if (old && (old.at || 0) >= (m.at || 0)) { kept++; continue; }   // الأحدث يبقى
+        const data = await inflate(ent);
+        const type = m.t || typeOfExt(m.f);
+        await VS.put({ id, bookId: m.b || String(id).split(':')[0], blob: new Blob([data], { type }), type, sec: m.s || 0, at: m.at || Date.now(), exp: Date.now() });
+        added++;
+      }
+      if (idx.stats) { const s = await stats(); for (const [d, v] of Object.entries(idx.stats)) s[d] = Math.max(s[d] || 0, v || 0); await DB.setting('libvoiceDaily', s); }
+    }
+    return { added, kept };
+  }
+  function pickAndImport(after) {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.zip,application/zip'; inp.multiple = true;
+    inp.onchange = async () => {
+      if (!inp.files.length) return;
+      APP.toast('جارٍ الاستيراد…', 3000);
+      try { const r = await importFiles([...inp.files]); APP.toast('✔ استُورد ' + AD(r.added) + ' تسجيلاً' + (r.kept ? ' (و' + AD(r.kept) + ' موجود أصلاً)' : ''), 6000); if (after) after(); }
+      catch (e) { APP.toast('تعذّر الاستيراد: ' + (e.message || e), 7000); }
+    };
+    inp.click();
   }
 
   // ---------- الشاشة: قائمة الكتب ----------
@@ -110,11 +171,19 @@
     const books = Object.values(APP.state.books).filter(b => b.type !== 'quran');
     books.sort((a, b) => { const ia = PLAN.indexOf(a.id), ib = PLAN.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.title.localeCompare(b.title, 'ar'); });
     const rows = await Promise.all(books.map(async b => ({ b, total: await DB.count('items', 'bookId', b.id), done: await VS.count(b.id).catch(() => 0) })));
-    const since = (await DB.setting('libvoiceSince')) || 0;
+    const allRecs = await VS.every().catch(() => []), unexp = allRecs.filter(r => !r.exp).length;
+    const lastExp = await DB.setting('libvoiceLastExport');
     el.innerHTML = `<h1>🎙️ تسجيل المكتبة بصوتي</h1>
       <div class="sub">تقرأ النص وتسجّله، و«اقرأ لي» يشغّل صوتك بدل صوت الجهاز. التسجيلات محفوظة على هذا الجهاز فقط حتى تصدّرها، فصدّرها أولاً بأول.</div>
       ${goalCard(s)}
-      ${since >= REMIND_EVERY ? `<div class="warn">عندك ${AD(since)} تسجيلاً جديداً لم تُصدَّر. صدّرها الآن حتى لا تضيع لو مُسحت بيانات التطبيق.</div>` : ''}
+      <div class="card lv-backup ${unexp ? 'due' : ''}">
+        <b>${unexp ? '⚠️ عندك ' + AD(unexp) + ' تسجيلاً لم تُصدَّر' : '✔ كل تسجيلاتك مصدَّرة'}</b>
+        <div class="muted" style="font-size:13px;margin:4px 0 10px">${lastExp ? 'آخر تصدير: ' + new Date(lastExp).toLocaleString('ar-SA-u-nu-arab', { dateStyle: 'medium', timeStyle: 'short' }) + ' · ' : ''}التسجيلات محفوظة على هذا الجهاز فقط. صدّر بعد كل جلسة، واحفظ الملف في Google Drive.</div>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <button class="btn ${unexp ? 'primary' : ''}" data-expnew>📦 صدّر الجديد${unexp ? ' (' + AD(unexp) + ')' : ''}</button>
+          <button class="btn" data-imp>📥 استيراد تسجيلات</button>
+          ${allRecs.length ? `<button class="btn" data-expall>🗂️ نسخة كاملة (${AD(allRecs.length)})</button>` : ''}
+        </div></div>
       <details class="card"><summary><b>نصائح للتسجيل</b></summary><ul style="margin:6px 0;line-height:1.9">
         <li>غرفة هادئة، والجوال على بُعد شبر من فمك، وبنفس الوضع كل مرة.</li>
         <li>اقرأ النص لنفسك مرة قبل التسجيل، خاصة الأسانيد والأعلام.</li>
@@ -126,9 +195,13 @@
         <div class="lr-progress"><i style="width:${total ? Math.round(done / total * 100) : 0}%"></i></div>
         <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">
           <a class="btn sm primary" href="#/voicerec/${encodeURIComponent(b.id)}">🎙️ ${done ? 'أكمل' : 'ابدأ'}</a>
-          ${done ? `<button class="btn sm" data-exp="${esc(b.id)}" data-new="1">📦 صدّر الجديد</button><button class="btn sm" data-exp="${esc(b.id)}">صدّر الكل</button>` : ''}
+          ${done ? `<button class="btn sm" data-exp="${esc(b.id)}">📦 صدّر هذا الكتاب</button>` : ''}
         </div></div>`).join('')}</div>`;
-    el.querySelectorAll('[data-exp]').forEach(btn => btn.onclick = async () => { btn.disabled = true; try { await exportBook(btn.dataset.exp, !!btn.dataset.new); } finally { btn.disabled = false; } });
+    const run = fn => async e => { const b = e.currentTarget; b.disabled = true; try { if (await fn(b)) APP.rerender(); } catch (x) { APP.toast('تعذّر التصدير: ' + (x.message || x), 6000); } finally { b.disabled = false; } };
+    el.querySelectorAll('[data-exp]').forEach(btn => btn.onclick = run(b => exportBook(b.dataset.exp, !!b.dataset.new)));
+    el.querySelector('[data-expnew]').onclick = run(() => exportNew());
+    const ea = el.querySelector('[data-expall]'); if (ea) ea.onclick = run(() => exportAll());
+    el.querySelector('[data-imp]').onclick = () => pickAndImport(() => APP.rerender());
   };
 
   // ---------- الشاشة: التسجيل المتتابع ----------
@@ -144,7 +217,7 @@
       if (!it) { el.innerHTML = `<div class="card" style="text-align:center"><h2>🎉 أتممت تسجيل «${esc(title)}»</h2><p>جزاك الله خيراً. صدّر التسجيلات الآن.</p><a class="btn primary" href="#/voicerec">رجوع</a></div>`; return; }
       const done = have.has(it.id);
       const head = it.kitab || it.chapter || '';
-      el.innerHTML = `<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><a href="#/voicerec">↩ الكتب</a><span class="muted">${esc(title)} — ${AD(i + 1)} / ${AD(items.length)} · سُجّل ${AD(have.size)}</span></div>
+      el.innerHTML = `<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="row" style="gap:8px"><a href="#/voicerec">↩ الكتب</a><button class="btn sm" data-expnew>📦 صدّر الجديد</button></span><span class="muted">${esc(title)} — ${AD(i + 1)} / ${AD(items.length)} · سُجّل ${AD(have.size)}</span></div>
         ${goalCard(s)}
         <div class="card lv-text">
           <div class="muted">${esc(head)}${it.num != null ? ' — حديث ' + AD(it.num) : ''}${it.page ? ' — ' + esc(it.page) : ''} ${done ? '<span class="tag st-ok">✔ مسجّل</span>' : ''}</div>
@@ -156,6 +229,7 @@
           ${done ? '<button class="btn" data-play>▶ استمع</button>' : ''}
           <button class="btn" data-next>${done ? '✔ التالي' : '⏭ تخطَّ'}</button>
         </div>`;
+      el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
       el.querySelector('[data-prev]').onclick = () => { if (i > 0) { i--; stopPlay(); show(); } };
       el.querySelector('[data-next]').onclick = () => { i++; stopPlay(); show(); window.scrollTo(0, 0); };
       const pb = el.querySelector('[data-play]'); if (pb) pb.onclick = () => play(it, title, { noBar: true });
@@ -170,7 +244,7 @@
           const isNew = !have.has(it.id);
           await VS.put({ id: it.id, bookId, blob, type: blob.type, sec, at: Date.now() });
           have.add(it.id); await addSeconds(sec);
-          if (isNew) { const n = ((await DB.setting('libvoiceSince')) || 0) + 1; await DB.setting('libvoiceSince', n); if (n % REMIND_EVERY === 0) APP.toast('سجّلت ' + AD(n) + ' نصاً جديداً — صدّرها من قائمة الكتب حتى لا تضيع', 6000); }
+          if (isNew) { const n = ((await DB.setting('libvoiceSince')) || 0) + 1; await DB.setting('libvoiceSince', n); if (n % REMIND_EVERY === 0) APP.toast('سجّلت ' + AD(n) + ' نصاً لم تُصدَّر — ارجع للقائمة واضغط «صدّر الجديد»', 6000); }
           await show(); play(it, title, { noBar: true });
         } catch (x) {
           rb.textContent = '🎙️ سجّل'; rb.classList.remove('rec-on');
@@ -181,5 +255,5 @@
     show();
   }
 
-  window.LIBVOICE = { play, stop: stopPlay, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, PLAN, GOAL_MIN };
+  window.LIBVOICE = { play, stop: stopPlay, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
 })();
