@@ -118,6 +118,7 @@
         <button class="btn sm" data-act="mindmap">🗺 خريطة ذهنية</button>
         <button class="btn sm" data-act="copy">📋 نسخ مع التوثيق</button>
         <button class="btn sm" data-act="listen">${it.type === 'ayah' ? '🔊 استمع للتلاوة' : '🗣️ اقرأ لي'}</button>`;
+      if (APP.state.reviewer && it.type !== 'ayah') h += `<button class="btn sm" data-act="vrec">🎙️ سجّل بصوتي</button>`;
       if (APP.state.reviewer) h += `<span class="spacer"></span>${APP.statusTag(it.id)}
         <button class="btn sm" data-act="rv-ok">✔ اعتماد</button><button class="btn sm" data-act="rv-fix">✎ تصحيح</button><button class="btn sm" data-act="rv-reject">✗ رفض</button><button class="btn sm" data-act="edit">تعديل النص</button>`;
       return h + '</div>' + APP.commentsHtml(it.id);
@@ -157,10 +158,12 @@
           await DB.put('srs', { id, ef: 2.5, interval: 0, reps: 0, due: new Date().toISOString(), added: new Date().toISOString() });
           APP.toast('أضيف إلى مراجعة الحفظ'); break;
         }
+        case 'vrec': location.hash = '#/voicerec/' + encodeURIComponent(it.bookId) + '/' + encodeURIComponent(id); return;
         case 'mindmap': location.hash = '#/mindmap/' + encodeURIComponent(id); return;
         case 'copy': APP.copy(APP.cite(it)); return;
         case 'listen': {
           if (it.type === 'ayah' && window.QA) { QA.play([[it.surah, it.ayah]], { noBasmala: true }); return; }
+          if (window.LIBVOICE && await LIBVOICE.play(it)) return;   // تسجيل بشري إن وُجد
           const parts = [it.title, it.isnad, it.matn || it.text, it.sharh, it.body].filter(x => typeof x === 'string' && x.trim());
           if (window.TTS) TTS.read([...new Set(parts)].join('. '), APP.titleOf ? APP.titleOf(it) : '');
           return;
@@ -293,7 +296,7 @@
       $('#reviewerBtn').textContent = 'وضع المراجع: ' + (on ? 'تشغيل' : 'إيقاف');
       $('#reviewerBtn').classList.toggle('on', on);
       $('#reviewerBtn').classList.toggle('hidden', !APP.state.reviewerUnlocked);
-      APP.$$('[data-nav=review]').forEach(a => a.classList.toggle('hidden', !APP.state.reviewerUnlocked));
+      APP.$$('[data-nav=review],[data-nav=voicerec]').forEach(a => a.classList.toggle('hidden', !APP.state.reviewerUnlocked));
     },
     applyLook(s) {
       document.documentElement.style.setProperty('--fs', (s.fontSize || 17) + 'px');
