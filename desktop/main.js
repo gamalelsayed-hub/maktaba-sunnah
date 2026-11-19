@@ -3,7 +3,7 @@ const { app, BrowserWindow, Menu, shell, ipcMain, net, dialog } = require('elect
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const TITLE = 'نبراس';
+const TITLE = 'زاد الأسرة المسلمة';
 let win;
 
 if (!app.requestSingleInstanceLock()) app.quit();

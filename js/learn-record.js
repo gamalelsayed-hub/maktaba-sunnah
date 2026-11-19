@@ -6,7 +6,7 @@
   V.start = async el => {
     document.body.classList.add('learn-mode'); document.body.classList.remove('learn-kids', 'learn-lit');
     el.innerHTML = `<div class="sp">
-      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>نبراس</h1><div class="sp-motto">العلمُ يرفعُ بيتاً لا عِمادَ له</div></div>
+      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>زاد الأسرة المسلمة</h1><div class="sp-motto">العلمُ يرفعُ بيتاً لا عِمادَ له</div></div>
       <a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">📚</span><div><b>المكتبة</b><small>القرآن الكريم وتفسيره، والحديث وشروحه، والفقه والسيرة، والأذكار والمواقيت</small></div><span class="sp-go">‹</span></a>
       <div class="sp-sub">🎓 التعلّم للأسرة</div>
       <div class="sp-two">
