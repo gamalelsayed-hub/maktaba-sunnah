@@ -1,34 +1,14 @@
 name: نسخة احتياطية مشفّرة لمفتاح التوقيع
-# يعمل مرة واحدة: يشفّر ملف المفتاح وكلمة سره بالمفتاح العام key-backup.pub،
-# فلا يقدر أحد فتح الملف المرفوع إلا صاحب المفتاح الخاص. يُحذف بعد الاستعمال.
+# تنظيف: حذف الإصدار المسودّة المؤقت بعد أخذ النسخة الاحتياطية.
 on:
   push:
     branches: [main]
-    paths: ['.github/key-backup.pub', '.github/workflows/key-backup.yml']
+    paths: ['.github/workflows/key-backup.yml']
 permissions:
   contents: write
 jobs:
-  backup:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: تشفير المفتاح
-        env:
-          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
-          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-        run: |
-          mkdir -p bk && cd bk
-          echo "$KS_B64" | base64 -d > ks.jks
-          printf 'alias=maktaba\npassword=%s\n' "$KS_PASS" > info.txt
-          tar czf bundle.tgz ks.jks info.txt && rm -f ks.jks info.txt
-          openssl rand -out k.bin 32
-          openssl enc -aes-256-cbc -pbkdf2 -salt -in bundle.tgz -out bundle.enc -pass file:k.bin
-          openssl pkeyutl -encrypt -pubin -inkey ../.github/key-backup.pub -pkeyopt rsa_padding_mode:oaep -in k.bin -out k.enc
-          rm -f k.bin bundle.tgz
-          ls -la
-      - name: رفع الملف المشفّر في إصدار مسودّة (غير ظاهر للعامة)
-        env: { GH_TOKEN: "${{ github.token }}" }
-        run: |
-          gh release delete key-backup-tmp --repo "$GITHUB_REPOSITORY" -y --cleanup-tag 2>/dev/null || true
-          gh release create key-backup-tmp bk/bundle.enc bk/k.enc --repo "$GITHUB_REPOSITORY" --draft --title "key backup (temporary)" --notes "مؤقت — يُحذف تلقائياً"
-
+      - env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh release delete key-backup-tmp --repo "$GITHUB_REPOSITORY" -y --cleanup-tag || true
