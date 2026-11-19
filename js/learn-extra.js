@@ -164,6 +164,7 @@
   // ===== شاشة «إنجازاتي» (رحلتي للأطفال + الأوسمة + الشهادات + الهدف) =====
   const STATIONS = [
     ['🔤', 'الحروف', p => cnt(allDone(p), /^l\d+$/) / 28, '#/kids/read/letters'],
+    ['🔗', 'أشكال الحروف', p => cnt(allDone(p), /^f\d+$/) / 28, '#/kids/read/forms'],
     ['〰️', 'المدود', p => cnt(allDone(p), /^m\d+$/) / 28, '#/kids/read/madd'],
     ['ًٌ', 'التنوين', p => cnt(allDone(p), /^t\d+$/) / 28, '#/kids/read/tanween'],
     ['🔡', 'السكون والشدة', p => cnt(allDone(p), /^d_/) / nDecode(), '#/kids/read/decode'],

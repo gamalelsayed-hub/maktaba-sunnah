@@ -255,7 +255,7 @@
       if (id == null) {
         const b = sh('🔤 حروفي', '#/kids');
         const n = re => Object.keys(k).filter(x => re.test(x)).length;
-        b.innerHTML = `<div class="lr-path">${[['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28], ['decode', '🔡', 'l_decode', n(/^d_(sukun|shadda|shams|verbs)_/), LEARN.DECODE.filter(d => !d.unit).reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)], ['rules', '✍️', 'l_rules', n(/^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/), LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)]]
+        b.innerHTML = `<div class="lr-path">${[['letters', '🔤', 'l_letters', n(/^l\d/), 28], ['forms', '🔗', 'l_forms', n(/^f\d/), 28], ['madd', '〰️', 'l_madd', n(/^m\d/), 28], ['tanween', 'ًٌ', 'l_tanween', n(/^t\d/), 28], ['decode', '🔡', 'l_decode', n(/^d_(sukun|shadda|shams|verbs)_/), LEARN.DECODE.filter(d => !d.unit).reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)], ['rules', '✍️', 'l_rules', n(/^d_(lamalif|taa|alifm|hamza|aa|tanw2)_/), LEARN.DECODE.filter(d => d.unit === 'rules').reduce((a, d) => a + LIT.chunk(d.words, 6).length, 0)]]
           .map(([r, ic, key, d, tot], i) => `<a class="lr-level" href="#/kids/read/${r}" data-sk="p_${key}"><span class="lr-num">${AD(i + 1)}</span><span class="lr-lic">${ic}</span><b>${LEARN.P[key]}</b><span class="lr-bar"><i style="width:${Math.round(d / tot * 100)}%"></i></span><small>${AD(d)} / ${AD(tot)}</small></a>`).join('')}</div>`;
         LIT.sayTiles(b); return;
       }
