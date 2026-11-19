@@ -6,7 +6,7 @@ on:
     branches: [main]
     paths: ['.github/key-backup.pub', '.github/workflows/key-backup.yml']
 permissions:
-  contents: read
+  contents: write
 jobs:
   backup:
     runs-on: ubuntu-latest
@@ -26,5 +26,9 @@ jobs:
           openssl pkeyutl -encrypt -pubin -inkey ../.github/key-backup.pub -pkeyopt rsa_padding_mode:oaep -in k.bin -out k.enc
           rm -f k.bin bundle.tgz
           ls -la
-      - uses: actions/upload-artifact@v4
-        with: { name: key-backup-encrypted, path: 'bk/*.enc', retention-days: 1 }
+      - name: رفع الملف المشفّر في إصدار مسودّة (غير ظاهر للعامة)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          gh release delete key-backup-tmp --repo "$GITHUB_REPOSITORY" -y --cleanup-tag 2>/dev/null || true
+          gh release create key-backup-tmp bk/bundle.enc bk/k.enc --repo "$GITHUB_REPOSITORY" --draft --title "key backup (temporary)" --notes "مؤقت — يُحذف تلقائياً"
+
