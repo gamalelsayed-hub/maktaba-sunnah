@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+  actions: write
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -71,7 +72,7 @@ jobs:
           rm -f ks.jks
           ls -la ../../*.apk ../../*.aab
       - uses: actions/upload-artifact@v4
-        with: { name: maktaba-sunnah-android, path: '*.a?[kb]', compression-level: 0 }
+        with: { name: maktaba-sunnah-android, path: '*.a?[kb]', compression-level: 0, retention-days: 7 }
       - name: نشر في صفحة الإصدارات (رابط تحميل مباشر)
         uses: softprops/action-gh-release@v2
         with:
@@ -85,3 +86,13 @@ jobs:
             *.apk
             *.aab
           make_latest: true
+      - name: تنظيف (يبقى آخر 3 نسخ في الإصدارات، وتُحذف ملفات البناء القديمة)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          R="$GITHUB_REPOSITORY"
+          gh release view android-latest --repo "$R" --json assets --jq '.assets[].name' \
+            | grep -E '^maktaba-sunnah-[0-9.]+\.(apk|aab)$' \
+            | sed -E 's/^maktaba-sunnah-([0-9.]+)\.(apk|aab)$/\1/' | sort -uV | head -n -3 \
+            | while read v; do for e in apk aab; do gh release delete-asset android-latest "maktaba-sunnah-$v.$e" --repo "$R" -y 2>/dev/null && echo "حُذف $v.$e" || true; done; done
+          gh api "repos/$R/actions/artifacts?per_page=100" --paginate --jq ".artifacts[] | select(.name==\"maktaba-sunnah-android\" and .workflow_run.id != $GITHUB_RUN_ID) | .id" \
+            | while read id; do gh api -X DELETE "repos/$R/actions/artifacts/$id" >/dev/null && echo "حُذف ملف بناء $id" || true; done

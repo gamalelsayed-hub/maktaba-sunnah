@@ -1,0 +1,30 @@
+name: نسخة احتياطية مشفّرة لمفتاح التوقيع
+# يعمل مرة واحدة: يشفّر ملف المفتاح وكلمة سره بالمفتاح العام key-backup.pub،
+# فلا يقدر أحد فتح الملف المرفوع إلا صاحب المفتاح الخاص. يُحذف بعد الاستعمال.
+on:
+  push:
+    branches: [main]
+    paths: ['.github/key-backup.pub', '.github/workflows/key-backup.yml']
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: تشفير المفتاح
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: |
+          mkdir -p bk && cd bk
+          echo "$KS_B64" | base64 -d > ks.jks
+          printf 'alias=maktaba\npassword=%s\n' "$KS_PASS" > info.txt
+          tar czf bundle.tgz ks.jks info.txt && rm -f ks.jks info.txt
+          openssl rand -out k.bin 32
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in bundle.tgz -out bundle.enc -pass file:k.bin
+          openssl pkeyutl -encrypt -pubin -inkey ../.github/key-backup.pub -pkeyopt rsa_padding_mode:oaep -in k.bin -out k.enc
+          rm -f k.bin bundle.tgz
+          ls -la
+      - uses: actions/upload-artifact@v4
+        with: { name: key-backup-encrypted, path: 'bk/*.enc', retention-days: 1 }
