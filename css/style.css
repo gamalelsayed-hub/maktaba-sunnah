@@ -1192,3 +1192,4 @@ body.dark .jz-tile { color: #f2f5f3; background: hsl(var(--h) 30% 22%); border-c
 .mw-head .mw-ic { font-size: 50px; }
 .mw-acts { list-style: none; padding: 0; }
 .mw-acts li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+.lv-inline { margin-top: 10px; } .lv-inline audio { border-radius: 12px; }

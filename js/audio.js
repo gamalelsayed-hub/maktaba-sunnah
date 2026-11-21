@@ -234,6 +234,7 @@
     b.innerHTML = `<button class="btn sm" data-a="prev" title="السابقة">⏮</button>
       <button class="btn sm primary" data-a="tog">${P.playing && !audio().paused ? '⏸' : '▶'}</button>
       <button class="btn sm" data-a="next" title="التالية">⏭</button>
+      <button class="btn sm" data-a="b5" title="رجوع ٥ ثوانٍ">↺٥</button><button class="btn sm" data-a="f5" title="تقديم ٥ ثوانٍ">٥↻</button>
       <span class="qa-now">🔊 ${bs ? 'البسملة' : 'سورة ' + esc(AR.SURAHS[s - 1]) + ' ' + AR.toArabicDigits(a)}</span>
       ${reciterSelect(P.r, 'data-a="rc" class="qa-rc" title="القارئ"')}
       <label class="muted">تكرار <select data-a="rep">${[1, 2, 3, 5, 7, 10].map(n => `<option ${n === P.rep ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
@@ -241,6 +242,9 @@
       ${P.q.length > 2 ? `<div class="lp-row"><input type="range" class="lp-pos" data-a="pos" min="0" max="${P.q.length - 1}" value="${P.i}" style="--p:${(100 * P.i / (P.q.length - 1)).toFixed(1)}%"><span class="lp-time muted">${AR.toArabicDigits(P.i + 1)} / ${AR.toArabicDigits(P.q.length)}</span></div>` : ''}`;
     b.querySelector('[data-a=prev]').onclick = () => step(-1);
     b.querySelector('[data-a=next]').onclick = () => step(1);
+    const sk = d => { const x = audio(); try { x.currentTime = Math.max(0, Math.min((x.duration || 1e9) - 0.3, x.currentTime + d)); } catch (e) { } };
+    b.querySelector('[data-a=b5]').onclick = () => sk(-5);
+    b.querySelector('[data-a=f5]').onclick = () => sk(5);
     b.querySelector('[data-a=tog]').onclick = toggle;
     b.querySelector('[data-a=x]').onclick = () => { P.q = []; stop(); };
     b.querySelector('[data-a=rep]').onchange = e => { P.rep = P.repLeft = +e.target.value; };

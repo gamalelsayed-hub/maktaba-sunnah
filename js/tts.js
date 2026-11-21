@@ -43,7 +43,7 @@
     if (NT) NT.stop(); else synth.cancel();
     if (window.KEEPALIVE) KEEPALIVE.start('🗣️ القراءة الصوتية', title || '');
     S.chunks = split(text); S.i = 0; S.on = true; S.title = title || ''; S.onEnd = (opts && opts.onEnd) || null;
-    if (window.MEDIA) MEDIA.controls('tts', { toggle: pause, next: () => jump(1), prev: () => jump(-1), stop: () => { S.onEnd = null; stop(); } });
+    if (window.MEDIA) MEDIA.controls('tts', { toggle: pause, next: () => jump(1), prev: () => jump(-1), fwd: () => jump(3), back: () => jump(-3), stop: () => { S.onEnd = null; stop(); } });
     if (!NT && !voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
     bar(); speakNext();
   }
@@ -59,11 +59,19 @@
   function bar() {
     let b = document.getElementById('ttsBar');
     if (!S.on && !S.paused) { if (b) b.remove(); return; }
-    if (!b) { b = document.createElement('div'); b.id = 'ttsBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
-    b.innerHTML = `<button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${S.paused ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
+    if (!b) { b = document.createElement('div'); b.id = 'ttsBar'; b.className = 'qa-bar lp-bar'; document.body.appendChild(b); }
+    b.innerHTML = `<div class="lp-row"><button class="btn sm" data-a="p">⏮</button><button class="btn sm primary" data-a="t">${S.paused ? '▶' : '⏸'}</button><button class="btn sm" data-a="n">⏭</button>
       <span class="qa-now">🗣️ ${esc(S.title.slice(0, 40))} — ${AR.toArabicDigits(S.i + 1)}/${AR.toArabicDigits(S.chunks.length)}</span>
       <label class="muted">السرعة <select data-a="r">${[0.7, 0.85, 1, 1.15, 1.3, 1.5].map(r => `<option value="${r}" ${r == S.rate ? 'selected' : ''}>${r}×</option>`).join('')}</select></label>
-      <button class="btn sm" data-a="x">✕</button>`;
+      <button class="btn sm" data-a="x">✕</button></div>
+      ${S.chunks.length > 2 ? `<div class="lp-row"><button class="btn sm" data-a="b3" title="رجوع ٣ فقرات">↺٣</button><input type="range" class="lp-pos" data-a="pos" min="0" max="${S.chunks.length - 1}" value="${S.i}" style="--p:${(100 * S.i / (S.chunks.length - 1)).toFixed(1)}%"><button class="btn sm" data-a="f3" title="تقديم ٣ فقرات">٣↻</button><span class="lp-time muted">${AR.toArabicDigits(Math.round(100 * S.i / (S.chunks.length - 1)))}٪</span></div>` : ''}`;
+    const pos = b.querySelector('[data-a=pos]');
+    if (pos) {
+      pos.oninput = () => { const t = b.querySelector('.lp-time'); if (t) t.textContent = 'الفقرة ' + AR.toArabicDigits(+pos.value + 1); };
+      pos.onchange = () => jump(+pos.value - S.i);
+      b.querySelector('[data-a=b3]').onclick = () => jump(-3);
+      b.querySelector('[data-a=f3]').onclick = () => jump(3);
+    }
     b.querySelector('[data-a=p]').onclick = () => jump(-1);
     b.querySelector('[data-a=n]').onclick = () => jump(1);
     b.querySelector('[data-a=t]').onclick = pause;

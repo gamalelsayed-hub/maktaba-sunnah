@@ -79,13 +79,19 @@
     stopPlay();
     const src = r && r.blob ? (curUrl = URL.createObjectURL(r.blob)) : 'audio/library/' + shipped;
     if (window.TTS) TTS.stop();
-    if (window.MEDIA) MEDIA.claim('libvoice');
-    cur = new Audio(src); cur.onended = stopPlay;
-    try { await cur.play(); } catch (e) { stopPlay(); return false; }
-    if (!(opt && opt.noBar)) bar(title || (APP.titleOf ? APP.titleOf(it) : ''));
+    const box = opt && opt.noBar ? document.getElementById('lvInline') : null;
+    if (box) { // شاشة التسجيل: مشغّل داخل الصفحة بشريط سحب كامل
+      if (window.MEDIA) MEDIA.claim('libvoice');
+      box.innerHTML = '<audio controls autoplay style="width:100%"></audio>';
+      cur = box.firstChild; cur.src = src; cur.play().catch(() => { });
+      return true;
+    }
+    // الاستماع العادي: المشغّل الكامل (سحب، تقديم وتأخير، مؤقت، وتحكم من الإشعار)
+    const u = src; curUrl = null;
+    LP.play([{ title: title || (APP.titleOf ? APP.titleOf(it) : ''), sub: 'بصوت بشري', url: u }], { name: 'libvoice-lp', icon: '🎙️', onEnd: () => { if (u.startsWith('blob:')) URL.revokeObjectURL(u); } });
     return true;
   }
-  if (window.MEDIA) MEDIA.register('libvoice', stopPlay);
+  if (window.MEDIA) MEDIA.register('libvoice', () => { stopPlay(); const b = document.getElementById('lvInline'); if (b) b.innerHTML = ''; });
 
   // ---------- التصدير والاستيراد ----------
   // ملف واحد فيه التسجيلات + index.json يصف كل تسجيل (الكتاب والمدة) + إحصاء الأيام
@@ -241,7 +247,7 @@
           <button class="btn primary lv-rec" data-rec>🎙️ ${done ? 'أعد التسجيل' : 'سجّل'}</button>
           ${done ? '<button class="btn" data-play>▶ استمع</button>' : ''}
           <button class="btn" data-next>${done ? '✔ التالي' : '⏭ تخطَّ'}</button>
-        </div>`;
+        </div><div id="lvInline" class="lv-inline"></div>`;
       el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
       const sj = el.querySelector('[data-surah]'); if (sj) sj.onchange = () => { const k = items.findIndex(x => x.surah === +sj.value && !have.has(x.id)); i = k >= 0 ? k : items.findIndex(x => x.surah === +sj.value); stopPlay(); show(); };
       el.querySelector('[data-prev]').onclick = () => { if (i > 0) { i--; stopPlay(); show(); } };
