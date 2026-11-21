@@ -8,7 +8,7 @@
   const HUES = [152, 40, 200, 280, 20, 120, 330, 180, 60, 240];
   const dayIdx = () => { const d = new Date(), s = new Date(d.getFullYear(), 0, 0); return Math.floor((d - s) / 864e5) % L().length; };
   const textOf = (x, ayah) => `${x[0]}. معناه: ${x[1]} ${ayah ? 'قال الله تعالى: ' + ayah + '. ' : typeof x[2] === 'string' ? x[2] + ' ' : ''}أثره في حياتك: ${x[3]} كيف تتعبّد الله به: ${x[4]} دعاء: ${x[5]}`;
-  async function ayahOf(x) { if (!Array.isArray(x[2])) return null; const it = await DB.get('items', 'quran:' + x[2][0] + ':' + x[2][1]).catch(() => null); return it ? (it.surah !== 1 && it.ayah === 1 ? it.text.replace(/^بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\s*/, '') : it.text) : null; }
+  async function ayahOf(x) { if (!Array.isArray(x[2])) return null; const it = await DB.get('items', 'quran:' + x[2][0] + ':' + x[2][1]).catch(() => null); return it ? (x[2][0] !== 1 && x[2][1] === 1 ? it.text.split(' ').slice(/^بِسْمِ /.test(it.text) ? 4 : 0).join(' ') : it.text) : null; }
   const emblem = (x, i, big) => `<div class="as-emb ${big ? 'big' : ''}" style="--h:${HUES[i % HUES.length]}"><span class="as-orn">۞</span><b>${esc(x[0])}</b><span class="as-num">${D(i + 1)}</span></div>`;
 
   // مصدر للتسجيل بصوت القارئ

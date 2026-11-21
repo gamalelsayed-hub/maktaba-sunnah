@@ -30,8 +30,8 @@
       ['k3', 'اللَّهُمَّ رَبَّ النَّاسِ، أَذْهِبِ الْبَأْسَ، اشْفِ أَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ، شِفَاءً لَا يُغَادِرُ سَقَمًا', 3, 'متفق عليه', ''],
     ],
   };
-  const BAS = /^بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ\s*/;
-  const noBasmala = x => x.surah !== 1 && x.ayah === 1 ? x.text.replace(BAS, '') : x.text;
+  const stripB = t => /^بِسْمِ /.test(t) ? t.split(' ').slice(4).join(' ') : t;
+  const noBasmala = x => +x.surah !== 1 && +x.ayah === 1 ? stripB(x.text) : x.text;
   const spoken = t => t.replace(/\((ثلاثاً|سبعاً)\)/g, '');
   const ayatList = kind => AYAT[kind].flatMap(([, s, a, b]) => Array.from({ length: b - a + 1 }, (_, k) => [s, a + k]));
   const isOk = r => !r.full && r.id !== 'alafasy';  // قرّاء الآيات المتاحون (عدا العفاسي)

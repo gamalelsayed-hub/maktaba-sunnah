@@ -324,14 +324,15 @@
   const RADIOS = [
     { id: 'cairo', n: 'إذاعة القرآن الكريم من القاهرة', d: 'مصر — ٩٨٫٢ إف إم', url: 'https://stream.radiojar.com/8s5u5tpdtwzuv' },
     { id: 'saudi', n: 'إذاعة القرآن الكريم من السعودية', d: 'المملكة العربية السعودية', url: 'https://stream.radiojar.com/0tpy1h0kxtzuv' },
+    { id: 'madinah', n: 'المسجد النبوي مباشر', d: 'قناة السنة النبوية الرسمية — صوت وصورة، يُفتح في يوتيوب', ext: 'https://www.youtube.com/channel/UCROKYPep-UuODNwyipe6JMw/live' },
   ];
   V.radio = async el => {
     const extra = ((window.NEWS && NEWS.data && NEWS.data.radios) || []).filter(x => x && x.url && x.n);
     const all = RADIOS.concat(extra);
     el.innerHTML = `<div class="row"><h1>📻 إذاعات القرآن الكريم</h1><span class="spacer"></span><a class="btn" href="#/listen">🎧 الاستماع للقرآن</a></div>
       <div class="sub">بث مباشر على مدار الساعة — يحتاج اتصالاً بالإنترنت. يستمر التشغيل والشاشة مقفلة، وتتحكم فيه من الإشعار.</div>
-      <div class="grid">${all.map((r, i) => `<div class="card radio-card"><div class="radio-ic">📻</div><b>${esc(r.n)}</b><div class="muted" style="font-size:13px">${esc(r.d || '')}</div><button class="btn primary" data-r="${i}" style="margin-top:8px">▶ استمع الآن</button></div>`).join('')}</div>`;
-    el.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const r = all[+b.dataset.r]; LP.play([{ title: r.n, sub: 'بث مباشر', url: r.url, live: true }], { name: 'radio', icon: '📻' }); });
+      <div class="grid">${all.map((r, i) => `<div class="card radio-card"><div class="radio-ic">${r.ext ? '🕌' : '📻'}</div><b>${esc(r.n)}</b><div class="muted" style="font-size:13px">${esc(r.d || '')}</div><button class="btn primary" data-r="${i}" style="margin-top:8px">${r.ext ? '📺 شاهد الآن' : '▶ استمع الآن'}</button></div>`).join('')}</div>`;
+    el.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const r = all[+b.dataset.r]; if (r.ext) { const a = document.createElement('a'); a.href = r.ext; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); return; } LP.play([{ title: r.n, sub: 'بث مباشر', url: r.url, live: true }], { name: 'radio', icon: '📻' }); });
   };
 
   window.QA = { RECITERS, JUZ, COUNTS, juzAyat, surahAyat, juzOf, play, stop, P, reciterSelect, stored, download, rec, playFull, surahsOf, RADIOS };

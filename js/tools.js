@@ -307,7 +307,11 @@
     const inst = all.filter(b => b.count), shelf = all.filter(b => !b.count);
     el.innerHTML = `<h1>📚 المكتبة وتحميل الكتب</h1>
       <div class="lib-promos"><a class="card hk-promo" href="#/ruqyah"><span class="lr-emo">🛡️</span><span><b>الرقية الشرعية</b><small class="muted">من القرآن والسنة، للكبار وللأطفال، بأصوات كبار القرّاء</small></span></a>
-      <a class="card hk-promo" href="#/asma"><span class="lr-emo">✨</span><span><b>أسماء الله الحسنى</b><small class="muted">٩٩ اسماً بالمعنى والدليل والأثر والعمل، واسم كل يوم</small></span></a></div>
+      <a class="card hk-promo" href="#/asma"><span class="lr-emo">✨</span><span><b>أسماء الله الحسنى</b><small class="muted">٩٩ اسماً بالمعنى والدليل والأثر والعمل، واسم كل يوم</small></span></a>
+      <a class="card hk-promo" href="#/duas"><span class="lr-emo">🤲</span><span><b>أدعية من القرآن والسنة</b><small class="muted">جوامع الدعاء حسب حاجتك: الهم، الرزق، الذرية، السفر…</small></span></a>
+      <a class="card hk-promo" href="#/mawasim"><span class="lr-emo">🌙</span><span><b>مواسم الطاعات</b><small class="muted">رمضان وعرفة وعاشوراء… موعدها وفضلها وبرنامجها</small></span></a>
+      <a class="card hk-promo" href="#/juzamma"><span class="lr-emo">📗</span><span><b>حفظ جزء عمّ للأطفال</b><small class="muted">تلقين آيةً آية ونجمة لكل سورة</small></span></a>
+      <a class="card hk-promo" href="#/arbaeen"><span class="lr-emo">🌟</span><span><b>الأربعون النووية للأطفال</b><small class="muted">الحديث ودروس مبسّطة ونجمة لكل حديث</small></span></a></div>
       <a class="card hk-promo" href="#/hekayat"><span class="lr-emo">🌙</span><span><b>حكايات مسموعة</b><small class="muted">قصص الأطفال وقصص من الحياة وكتب السيرة لكامل كيلاني — تُسمع كاملة متتابعة مع مؤقت للنوم، ومنها ما هو بصوت القارئ للتنزيل</small></span></a>
       <h2>١. المصادر الأساسية — مستوردة تلقائياً</h2>
       <div class="info">✔ القرآن (تنزيل)، والكتب التسعة بأحكام المحدثين (hadith-api وhadith-json)، والشروح والتفاسير وكتب الفقه والسيرة — كلها مدمجة في البرنامج وتُثبَّت وحدها، لا تحتاج تنزيل شيء يدوياً.

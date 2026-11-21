@@ -1157,3 +1157,38 @@ body.dark .lv-backup.due { background: rgba(245, 217, 139, .08); color: inherit;
 .as-ayah { font-size: 1.35em; }
 .as-dua { border-color: var(--brand2); }
 .as-ctl { gap: 8px; justify-content: center; flex-wrap: wrap; }
+/* الأدعية وجزء عمّ والأربعون والمواسم */
+.du-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.du-cat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; text-decoration: none; color: inherit; }
+.du-q { font-size: 1.35em; line-height: 2.1; margin: 0 0 6px; }
+.du-s { font-size: 1.12em; line-height: 2; margin: 0 0 6px; }
+.jz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.jz-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 6px; border-radius: 18px; text-decoration: none; color: #1d2b25; background: hsl(var(--h) 70% 90%); border: 2px solid hsl(var(--h) 55% 75%); text-align: center; }
+.jz-tile b { font-size: 16px; }
+.jz-tile small { font-size: 11.5px; opacity: .75; }
+.jz-tile .jz-n { font-size: 11px; opacity: .6; }
+.jz-tile i { position: absolute; top: 4px; inset-inline-end: 6px; font-style: normal; }
+.jz-tile.done { border-color: #f9a825; box-shadow: 0 0 0 2px #fde68a; }
+body.dark .jz-tile { color: #f2f5f3; background: hsl(var(--h) 30% 22%); border-color: hsl(var(--h) 35% 35%); }
+.jz-score .lr-progress { margin: 8px 0; }
+.jz-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.jz-badges span { padding: 3px 10px; border-radius: 999px; background: var(--line); font-size: 12.5px; opacity: .55; }
+.jz-badges span.on { background: #fde68a; color: #6b4e00; opacity: 1; }
+.jz-a { font-size: 1.5em; line-height: 2.2; margin: 4px 0; padding: 4px 10px; border-radius: 12px; transition: background .3s; }
+.jz-a.on { background: var(--brand-l); outline: 2px solid var(--brand2); }
+.nk-card { text-align: center; }
+.nk-ic { font-size: 54px; }
+.nk-isnad { font-size: 13px; margin-bottom: 6px; }
+.nk-matn { font-size: 1.2em; line-height: 2; }
+.nk-l li { line-height: 2; font-size: 1.05em; }
+.mw-list { display: flex; flex-direction: column; gap: 8px; }
+.mw-row { display: flex; gap: 12px; align-items: center; text-decoration: none; color: inherit; margin: 0; }
+.mw-row.now { border-color: #2e7d32; background: var(--brand-l); }
+.mw-ic { font-size: 30px; }
+.mw-t { flex: 1; display: flex; flex-direction: column; }
+.mw-d { font-size: 22px; font-weight: 700; color: var(--brand); text-align: center; line-height: 1.1; }
+.mw-d small { display: block; font-size: 11px; font-weight: 400; }
+.mw-head { text-align: center; }
+.mw-head .mw-ic { font-size: 50px; }
+.mw-acts { list-style: none; padding: 0; }
+.mw-acts li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
