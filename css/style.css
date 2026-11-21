@@ -506,7 +506,12 @@ body.dark .hc.forbid { background: rgba(240, 90, 90, .12); } body.dark .hc-day .
 .tj-ghunnah { color: #2e7d32; } .tj-ikhfa { color: #43a047; } .tj-ikhfa_shafawi { color: #7cb342; }
 .tj-idghaam_ghunnah { color: #00897b; } .tj-idghaam_no_ghunnah { color: #607d8b; } .tj-idghaam_shafawi { color: #0097a7; }
 .tj-iqlab { color: #7b1fa2; } .tj-qalqalah { color: #1565c0; } .tj-idghaam_mutajanisayn, .tj-idghaam_mutaqaribayn { color: #6d4c41; }
-body.dark [class^="tj-"] { filter: brightness(1.55) saturate(1.1); }
+/* الوضع المسائي: لوحة ألوان مستقلة لكل حكم (نفس درجة اللون في النهاري لكن أفتح) — بدل التفتيح العام الذي كان يُذهب الفروق */
+body.dark .tj-hamzat_wasl, body.dark .tj-lam_shamsiyyah, body.dark .tj-silent { color: #707070; }
+body.dark .tj-madd_2 { color: #e0b44c; } body.dark .tj-madd_246 { color: #f06292; } body.dark .tj-madd_munfasil { color: #ff9800; } body.dark .tj-madd_muttasil { color: #ff5252; } body.dark .tj-madd_6 { color: #c62828; }
+body.dark .tj-ghunnah { color: #66bb6a; } body.dark .tj-ikhfa { color: #9ccc65; } body.dark .tj-ikhfa_shafawi { color: #c5e1a5; }
+body.dark .tj-idghaam_ghunnah { color: #26a69a; } body.dark .tj-idghaam_no_ghunnah { color: #a9c1d1; } body.dark .tj-idghaam_shafawi { color: #4dd0e1; }
+body.dark .tj-iqlab { color: #ba68c8; } body.dark .tj-qalqalah { color: #64b5f6; } body.dark .tj-idghaam_mutajanisayn, body.dark .tj-idghaam_mutaqaribayn { color: #a1887f; }
 body.dark .ap-body h4, body.dark .ap-gh dt { color: #8fd8a8; }
 
 /* ===== الختمة ===== */
