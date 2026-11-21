@@ -107,4 +107,32 @@ public class AdhanPlugin extends Plugin {
         try { ctx.startService(i); } catch (Exception ignored) { }
         call.resolve();
     }
+
+    /** الإذاعات: تشغيل البث بمشغّل أندرويد (يتعامل مع تحويلات الخوادم ويستمر والتطبيق مغلق) */
+    @PluginMethod
+    public void playRadio(PluginCall call) {
+        Context ctx = getContext();
+        Intent i = new Intent(ctx, RadioService.class);
+        i.putExtra("url", call.getString("url"));
+        i.putExtra("title", call.getString("title", "إذاعة القرآن الكريم"));
+        try { ContextCompat.startForegroundService(ctx, i); call.resolve(); }
+        catch (Exception e) { call.reject(e.getMessage()); }
+    }
+
+    @PluginMethod
+    public void stopRadio(PluginCall call) {
+        Context ctx = getContext();
+        if (RadioService.nowUrl != null) {
+            Intent i = new Intent(ctx, RadioService.class).setAction(RadioService.CTL).putExtra("cmd", "stop");
+            try { ctx.startService(i); } catch (Exception ignored) { }
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void radioState(PluginCall call) {
+        JSObject r = new JSObject();
+        r.put("url", RadioService.nowUrl == null ? "" : RadioService.nowUrl);
+        call.resolve(r);
+    }
 }
