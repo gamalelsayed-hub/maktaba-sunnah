@@ -40,6 +40,8 @@
     { id: 'ghamdi', n: 'سعد الغامدي', d: 'مرتّل', era: 'new', src: [EA('Ghamadi_40kbps')] },
     { id: 'ajamy', n: 'أحمد العجمي', d: 'مرتّل', era: 'new', src: [IN('ar.ahmedajamy', 64)] },
     { id: 'qatami', n: 'ناصر القطامي', d: 'مرتّل', era: 'new', src: [EA('Nasser_Alqatami_128kbps')] },
+    // تلاوة صاحب التطبيق (مُجاز برواية حفص): آيةً آية من تسجيلاته على الجهاز، أو المرفوعة على الموقع بعد التصدير
+    { id: 'myvoice', n: 'تلاوتي بصوتي', d: 'رواية حفص — آيةً آية', era: 'mine', mine: true, src: [] },
     // قرّاء تلاواتهم متاحة بالسورة كاملة (لا آية آية): للاستماع فقط، بلا تتبّع الآيات ولا تكرار الآية
     { id: 'islam-sobhi', n: 'إسلام صبحي', d: 'مرتّل — بالسورة كاملة', era: 'full', full: true, base: 'https://cdn.mp3quran.net/download/audio/islam-sobhi/r1/', miss: [37, 39, 40, 45, 65] },
     { id: 'mosaad', n: 'عبد الرحمن مسعد', d: 'سور مختارة — بالسورة كاملة', era: 'full', full: true, base: 'https://archive.org/download/010_20221110/', only: [10, 19, 23, 29, 32, 49, 73, 78, 87, 88, 100, 107] },
@@ -110,7 +112,16 @@
   const silent = x => (x.src || '').startsWith('data:');
   let tryIdx = 0, tryList = [];
   async function srcFor(i) {
-    const [s, a] = P.q[i], b = await getBlob(P.r, s, a);
+    const [s, a] = P.q[i];
+    if (rec(P.r).mine) {
+      const own = window.LIBVOICE && LIBVOICE.blob ? await LIBVOICE.blob('quran:' + s + ':' + a) : null;
+      if (own) return { url: URL.createObjectURL(own), blob: true, tries: [] };
+      const f = (window.MY_QURAN || {})[pad3(s) + pad3(a)];
+      if (f) return { url: 'audio/quran-voice/' + f, blob: false, tries: [] };
+      if (!P.warned) { P.warned = 1; APP.toast('بعض الآيات لم تُسجَّل بصوتك بعد — تُسمع بصوت الحصري', 4000); }
+      const t = order('husary'); return { url: srcUrl(rec('husary').src[t[0]], s, a), blob: false, tries: [] };
+    }
+    const b = await getBlob(P.r, s, a);
     if (b) return { url: URL.createObjectURL(b), blob: true, tries: [] };
     const t = order(P.r); return { url: srcUrl(rec(P.r).src[t[0]], s, a), blob: false, tries: t };
   }
@@ -172,7 +183,7 @@
       r = 'husary';
     }
     if (window.MEDIA) MEDIA.claim('quran');
-    P.r = r;
+    P.r = r; P.warned = 0;
     P.rep = opts.rep || P.rep || 1; P.repLeft = P.rep; P.onEnd = opts.onEnd || null;
     P.q = []; list.forEach(([s, a]) => { if (a === 1 && s !== 1 && s !== 9 && !opts.noBasmala) P.q.push([1, 1, true]); P.q.push([s, a]); });
     A.forEach(x => { x._key = ''; });
@@ -238,7 +249,7 @@
     if (pos) { pos.oninput = () => { const t = b.querySelector('.lp-time'), q = P.q[+pos.value] || []; if (t) t.textContent = q[2] ? 'البسملة' : 'سورة ' + AR.SURAHS[q[0] - 1] + ' ' + AR.toArabicDigits(q[1]); }; pos.onchange = () => jump(+pos.value); }
   }
 
-  const reciterSelect = (cur, attrs = '') => `<select ${attrs}>${[['old', 'القرّاء القدامى'], ['new', 'القرّاء المعاصرون'], ['full', 'بالسورة كاملة (استماع فقط)']].map(([e, l]) => `<optgroup label="${l}">${RECITERS.filter(r => r.era === e).map(r => `<option value="${r.id}" ${r.id === cur ? 'selected' : ''}>${esc(r.n)} — ${esc(r.d)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+  const reciterSelect = (cur, attrs = '') => `<select ${attrs}>${[['old', 'القرّاء القدامى'], ['new', 'القرّاء المعاصرون'], ['full', 'بالسورة كاملة (استماع فقط)']].concat((APP.state && APP.state.reviewerUnlocked) || Object.keys(window.MY_QURAN || {}).length ? [['mine', 'تلاوتي']] : []).map(([e, l]) => `<optgroup label="${l}">${RECITERS.filter(r => r.era === e).map(r => `<option value="${r.id}" ${r.id === cur ? 'selected' : ''}>${esc(r.n)} — ${esc(r.d)}</option>`).join('')}</optgroup>`).join('')}</select>`;
 
   // ===== شاشة الاستماع =====
   const MB = { husary: 900, 'husary-muallim': 1900, alafasy: 680, minshawi: 900 };
@@ -271,7 +282,7 @@
     const fillS = () => { const have = new Set(surahsOf(R())), cur2 = +$('#lsS').value || +p.s || 1; $('#lsS').innerHTML = AR.SURAHS.map((n, i) => have.has(i + 1) ? `<option value="${i + 1}" ${cur2 === i + 1 ? 'selected' : ''}>${AR.toArabicDigits(i + 1)}. ${esc(n)}</option>` : '').join(''); };
     const list = () => $('#lsScope').value === 'all' ? Array.from({ length: 114 }, (_, i) => i + 1).flatMap(surahAyat) : $('#lsScope').value === 'juz' ? juzAyat(+$('#lsJ').value) : surahAyat(+$('#lsS').value);
     const surahList = () => { const have = new Set(surahsOf(R())); return [...new Set(list().map(x => x[0]))].filter(x => have.has(x)); };
-    const showScope = () => { const sc = $('#lsScope').value; $('#lsJ').style.display = sc === 'juz' ? '' : 'none'; $('#lsS').style.display = sc === 'surah' ? '' : 'none'; $('#lsRepL').style.display = isFull() ? 'none' : ''; $('#lsOpen').style.display = isFull() ? 'none' : ''; info(); };
+    const showScope = () => { const sc = $('#lsScope').value, mine = !!rec(R()).mine; $('#lsJ').style.display = sc === 'juz' ? '' : 'none'; $('#lsS').style.display = sc === 'surah' ? '' : 'none'; $('#lsRepL').style.display = isFull() ? 'none' : ''; $('#lsOpen').style.display = isFull() ? 'none' : ''; $('#lsDl').style.display = mine ? 'none' : ''; el.querySelector('.ls-full').style.display = mine ? 'none' : ''; if (mine) { $('#lsInfo').textContent = 'تلاوتك المسجّلة على هذا الجهاز — سجّل من «تسجيل المكتبة بصوتي ← المصحف بصوتي»'; return; } info(); };
     const info = async () => {
       if (isFull()) { const L = surahList(), n = await storedSurahs(R(), L); $('#lsInfo').textContent = `${AR.toArabicDigits(L.length)} سورة — منزَّل منها ${AR.toArabicDigits(n)}` + (L.length && n === L.length ? ' ✔ تعمل بدون إنترنت' : ''); }
       else { const L = list(), n = await stored(R(), L); $('#lsInfo').textContent = `${AR.toArabicDigits(L.length)} آية — منزَّل منها ${AR.toArabicDigits(n)}` + (n === L.length ? ' ✔ تعمل بدون إنترنت' : ''); }

@@ -175,8 +175,10 @@
     if (bookId) return focus(el, bookId, startId ? decodeURIComponent(startId) : null);
     const s = await stats();
     const books = Object.values(APP.state.books).filter(b => b.type !== 'quran');
+    const qb = Object.values(APP.state.books).find(b => b.type === 'quran');
     books.sort((a, b) => { const ia = PLAN.indexOf(a.id), ib = PLAN.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.title.localeCompare(b.title, 'ar'); });
     const rows = await Promise.all(books.map(async b => ({ b, total: await DB.count('items', 'bookId', b.id), done: await VS.count(b.id).catch(() => 0) })));
+    if (qb) rows.unshift({ b: { id: qb.id, title: '📖 المصحف بصوتي — آيةً آية (رواية حفص)' }, total: await DB.count('items', 'bookId', qb.id), done: await VS.count(qb.id).catch(() => 0) });
     for (const src of SOURCES) { const its = await src.items().catch(() => []); if (its.length) rows.push({ b: { id: src.id, title: src.title }, total: its.length, done: await VS.count(src.id).catch(() => 0) }); }
     const allRecs = await VS.every().catch(() => []), unexp = allRecs.filter(r => !r.exp).length;
     const lastExp = await DB.setting('libvoiceLastExport');
@@ -224,12 +226,15 @@
       const it = items[i]; const s = await stats();
       if (!it) { el.innerHTML = `<div class="card" style="text-align:center"><h2>🎉 أتممت تسجيل «${esc(title)}»</h2><p>جزاك الله خيراً. صدّر التسجيلات الآن.</p><a class="btn primary" href="#/voicerec">رجوع</a></div>`; return; }
       const done = have.has(it.id);
-      const head = it.kitab || it.chapter || '';
+      const isQ = it.type === 'ayah' || /^quran:/.test(String(it.id));
+      const head = isQ ? 'سورة ' + AR.SURAHS[it.surah - 1] + ' — الآية ' + AD(it.ayah) : (it.kitab || it.chapter || '');
       el.innerHTML = `<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="row" style="gap:8px"><a href="#/voicerec">↩ الكتب</a><button class="btn sm" data-expnew>📦 صدّر الجديد</button></span><span class="muted">${esc(title)} — ${AD(i + 1)} / ${AD(items.length)} · سُجّل ${AD(have.size)}</span></div>
         ${goalCard(s)}
         <div class="card lv-text">
           <div class="muted">${esc(head)}${it.num != null ? ' — حديث ' + AD(it.num) : ''}${it.page ? ' — ' + esc(it.page) : ''} ${done ? '<span class="tag st-ok">✔ مسجّل</span>' : ''}</div>
-          <div class="lv-read">${esc(textOf(it)).replace(/\n/g, '<br>')}</div>
+          ${isQ ? `<div class="lv-read quran-text lv-q">${esc(it.text || '')} <span class="muted">﴿${AD(it.ayah)}﴾</span></div>
+          <label class="muted" style="font-size:13px">انتقل إلى سورة <select data-surah>${AR.SURAHS.map((n, k) => `<option value="${k + 1}" ${k + 1 === it.surah ? 'selected' : ''}>${AD(k + 1)}. ${esc(n)}</option>`).join('')}</select></label>`
+          : `<div class="lv-read">${esc(textOf(it)).replace(/\n/g, '<br>')}</div>`}
         </div>
         <div class="lv-ctl">
           <button class="btn" data-prev ${i ? '' : 'disabled'}>⏮ السابق</button>
@@ -238,6 +243,7 @@
           <button class="btn" data-next>${done ? '✔ التالي' : '⏭ تخطَّ'}</button>
         </div>`;
       el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
+      const sj = el.querySelector('[data-surah]'); if (sj) sj.onchange = () => { const k = items.findIndex(x => x.surah === +sj.value && !have.has(x.id)); i = k >= 0 ? k : items.findIndex(x => x.surah === +sj.value); stopPlay(); show(); };
       el.querySelector('[data-prev]').onclick = () => { if (i > 0) { i--; stopPlay(); show(); } };
       el.querySelector('[data-next]').onclick = () => { i++; stopPlay(); show(); window.scrollTo(0, 0); };
       const pb = el.querySelector('[data-play]'); if (pb) pb.onclick = () => play(it, title, { noBar: true });

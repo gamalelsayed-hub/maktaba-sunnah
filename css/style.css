@@ -1131,3 +1131,4 @@ body.dark .lv-backup.due { background: rgba(245, 217, 139, .08); color: inherit;
 .news-ic.sm { font-size: 22px; }
 .news-body { line-height: 1.9; margin: 6px 0; text-align: start; }
 @media (max-width: 860px) { .lp-bar .qa-now { flex-basis: 100%; text-align: center; } .qa-rc { max-width: 130px; } }
+.lv-q { font-size: 1.7em; line-height: 2.2; text-align: center; }

@@ -118,7 +118,7 @@
         <button class="btn sm" data-act="mindmap">🗺 خريطة ذهنية</button>
         <button class="btn sm" data-act="copy">📋 نسخ مع التوثيق</button>
         <button class="btn sm" data-act="listen">${it.type === 'ayah' ? '🔊 استمع للتلاوة' : '🗣️ اقرأ لي'}</button>`;
-      if (APP.state.reviewer && it.type !== 'ayah') h += `<button class="btn sm" data-act="vrec">🎙️ سجّل بصوتي</button>`;
+      if (APP.state.reviewer) h += `<button class="btn sm" data-act="vrec">🎙️ سجّل بصوتي</button>`;
       if (APP.state.reviewer) h += `<span class="spacer"></span>${APP.statusTag(it.id)}
         <button class="btn sm" data-act="rv-ok">✔ اعتماد</button><button class="btn sm" data-act="rv-fix">✎ تصحيح</button><button class="btn sm" data-act="rv-reject">✗ رفض</button><button class="btn sm" data-act="edit">تعديل النص</button>`;
       return h + '</div>' + APP.commentsHtml(it.id);
