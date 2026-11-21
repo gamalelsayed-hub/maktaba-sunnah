@@ -1193,3 +1193,13 @@ body.dark .jz-tile { color: #f2f5f3; background: hsl(var(--h) 30% 22%); border-c
 .mw-acts { list-style: none; padding: 0; }
 .mw-acts li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
 .lv-inline { margin-top: 10px; } .lv-inline audio { border-radius: 12px; }
+/* المعاني تحت الآيات والجلالين */
+.jl-t { line-height: 2; margin: 4px 0; }
+.jl-q { color: var(--brand); font-weight: 600; }
+.mushaf-text.q-verse .q-mean { display: block; font-family: inherit; font-size: 15px; line-height: 1.9; background: var(--brand-l); border-radius: 12px; padding: 8px 12px; margin: 6px 0 14px; text-align: start; color: var(--text); }
+.q-mean .q-gh { margin: 0 0 4px; }
+.q-mean .q-gh dt { display: inline; font-weight: 700; color: var(--brand); }
+.q-mean .q-gh dt::after { content: ': '; }
+.q-mean .q-gh dd { display: inline; margin: 0; }
+.q-mean .q-gh dd::after { content: ''; display: block; }
+body.dark .mushaf-text.q-verse .q-mean { background: rgba(255,255,255,.05); }

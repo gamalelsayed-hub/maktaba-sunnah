@@ -84,6 +84,13 @@
     return g ? `<dl class="ap-gh">${g.map(([w, m]) => `<dt>${esc(w)}</dt><dd>${esc(m)}</dd>`).join('')}</dl><div class="muted ap-src">من «الميسر في غريب القرآن» — مجمع الملك فهد.</div>`
       : '<div class="muted">لا كلمات غريبة تحتاج بياناً في هذه الآية.</div>';
   };
+  // تفسير الجلالين (يجمع أحياناً آيتين أو أكثر في موضع واحد)
+  const jalOf = (a, d) => { if (!d.j) return null; for (let k = a; k >= 1; k--) if (d.j[k]) return { from: k, text: d.j[k] }; return null; };
+  const jalText = t => esc(t).replace(/﴿([^﴾]*)﴾/g, '<b class="jl-q">﴿$1﴾</b>');
+  const jalalaynHtml = (a, d) => {
+    const j = jalOf(a, d);
+    return j ? `${j.from < a ? `<small class="muted">(تفسير الآيات من ${D(j.from)})</small>` : ''}<p class="jl-t">${jalText(j.text)}</p><div class="muted ap-src">تفسير الجلالين: جلال الدين المحلي وجلال الدين السيوطي.</div>` : '<div class="muted">لا يتوفر تفسير الجلالين لهذه الآية.</div>';
+  };
   async function asbabHtml(a, d) {
     const ids = (d.b && d.b[a]) || [];
     if (!ids.length) return '<div class="muted">لم يُعثر في كتب الحديث المثبتة على حديث مقبول يذكر نزول هذه الآية. وكثير من آيات القرآن نزل ابتداءً بلا سبب خاص.</div>';
@@ -110,14 +117,14 @@
     let d;
     try { d = await load(s); } catch (e) { box.innerHTML = '<div class="warn">' + esc(e.message) + '</div>'; return; }
     const nB = ((d.b && d.b[a]) || []).length;
-    const tabs = [['tf', '📗 التفسير'], ['gh', '🔤 معاني الكلمات'], ['sb', '📜 أسباب النزول' + (nB ? ' •' : '')], ['tj', '🎨 التجويد']];
+    const tabs = [['tf', '📗 التفسير'], ['gh', '🔤 معاني الكلمات'], ['jl', '📜 الجلالين'], ['sb', '📜 أسباب النزول' + (nB ? ' •' : '')], ['tj', '🎨 التجويد']];
     const cur = opts.tab || localStorage.getItem('ap-tab') || 'tf';
     box.innerHTML = `<div class="tabs ap-tabs">${tabs.map(([k, l]) => `<button data-apt="${k}" class="${k === cur ? 'on' : ''}">${l}</button>`).join('')}</div><div class="ap-body"></div>`;
     const body = box.querySelector('.ap-body');
     const show = async k => {
       try { localStorage.setItem('ap-tab', k); } catch (e) { }
       box.querySelectorAll('[data-apt]').forEach(b => b.classList.toggle('on', b.dataset.apt === k));
-      body.innerHTML = k === 'tf' ? tafsirHtml(s, a, d) : k === 'gh' ? gharibHtml(a, d) : k === 'tj' ? tajweedPanel(s, a, it.text, d) : '<div class="muted">…</div>';
+      body.innerHTML = k === 'tf' ? tafsirHtml(s, a, d) : k === 'gh' ? gharibHtml(a, d) : k === 'jl' ? jalalaynHtml(a, d) : k === 'tj' ? tajweedPanel(s, a, it.text, d) : '<div class="muted">…</div>';
       if (k === 'sb') body.innerHTML = await asbabHtml(a, d);
     };
     box.querySelectorAll('[data-apt]').forEach(b => b.onclick = () => show(b.dataset.apt));
@@ -142,5 +149,11 @@
     panel(box, it);
   };
 
-  window.AYAH = { load, panel, tajweedHtml, colorSurah, legend, TJ };
+  // المعاني تحت كل آية في عرض السورة: الكلمات الغريبة ثم الجلالين
+  function meaningHtml(a, d) {
+    const g = d.g && d.g[a], j = jalOf(a, d);
+    return (g ? `<dl class="ap-gh q-gh">${g.map(([w, m]) => `<dt>${esc(w)}</dt><dd>${esc(m)}</dd>`).join('')}</dl>` : '')
+      + (j && j.from === a ? `<p class="jl-t">📜 ${jalText(j.text)}</p>` : '');
+  }
+  window.AYAH = { load, panel, tajweedHtml, colorSurah, legend, TJ, meaningHtml };
 })();

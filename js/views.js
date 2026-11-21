@@ -102,11 +102,17 @@
         ${s !== 1 && s !== 9 ? '<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>' : ''}
         <div class="mushaf-text quran-text">${ayat.map(a => `<span class="ay ${APP.hlClass(a.id)}" data-card="${a.id}" data-ay="${a.ayah}">${APP.withGharib(esc(s !== 1 && a.ayah === 1 && /^ب\u0651?\u0650سْمِ /.test(a.text) ? a.text.split(' ').slice(4).join(' ') : a.text))}</span><a class="ayah-num" href="#/item/${a.id}">${AR.toArabicDigits(a.ayah)}</a> `).join('')}</div>
       </div>
-      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><button class="btn" id="qTj">🎨 ${localStorage.getItem('tj-color') === '1' ? 'إخفاء ألوان التجويد' : 'ألوان التجويد'}</button><a class="btn" href="#/mushaf?s=${s}">📄 بالصفحات</a><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
+      ${ayat.length ? `<div class="mushaf-bar"><button class="btn primary" id="qPlayAll">▶ استمع للسورة</button><button class="btn" id="qTj">🎨 ${localStorage.getItem('tj-color') === '1' ? 'إخفاء ألوان التجويد' : 'ألوان التجويد'}</button><button class="btn" id="qMean">📝 ${localStorage.getItem('q-mean') === '1' ? 'إخفاء المعاني' : 'المعاني تحت الآيات'}</button><a class="btn" href="#/mushaf?s=${s}">📄 بالصفحات</a><a class="btn" href="#/tasmee?new=1">📝 اختبر حفظك</a><span class="muted" style="font-size:13px">اضغط على أي آية لخياراتها: الاستماع، التفسير، المتشابهات، الحفظ، الهامش</span></div>` : ''}`;
     if (window.QA && ayat.length) {
       const from = k => QA.surahAyat(s).slice(k - 1);
       el.querySelector('#qPlayAll').onclick = () => QA.play(from(1));
       el.querySelector('#qTj').onclick = () => { try { localStorage.setItem('tj-color', localStorage.getItem('tj-color') === '1' ? '0' : '1'); } catch (e) { } APP.rerender(); };
+      el.querySelector('#qMean').onclick = () => { try { localStorage.setItem('q-mean', localStorage.getItem('q-mean') === '1' ? '0' : '1'); } catch (e) { } APP.rerender(); };
+      // معاني الكلمات والجلالين تحت كل آية
+      if (window.AYAH && localStorage.getItem('q-mean') === '1') {
+        const mt = el.querySelector('.mushaf-text'); mt.classList.add('q-verse');
+        AYAH.load(s).then(d => { ayat.forEach(it => { const sp = el.querySelector(`[data-card="${it.id}"]`), num = sp && sp.nextElementSibling; const h = AYAH.meaningHtml(it.ayah, d); if (num && h) num.insertAdjacentHTML('afterend', `<div class="q-mean">${h}</div>`); }); }).catch(() => { });
+      }
       if (window.AYAH && localStorage.getItem('tj-color') === '1') { const mu = el.querySelector('.mushaf'); mu.insertAdjacentHTML('afterbegin', AYAH.legend()); mu.querySelector('.mushaf-text').classList.add('tj-on'); AYAH.colorSurah(el, s, ayat).catch(() => { }); }
       // الضغط على آية: ورقة خيارات
       el.querySelector('.mushaf-text').onclick = e => {
