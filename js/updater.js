@@ -15,8 +15,23 @@
     return apks.sort((a, b) => cmp(b.v, a.v))[0] || null;
   }
 
+  // هل ثُبّت التطبيق من جوجل بلاي؟ عندها التحديث من المتجر وحده (ملف GitHub لا يُثبَّت فوق نسخة المتجر)
+  const PLAY_ID = 'org.waqf.maktabasunnah';
+  async function fromPlay() {
+    try { const KA = C.Plugins.KeepAlive; if (!KA || !KA.installer) return false; const r = await KA.installer(); return r && r.source === 'com.android.vending'; } catch (e) { return false; }
+  }
+  function openPlay() {
+    const a = document.createElement('a'); a.href = 'market://details?id=' + PLAY_ID; a.target = '_blank'; document.body.appendChild(a);
+    try { a.click(); } catch (e) { location.href = 'https://play.google.com/store/apps/details?id=' + PLAY_ID; }
+    a.remove();
+  }
   async function check(manual) {
     if (!native) { if (manual) APP.toast('نسخة الويب تتحدث تلقائياً — أعد فتح الصفحة لتحصل على آخر نسخة'); return; }
+    if (await fromPlay()) {
+      // جوجل بلاي يحدّث التطبيق تلقائياً؛ والتحقق اليدوي يفتح صفحة التطبيق في المتجر
+      if (manual) { APP.toast('التحديثات تصلك من جوجل بلاي — نفتح لك صفحة التطبيق في المتجر', 3500); setTimeout(openPlay, 600); }
+      return;
+    }
     try {
       const [cur, nw] = [await current(), await latest()];
       await DB.setting('update-last-check', Date.now());
@@ -40,5 +55,5 @@
     if (Date.now() - last > 20 * 3600e3) check(false);
   }, 8000));
 
-  window.UPDATER = { native, check, current };
+  window.UPDATER = { native, check, current, fromPlay, openPlay };
 })();

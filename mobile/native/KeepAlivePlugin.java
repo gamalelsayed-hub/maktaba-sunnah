@@ -43,6 +43,21 @@ public class KeepAlivePlugin extends Plugin {
         try { if (PlaybackService.running) send(call); call.resolve(); } catch (Exception e) { call.reject(e.getMessage()); }
     }
 
+    /** مصدر تثبيت التطبيق: com.android.vending = جوجل بلاي، وغيره (أو فارغ) = ملف APK مثبّت يدوياً */
+    @PluginMethod
+    public void installer(PluginCall call) {
+        String src = "";
+        try {
+            android.content.pm.PackageManager pm = getContext().getPackageManager();
+            String pkg = getContext().getPackageName();
+            if (Build.VERSION.SDK_INT >= 30) src = pm.getInstallSourceInfo(pkg).getInstallingPackageName();
+            else src = pm.getInstallerPackageName(pkg);
+        } catch (Exception ignored) { }
+        JSObject o = new JSObject();
+        o.put("source", src == null ? "" : src);
+        call.resolve(o);
+    }
+
     @PluginMethod
     public void stop(PluginCall call) {
         getContext().stopService(new Intent(getContext(), PlaybackService.class));
