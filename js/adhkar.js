@@ -9,29 +9,18 @@
   // تقدّم العدّ لهذا اليوم (يُصفَّر تلقائياً كل يوم)
   async function prog() { const p = (await DB.setting('adhkar-prog')) || {}; if (p.day !== today()) return { day: today(), c: {} }; return p; }
   const saveProg = p => DB.setting('adhkar-prog', p);
-  async function settings() { return Object.assign({ fs: 1, morning: '05:30', evening: '16:30', morningOn: false, eveningOn: false, periodic: 0, sleepOn: false, sleep: '22:30', voice: 'rec' }, (await DB.setting('adhkar-cfg')) || {}); }
+  async function settings() { return Object.assign({ fs: 1, morning: '05:30', evening: '16:30', morningOn: false, eveningOn: false, periodic: 0, sleepOn: false, sleep: '22:30', voice: 'rec', auto: true }, (await DB.setting('adhkar-cfg')) || {}); }
 
-  // الاستماع: التسجيل الصوتي إن وُجد، وإلا القراءة الصوتية
-  const player = new Audio();
-  let queue = [], qi = 0;
-  function bar() {
-    let b = document.getElementById('dkBar');
-    if (!queue.length) { if (b) b.remove(); return; }
-    if (!b) { b = document.createElement('div'); b.id = 'dkBar'; b.className = 'qa-bar'; document.body.appendChild(b); }
-    b.innerHTML = `<button class="btn sm primary" data-a="t">${player.paused ? '▶' : '⏸'}</button>${queue.length > 1 ? '<button class="btn sm" data-a="n">⏭</button>' : ''}
-      <span class="qa-now">📿 ${queue.length > 1 ? `الذكر ${AR.toArabicDigits(qi + 1)} من ${AR.toArabicDigits(queue.length)}` : 'ذكر'}</span><button class="btn sm" data-a="x" title="إيقاف">✕</button>`;
-    b.querySelector('[data-a=t]').onclick = () => { if (player.paused) player.play().catch(() => { }); else player.pause(); };
-    const n = b.querySelector('[data-a=n]'); if (n) n.onclick = () => playAt(qi + 1);
-    b.querySelector('[data-a=x]').onclick = stop;
+  // الاستماع: التسجيل الصوتي إن وُجد، وإلا القراءة الصوتية — عبر المشغّل الطويل (تقديم ورجوع وسابق وتالٍ ومؤقت)
+  const label = t => { const w = String(t).replace(/[ً-ْٰ]/g, '').split(/\s+/).slice(0, 5).join(' '); return w + '…'; };
+  function play(items, title) {
+    return LP.play(items.map((x, i) => ({ title: title || 'الأذكار', sub: items.length > 1 ? `الذكر ${AR.toArabicDigits(i + 1)}: ${label(x.t)}` : label(x.t), url: x.a })), { name: 'adhkar', icon: '📿' });
   }
-  function playAt(i) { if (i >= queue.length) { stop(); return; } qi = i; player.src = queue[i]; player.play().catch(() => { }); bar(); }
-  function stop() { const had = queue.length; queue = []; qi = 0; try { player.pause(); player.removeAttribute('src'); player.load(); } catch (e) { } if (had && window.KEEPALIVE) KEEPALIVE.stop(); bar(); }
-  if (window.MEDIA) MEDIA.register('adhkar', () => { if (queue.length) stop(); });
-  player.onplay = player.onpause = () => bar();
-  player.onended = () => playAt(qi + 1);
-  function play(urls) { if (window.MEDIA) MEDIA.claim('adhkar'); queue = urls; playAt(0); if (window.KEEPALIVE) KEEPALIVE.start('📿 الأذكار', ''); }
+  function stop() { if (LP.P.name === 'adhkar') LP.stop(); }
   function listen(item) {
-    if (item.a && navigator.onLine !== false) { play([item.a]); player.onerror = () => { stop(); if (window.TTS) TTS.read(item.t, 'ذكر'); }; return; }
+    if (item.a && navigator.onLine !== false) {
+      return LP.play([{ title: 'ذكر', sub: label(item.t), url: item.a }], { name: 'adhkar', icon: '📿', onError: () => { LP.stop(); if (window.TTS) TTS.read(item.t, 'ذكر'); return true; } });
+    }
     stop(); if (window.TTS) TTS.read(item.t, 'ذكر');
   }
 
@@ -100,6 +89,8 @@
         <label class="fld"><input type="checkbox" id="sOn" ${cfg.sleepOn ? 'checked' : ''}> أذكار النوم الساعة <input type="time" id="sT" value="${cfg.sleep}"></label>
         <label class="fld">تذكير دوري بذكر قصير (سبحان الله وبحمده، الاستغفار، الصلاة على النبي ﷺ…) <select id="per">${[[0, 'إيقاف'], [1, 'كل ساعة'], [2, 'كل ساعتين'], [3, 'كل 3 ساعات'], [4, 'كل 4 ساعات'], [6, 'كل 6 ساعات']].map(([v, l]) => `<option value="${v}" ${+cfg.periodic === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
         <div class="muted" style="font-size:12.5px">التذكير الدوري يتوقف من 11 مساءً إلى 5 صباحاً.</div>
+        ${NOTIFY.native && window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Adhan && Capacitor.Plugins.Adhan.scheduleAdhkar ? `<label class="fld" style="margin-top:10px"><input type="checkbox" id="autoOn" ${cfg.auto !== false ? 'checked' : ''}> 🔊 شغّل أذكار الصباح والمساء والنوم <b>مسموعةً تلقائياً</b> في وقتها، حتى والتطبيق مغلق</label>
+        <div class="muted" style="font-size:12.5px">تُسمع ذكراً بعد ذكر وتتحكم فيها من الإشعار: إيقاف مؤقت، التالي، إيقاف. تحتاج اتصالاً بالإنترنت. <button class="btn sm" id="autoTest">▶ جرّب الآن</button></div>` : ''}
         <button class="btn primary" id="saveR" style="margin-top:10px">حفظ</button></div>`;
     }
     el.innerHTML = head + body;
@@ -125,12 +116,14 @@
       // تشغيل متتابع: التسجيلات حيث وُجدت
       const q = list.filter(x => x.a); let i = 0;
       if (!q.length) { if (window.TTS) TTS.read(list.map(x => x.t).join('. '), 'الأذكار'); return; }
-      void i; player.onerror = null; play(q.map(x => x.a)); APP.toast('▶ يُشغَّل ' + q.length + ' ذكراً بالتتابع — اضغط أي ذكر للاستماع له وحده', 4000);
+      void i; play(q, tab === 'sabah' ? '🌅 أذكار الصباح' : tab === 'masa' ? '🌇 أذكار المساء' : 'الأذكار'); APP.toast('▶ يُشغَّل ' + AR.toArabicDigits(q.length) + ' ذكراً بالتتابع — اضغط أي ذكر للاستماع له وحده', 4000);
     };
     if ($('#hq')) $('#hq').oninput = e => { const q = AR.normalize(e.target.value); el.querySelectorAll('.hisn-grid .tile').forEach(t => { t.style.display = !q || t.dataset.t.includes(q) ? '' : 'none'; }); };
+    if ($('#autoTest')) $('#autoTest').onclick = async () => { await pushUrls(); const k = isMorningNow() ? 'sabah' : 'masa'; Capacitor.Plugins.Adhan.testAdhkar({ kind: k, title: k === 'sabah' ? '🌅 أذكار الصباح' : '🌇 أذكار المساء' }).catch(e => APP.toast('تعذّر التشغيل: ' + (e.message || e))); };
     if ($('#perm')) $('#perm').onclick = async () => { await NOTIFY.request(); APP.rerender(); };
     if ($('#saveR')) $('#saveR').onclick = async () => {
       Object.assign(cfg, { morningOn: $('#mOn').checked, morning: $('#mT').value, eveningOn: $('#eOn').checked, evening: $('#eT').value, sleepOn: $('#sOn').checked, sleep: $('#sT').value, periodic: +$('#per').value });
+      if ($('#autoOn')) cfg.auto = $('#autoOn').checked;
       await DB.setting('adhkar-cfg', cfg);
       if ((cfg.morningOn || cfg.eveningOn || cfg.sleepOn || cfg.periodic) && (await NOTIFY.status()).perm !== 'granted') await NOTIFY.request();
       await NOTIFY.rescheduleAll(); APP.toast('✔ حُفظ التذكير');
@@ -139,13 +132,30 @@
 
   // ===== جدولة تنبيهات الأذكار للأيام القادمة =====
   const SHORT = ['سبحان الله وبحمده، سبحان الله العظيم', 'أستغفر الله وأتوب إليه', 'اللهم صلّ وسلّم على نبينا محمد', 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير', 'لا حول ولا قوة إلا بالله', 'سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر', 'حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم', 'رب اغفر لي وتب عليّ إنك أنت التواب الرحيم'];
+  // روابط التسجيلات لكل ورد (تُحفظ في الطبقة الأصلية لتُشغَّل والتطبيق مغلق)
+  const AUTO = () => { const C = window.Capacitor; return C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.Adhan && C.Plugins.Adhan.scheduleAdhkar ? C.Plugins.Adhan : null; };
+  const sleepCat = () => D().hisn.find(c => c.title === 'أذكار النوم');
+  const urlsFor = () => ({ sabah: D().sm.filter(x => (x.k === 0 || x.k === 1) && x.a).map(x => x.a), masa: D().sm.filter(x => (x.k === 0 || x.k === 2) && x.a).map(x => x.a), sleep: ((sleepCat() || {}).items || []).filter(x => x.a).map(x => x.a) });
+  async function pushUrls(items) { const A = AUTO(); if (A) await A.scheduleAdhkar({ items: items || [], urls: urlsFor() }).catch(() => { }); }
   NOTIFY.register('adhkar', async () => {
     const cfg = await settings(), out = [], at = (d, hm) => { const [h, m] = hm.split(':').map(Number); const x = new Date(d); x.setHours(h, m, 0, 0); return x; };
+    // الأذكار المسموعة تلقائياً (تطبيق أندرويد): تحل محل تذكير الصباح والمساء والنوم
+    const A = AUTO(), auto = A && cfg.auto !== false, autoItems = [];
+    if (A) {
+      if (auto) for (let k = 0; k < 7; k++) {
+        const d = new Date(); d.setDate(d.getDate() + k);
+        if (cfg.morningOn) autoItems.push({ kind: 'sabah', title: '🌅 أذكار الصباح', at: at(d, cfg.morning).getTime() });
+        if (cfg.eveningOn) autoItems.push({ kind: 'masa', title: '🌇 أذكار المساء', at: at(d, cfg.evening).getTime() });
+        if (cfg.sleepOn && urlsFor().sleep.length) autoItems.push({ kind: 'sleep', title: '🌙 أذكار النوم', at: at(d, cfg.sleep).getTime() });
+      }
+      await pushUrls(autoItems.filter(x => x.at > Date.now()).map((x, i) => Object.assign(x, { id: i })));
+    }
+    const skip = kind => auto && (kind !== 'sleep' || urlsFor().sleep.length);
     for (let k = 0; k < 7; k++) {
       const d = new Date(); d.setDate(d.getDate() + k);
-      if (cfg.morningOn) out.push({ title: '🌅 أذكار الصباح', body: 'أصبحنا وأصبح الملك لله — حان وقت أذكار الصباح', at: at(d, cfg.morning), route: '#/adhkar/sabah' });
-      if (cfg.eveningOn) out.push({ title: '🌇 أذكار المساء', body: 'أمسينا وأمسى الملك لله — حان وقت أذكار المساء', at: at(d, cfg.evening), route: '#/adhkar/masa' });
-      if (cfg.sleepOn) out.push({ title: '🌙 أذكار النوم', body: 'باسمك اللهم أموت وأحيا', at: at(d, cfg.sleep), route: '#/adhkar/hisn/' + ((D().hisn.find(c => c.title === 'أذكار النوم') || {}).id || '') });
+      if (cfg.morningOn && !skip('sabah')) out.push({ title: '🌅 أذكار الصباح', body: 'أصبحنا وأصبح الملك لله — حان وقت أذكار الصباح', at: at(d, cfg.morning), route: '#/adhkar/sabah' });
+      if (cfg.eveningOn && !skip('masa')) out.push({ title: '🌇 أذكار المساء', body: 'أمسينا وأمسى الملك لله — حان وقت أذكار المساء', at: at(d, cfg.evening), route: '#/adhkar/masa' });
+      if (cfg.sleepOn && !skip('sleep')) out.push({ title: '🌙 أذكار النوم', body: 'باسمك اللهم أموت وأحيا', at: at(d, cfg.sleep), route: '#/adhkar/hisn/' + ((D().hisn.find(c => c.title === 'أذكار النوم') || {}).id || '') });
     }
     if (+cfg.periodic) {
       let t = new Date(); t.setMinutes(0, 0, 0);

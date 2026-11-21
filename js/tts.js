@@ -23,7 +23,7 @@
   }
   const NT = window.NATIVE_TTS;
   function speakNext() {
-    if (!S.on || S.i >= S.chunks.length) { stop(); return; }
+    if (!S.on || S.i >= S.chunks.length) { const f = S.on && S.i >= S.chunks.length ? S.onEnd : null; stop(); if (f) f(); return; }
     if (NT) { // تطبيق الجوال: محرك القراءة في الجهاز
       const my = S.gen = (S.gen || 0) + 1;
       NT.speak(S.chunks[S.i], S.rate).then(() => { if (!S.on || my !== S.gen) return; S.i++; bar(); speakNext(); })
@@ -37,17 +37,19 @@
     u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') { APP.toast(voices().length ? 'تعذرت القراءة الصوتية: ' + e.error : 'لا يوجد صوت عربي في جهازك — راجع «الإعدادات ← القراءة الصوتية» لطريقة إضافته', 7000); stop(); } };
     synth.speak(u);
   }
-  function read(text, title) {
+  function read(text, title, opts) {
     if (!synth && !NT) { APP.toast('القراءة الصوتية غير مدعومة في هذا المتصفح'); return; }
     if (window.MEDIA) MEDIA.claim('tts');
     if (NT) NT.stop(); else synth.cancel();
     if (window.KEEPALIVE) KEEPALIVE.start('🗣️ القراءة الصوتية', title || '');
-    S.chunks = split(text); S.i = 0; S.on = true; S.title = title || '';
+    S.chunks = split(text); S.i = 0; S.on = true; S.title = title || ''; S.onEnd = (opts && opts.onEnd) || null;
+    if (window.MEDIA) MEDIA.controls('tts', { toggle: pause, next: () => jump(1), prev: () => jump(-1), stop: () => { S.onEnd = null; stop(); } });
     if (!NT && !voices().length) APP.toast('لم يُعثر على صوت عربي في جهازك — ستُقرأ بالصوت الافتراضي. راجع «الإعدادات ← القراءة الصوتية»', 6000);
     bar(); speakNext();
   }
-  function stop() { if (S.on && window.KEEPALIVE) KEEPALIVE.stop(); S.on = false; S.paused = false; S.gen = (S.gen || 0) + 1; if (NT) NT.stop(); else if (synth) { synth.cancel(); setTimeout(() => synth.cancel(), 120); } bar(); }
-  const pause = () => {
+  function stop() { if ((S.on || S.paused) && window.KEEPALIVE) KEEPALIVE.stop(); S.on = false; S.paused = false; S.gen = (S.gen || 0) + 1; if (NT) NT.stop(); else if (synth) { synth.cancel(); setTimeout(() => synth.cancel(), 120); } bar(); }
+  const pause = () => { setTimeout(() => window.KEEPALIVE && KEEPALIVE.update({ playing: !S.paused }), 0); return pause0(); };
+  const pause0 = () => {
     if (NT) { if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; NT.stop(); } bar(); return; }
     // الإيقاف المؤقت غير موثوق في سفاري: نوقف ونستأنف من الجملة نفسها
     if (S.paused) { S.paused = false; S.on = true; speakNext(); } else { S.paused = true; S.gen++; synth.cancel(); } bar();
@@ -65,7 +67,7 @@
     b.querySelector('[data-a=p]').onclick = () => jump(-1);
     b.querySelector('[data-a=n]').onclick = () => jump(1);
     b.querySelector('[data-a=t]').onclick = pause;
-    b.querySelector('[data-a=x]').onclick = stop;
+    b.querySelector('[data-a=x]').onclick = () => { S.onEnd = null; stop(); };
     b.querySelector('[data-a=r]').onchange = e => { S.rate = +e.target.value; saveCfg(); jump(0); };
   }
 

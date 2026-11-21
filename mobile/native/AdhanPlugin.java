@@ -69,4 +69,42 @@ public class AdhanPlugin extends Plugin {
         try { ctx.startService(i); } catch (Exception ignored) { }
         call.resolve();
     }
+
+    /** الأذكار المسموعة تلقائياً: items = [{id, at, kind, title}] و urls = {sabah:[...], masa:[...], sleep:[...]} */
+    @PluginMethod
+    public void scheduleAdhkar(PluginCall call) {
+        Context ctx = getContext();
+        JSArray items = call.getArray("items");
+        com.getcapacitor.JSObject urls = call.getObject("urls");
+        AdhkarScheduler.cancelAll(ctx);
+        android.content.SharedPreferences.Editor ed = AdhkarScheduler.prefs(ctx).edit();
+        ed.putString("items", items != null ? items.toString() : "[]");
+        if (urls != null) {
+            java.util.Iterator<String> it = urls.keys();
+            while (it.hasNext()) { String k = it.next(); org.json.JSONArray a = urls.optJSONArray(k); if (a != null) ed.putString("urls_" + k, a.toString()); }
+        }
+        ed.apply();
+        int n = AdhkarScheduler.scheduleAll(ctx);
+        JSObject r = new JSObject();
+        r.put("count", n);
+        call.resolve(r);
+    }
+
+    @PluginMethod
+    public void testAdhkar(PluginCall call) {
+        Context ctx = getContext();
+        Intent i = new Intent(ctx, AdhkarService.class);
+        i.putExtra("kind", call.getString("kind", "sabah"));
+        i.putExtra("title", call.getString("title", "📿 الأذكار"));
+        try { ContextCompat.startForegroundService(ctx, i); call.resolve(); }
+        catch (Exception e) { call.reject(e.getMessage()); }
+    }
+
+    @PluginMethod
+    public void stopAdhkar(PluginCall call) {
+        Context ctx = getContext();
+        Intent i = new Intent(ctx, AdhkarService.class).setAction(AdhkarService.CTL).putExtra("cmd", "stop");
+        try { ctx.startService(i); } catch (Exception ignored) { }
+        call.resolve();
+    }
 }

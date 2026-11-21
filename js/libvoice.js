@@ -162,6 +162,12 @@
     inp.click();
   }
 
+  // ---------- مصادر إضافية للتسجيل (الحكايات والقصص) ----------
+  // كل مصدر: { id, title, items: async () => [{ id, title, text, chapter }] }
+  const SOURCES = [];
+  const addSource = src => { if (!SOURCES.find(x => x.id === src.id)) SOURCES.push(src); };
+  const srcOf = id => SOURCES.find(x => x.id === id);
+
   // ---------- الشاشة: قائمة الكتب ----------
   const V = APP.views;
   V.voicerec = async (el, [bookId, startId]) => {
@@ -171,6 +177,7 @@
     const books = Object.values(APP.state.books).filter(b => b.type !== 'quran');
     books.sort((a, b) => { const ia = PLAN.indexOf(a.id), ib = PLAN.indexOf(b.id); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.title.localeCompare(b.title, 'ar'); });
     const rows = await Promise.all(books.map(async b => ({ b, total: await DB.count('items', 'bookId', b.id), done: await VS.count(b.id).catch(() => 0) })));
+    for (const src of SOURCES) { const its = await src.items().catch(() => []); if (its.length) rows.push({ b: { id: src.id, title: src.title }, total: its.length, done: await VS.count(src.id).catch(() => 0) }); }
     const allRecs = await VS.every().catch(() => []), unexp = allRecs.filter(r => !r.exp).length;
     const lastExp = await DB.setting('libvoiceLastExport');
     el.innerHTML = `<h1>🎙️ تسجيل المكتبة بصوتي</h1>
@@ -207,11 +214,12 @@
   // ---------- الشاشة: التسجيل المتتابع ----------
   async function focus(el, bookId, startId) {
     el.innerHTML = '<div class="card">جارٍ تحميل الكتاب…</div>';
-    const items = (await DB.byIndex('items', 'bookId', bookId)).sort((a, b) => ord(a) - ord(b) || String(a.id).localeCompare(String(b.id)));
+    const src = srcOf(bookId);
+    const items = src ? (await src.items()).map((x, k) => Object.assign({ seq: k }, x)) : (await DB.byIndex('items', 'bookId', bookId)).sort((a, b) => ord(a) - ord(b) || String(a.id).localeCompare(String(b.id)));
     const have = new Set(await VS.keys(bookId).catch(() => []));
     let i = startId ? Math.max(0, items.findIndex(x => x.id === startId)) : items.findIndex(x => !have.has(x.id));
     if (i < 0) i = 0;
-    const title = APP.bookTitle(bookId);
+    const title = src ? src.title : APP.bookTitle(bookId);
     const show = async () => {
       const it = items[i]; const s = await stats();
       if (!it) { el.innerHTML = `<div class="card" style="text-align:center"><h2>🎉 أتممت تسجيل «${esc(title)}»</h2><p>جزاك الله خيراً. صدّر التسجيلات الآن.</p><a class="btn primary" href="#/voicerec">رجوع</a></div>`; return; }
@@ -255,5 +263,6 @@
     show();
   }
 
-  window.LIBVOICE = { play, stop: stopPlay, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
+  const blob = async id => { const r = await VS.get(id).catch(() => null); return r && r.blob ? r.blob : null; };
+  window.LIBVOICE = { play, stop: stopPlay, blob, addSource, SOURCES, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
 })();

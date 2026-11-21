@@ -1101,3 +1101,33 @@ body.dark[data-theme="slate"] { --hero-a: #2a3442; --hero-b: #141a22; --brand: #
 @media (max-width: 860px) { #lvBar { bottom: calc(140px + var(--sab)) !important; } }
 .lv-backup.due { border-color: #f5d98b; background: #fff8e6; }
 body.dark .lv-backup.due { background: rgba(245, 217, 139, .08); color: inherit; }
+
+/* ---------- المشغّل الطويل والإذاعات والحكايات والرسائل (1.30) ---------- */
+.lp-bar, #qaBar { border-radius: 18px; }
+.lp-bar { flex-direction: column; gap: 4px; padding: 8px 12px; width: min(620px, calc(100vw - 16px)); }
+.lp-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; width: 100%; }
+.lp-pos { flex: 1; min-width: 140px; accent-color: var(--brand); height: 22px; }
+.lp-time { font-size: 12.5px; white-space: nowrap; min-width: 74px; text-align: center; }
+.lp-live { color: #c62828; font-size: 12.5px; font-weight: 700; }
+#qaBar .lp-row { flex-basis: 100%; }
+.qa-rc { max-width: 170px; }
+.lp-dlbar { height: 6px; background: var(--line); border-radius: 6px; overflow: hidden; margin-top: 8px; }
+.lp-dlbar i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .3s; }
+.radio-card { text-align: center; }
+.radio-ic { font-size: 40px; }
+.hk-list { display: flex; flex-direction: column; gap: 6px; }
+.hk-row { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+.hk-row.on { border-color: var(--brand); background: var(--brand-l); }
+.hk-ic { font-size: 26px; }
+.hk-t { flex: 1; display: flex; flex-direction: column; }
+.hk-t small { font-size: 12px; }
+.hk-book { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; text-decoration: none; color: inherit; }
+.hk-promo { display: flex; gap: 12px; align-items: center; text-decoration: none; color: inherit; border-color: var(--brand2); }
+.hk-promo span:last-child { display: flex; flex-direction: column; }
+.hk-shelf { display: block; text-align: center; margin: 0 auto 10px; max-width: 420px; text-decoration: none; }
+.nb-badge { background: #d32f2f; color: #fff; border-radius: 10px; padding: 0 7px; font-size: 12px; margin-inline-start: 4px; }
+.news-pop { text-align: center; }
+.news-ic { font-size: 44px; }
+.news-ic.sm { font-size: 22px; }
+.news-body { line-height: 1.9; margin: 6px 0; text-align: start; }
+@media (max-width: 860px) { .lp-bar .qa-now { flex-basis: 100%; text-align: center; } .qa-rc { max-width: 130px; } }

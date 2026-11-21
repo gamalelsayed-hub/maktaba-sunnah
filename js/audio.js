@@ -40,7 +40,13 @@
     { id: 'ghamdi', n: 'سعد الغامدي', d: 'مرتّل', era: 'new', src: [EA('Ghamadi_40kbps')] },
     { id: 'ajamy', n: 'أحمد العجمي', d: 'مرتّل', era: 'new', src: [IN('ar.ahmedajamy', 64)] },
     { id: 'qatami', n: 'ناصر القطامي', d: 'مرتّل', era: 'new', src: [EA('Nasser_Alqatami_128kbps')] },
+    // قرّاء تلاواتهم متاحة بالسورة كاملة (لا آية آية): للاستماع فقط، بلا تتبّع الآيات ولا تكرار الآية
+    { id: 'islam-sobhi', n: 'إسلام صبحي', d: 'مرتّل — بالسورة كاملة', era: 'full', full: true, base: 'https://cdn.mp3quran.net/download/audio/islam-sobhi/r1/', miss: [37, 39, 40, 45, 65] },
+    { id: 'mosaad', n: 'عبد الرحمن مسعد', d: 'سور مختارة — بالسورة كاملة', era: 'full', full: true, base: 'https://archive.org/download/010_20221110/', only: [10, 19, 23, 29, 32, 49, 73, 78, 87, 88, 100, 107] },
   ];
+  // سور القارئ المتاحة (لقرّاء السورة الكاملة)
+  const surahsOf = r => { const R = rec(r); if (!R.full) return Array.from({ length: 114 }, (_, i) => i + 1); return R.only ? R.only.slice() : Array.from({ length: 114 }, (_, i) => i + 1).filter(x => !(R.miss || []).includes(x)); };
+  const fullUrl = (r, s) => rec(r).base + String(s).padStart(3, '0') + '.mp3';
   const pad3 = n => String(n).padStart(3, '0');
   const srcUrl = (src, s, a) => src.k === 'ea' ? `https://everyayah.com/data/${src.f}/${pad3(s)}${pad3(a)}.mp3` : `https://cdn.islamic.network/quran/audio/${src.b}/${src.e}/${globalNo(s, a)}.mp3`;
   const rec = id => RECITERS.find(r => r.id === id) || RECITERS[0];
@@ -56,6 +62,9 @@
   const getBlob = (r, s, a) => tx('readonly', st => st.get(key(r, s, a)));
   const putBlob = (k, b) => tx('readwrite', st => st.put(b, k));
   const allKeys = () => tx('readonly', st => st.getAllKeys());
+  const skey = (r, s) => `${r}/S${pad3(s)}`;
+  const getSurahBlob = (r, s) => tx('readonly', st => st.get(skey(r, s)));
+  async function storedSurahs(r, list) { const ks = new Set((await allKeys()).filter(k => k.startsWith(r + '/S'))); return (list || surahsOf(r)).filter(s => ks.has(skey(r, s))).length; }
   async function stored(r, list) { const ks = new Set((await allKeys()).filter(k => k.startsWith(r + '/'))); return list ? list.filter(([s, a]) => ks.has(key(r, s, a))).length : ks.size; }
   async function removeReciter(r) { const ks = (await allKeys()).filter(k => k.startsWith(r + '/')); await tx('readwrite', st => { ks.forEach(k => st.delete(k)); }); return ks.length; }
 
@@ -73,7 +82,17 @@
     }
     throw last || new Error('تعذر التنزيل');
   }
+  async function downloadSurah(r, s) {
+    if (await getSurahBlob(r, s)) return true;
+    const b = await fetchBlob(fullUrl(r, s)); await putBlob(skey(r, s), b); return true;
+  }
   let cancelDl = false;
+  async function downloadFull(r, surahs, onProg) {
+    cancelDl = false; let done = 0, fail = 0, i = 0;
+    const worker = async () => { while (i < surahs.length && !cancelDl) { const s = surahs[i++]; try { await downloadSurah(r, s); } catch (e) { fail++; } done++; onProg && onProg(done, surahs.length, fail); } };
+    await Promise.all([worker(), worker()]);
+    return { done, fail, cancelled: cancelDl };
+  }
   async function download(r, list, onProg) {
     cancelDl = false; let done = 0, fail = 0, i = 0;
     const worker = async () => { while (i < list.length && !cancelDl) { const [s, a] = list[i++]; try { await downloadOne(r, s, a); } catch (e) { fail++; } done++; onProg && onProg(done, list.length, fail); } };
@@ -125,8 +144,8 @@
       P.playing = false; bar(); APP.toast('تعذر تشغيل الصوت — تحقق من الإنترنت أو نزّل السورة للاستماع بدون إنترنت', 5000);
     };
     x.onplaying = () => { if (x !== audio() || silent(x)) return; if (tryList.length) remember(P.r, tryList[tryIdx]); preload(); };
-    x.onplay = () => { if (x === audio() && !silent(x)) { P.playing = true; bar(); } };
-    x.onpause = () => { if (x === audio() && !silent(x)) { P.playing = false; bar(); } };
+    x.onplay = () => { if (x === audio() && !silent(x)) { P.playing = true; bar(); notif(); } };
+    x.onpause = () => { if (x === audio() && !silent(x)) { P.playing = false; bar(); notif(); } };
     x.onended = () => {
       if (x !== audio() || P.stopped || !P.q.length || silent(x)) return;
       if (--P.repLeft > 0 && !P.q[P.i][2]) { x.currentTime = 0; x.play().catch(() => { }); return; }
@@ -137,24 +156,23 @@
   const SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function unlock() { if (P.unlocked) return; P.unlocked = true; A.forEach(x => { try { x.src = SILENT; const p = x.play(); if (p) p.catch(() => { }); } catch (e) { } }); }
   // التشغيل في الخلفية (تطبيق أندرويد) وأزرار شاشة القفل
-  function keep(on) { if (window.KEEPALIVE) on ? KEEPALIVE.start('🎧 ' + rec(P.r).n, P.q[P.i] && !P.q[P.i][2] ? 'سورة ' + AR.SURAHS[P.q[P.i][0] - 1] : 'تلاوة') : KEEPALIVE.stop(); }
-  function mediaInfo() {
-    if (!('mediaSession' in navigator) || !P.q[P.i]) return;
-    const [s, a, bs] = P.q[P.i];
-    try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: bs ? 'البسملة' : `سورة ${AR.SURAHS[s - 1]} — الآية ${a}`, artist: rec(P.r).n, album: 'زاد الأسرة المسلمة', artwork: [{ src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' }] });
-      navigator.mediaSession.setActionHandler('play', () => toggle());
-      navigator.mediaSession.setActionHandler('pause', () => toggle());
-      navigator.mediaSession.setActionHandler('nexttrack', () => step(1));
-      navigator.mediaSession.setActionHandler('previoustrack', () => step(-1));
-      navigator.mediaSession.setActionHandler('stop', () => { P.q = []; stop(); });
-    } catch (e) { }
-  }
+  const nowText = () => P.q[P.i] && !P.q[P.i][2] ? 'سورة ' + AR.SURAHS[P.q[P.i][0] - 1] + ' — الآية ' + AR.toArabicDigits(P.q[P.i][1]) : 'البسملة';
+  function keep(on) { if (window.KEEPALIVE) on ? KEEPALIVE.start('🎧 ' + rec(P.r).n, nowText()) : KEEPALIVE.stop(); }
+  function notif() { if (window.KEEPALIVE && P.q.length) KEEPALIVE.update({ title: '🎧 ' + rec(P.r).n, text: nowText(), playing: !audio().paused }); }
+  function mediaInfo() { notif(); }
   // تشغيل قائمة آيات؛ تُسبق السورة بالبسملة إن بدأت من أولها (عدا الفاتحة والتوبة)
   async function play(list, opts = {}) {
     unlock(); // يجب أن يسبق أي await
+    let r = opts.reciter || (await DB.setting('reciter')) || P.r || 'husary';
+    if (rec(r).full) {
+      // قارئ بالسورة كاملة: يصلح للاستماع إلى سورة من أولها، لا لآيات متفرقة ولا للتكرار والتسميع
+      const whole = list.length && list[0][1] === 1 && !opts.onEnd && !(opts.rep > 1);
+      if (whole) { const ss = [...new Set(list.map(x => x[0]))]; return playFull(r, ss); }
+      APP.toast('«' + rec(r).n + '» متاح بالسورة كاملة فقط — نسمعك هذه الآيات بصوت الحصري', 4500);
+      r = 'husary';
+    }
     if (window.MEDIA) MEDIA.claim('quran');
-    P.r = opts.reciter || P.r || (await DB.setting('reciter')) || 'husary';
+    P.r = r;
     P.rep = opts.rep || P.rep || 1; P.repLeft = P.rep; P.onEnd = opts.onEnd || null;
     P.q = []; list.forEach(([s, a]) => { if (a === 1 && s !== 1 && s !== 9 && !opts.noBasmala) P.q.push([1, 1, true]); P.q.push([s, a]); });
     A.forEach(x => { x._key = ''; });
@@ -169,8 +187,27 @@
     P.playing = false; P.onEnd = null; P.unlocked = false; highlight(null); keep(false); bar();
   };
   const toggle = () => { if (!P.q.length) return; const x = audio(); if (x.paused) { const p = x.play(); if (p) p.catch(() => { }); P.playing = true; keep(true); } else { x.pause(); P.playing = false; } bar(); };
+  const jump = async j => { if (j < 0 || j >= P.q.length) return; audio().pause(); P.i = j; P.repLeft = P.rep; P.stopped = false; await loadCur(); audio().play().catch(() => { }); keep(true); };
+  // تغيير القارئ أثناء التشغيل: يكمل من نفس الآية بصوت القارئ الجديد
+  async function switchReciter(r) {
+    await DB.setting('reciter', r);
+    if (rec(r).full) { const s0 = (P.q[P.i] || [1])[0], ss = [...new Set(P.q.filter(x => !x[2]).map(x => x[0]))].filter(x => x >= s0); P.q = []; stop(); return playFull(r, ss.length ? ss : [s0]); }
+    P.r = r; A.forEach(x => { x._key = ''; }); await jump(P.i);
+  }
   const step = async d => { const j = P.i + d; if (j < 0 || j >= P.q.length) return; audio().pause(); P.i = j; P.repLeft = P.rep; P.stopped = false; await loadCur(); audio().play().catch(() => { }); };
-  if (window.MEDIA) MEDIA.register('quran', () => { if (P.q.length) { P.q = []; stop(); } });
+  if (window.MEDIA) { MEDIA.register('quran', () => { if (P.q.length) { P.q = []; stop(); } }); MEDIA.controls('quran', { toggle: () => toggle(), next: () => step(1), prev: () => step(-1), stop: () => { P.q = []; stop(); } }); }
+
+  // ===== تلاوة السورة كاملة (قرّاء بلا ملفات آيات) عبر المشغّل الطويل =====
+  async function playFull(r, surahs, start) {
+    const have = new Set(surahsOf(r)), ss = surahs.filter(x => have.has(x));
+    if (!ss.length) { APP.toast('هذه السورة غير متاحة بصوت «' + rec(r).n + '» — اختر قارئاً آخر', 5000); return; }
+    if (ss.length < surahs.length) APP.toast('بعض السور غير متاحة بصوت هذا القارئ فتُتخطّى', 3500);
+    return LP.play(ss.map(s => ({ title: 'سورة ' + AR.SURAHS[s - 1], sub: rec(r).n, s, src: async () => { const b = await getSurahBlob(r, s); return b ? URL.createObjectURL(b) : fullUrl(r, s); } })), {
+      name: 'quran-full', icon: '🎧', start: start || 0,
+      extra: () => reciterSelect(r, 'data-a="rc" class="qa-rc" title="القارئ"'),
+      bind: b => { const sel = b.querySelector('[data-a=rc]'); if (sel) sel.onchange = async e => { const nr = e.target.value, s0 = (LP.P.q[LP.P.i] || {}).s || ss[0], rest = ss.filter(x => x >= s0); await DB.setting('reciter', nr); if (rec(nr).full) playFull(nr, rest); else { LP.stop(); play(rest.flatMap(surahAyat), { reciter: nr }); } }; },
+    });
+  }
 
   function highlight(sa) {
     document.querySelectorAll('.ayah-playing').forEach(e => e.classList.remove('ayah-playing'));
@@ -186,63 +223,105 @@
     b.innerHTML = `<button class="btn sm" data-a="prev" title="السابقة">⏮</button>
       <button class="btn sm primary" data-a="tog">${P.playing && !audio().paused ? '⏸' : '▶'}</button>
       <button class="btn sm" data-a="next" title="التالية">⏭</button>
-      <span class="qa-now">🔊 ${esc(rec(P.r).n)} — ${bs ? 'البسملة' : 'سورة ' + esc(AR.SURAHS[s - 1]) + ' ' + AR.toArabicDigits(a)}</span>
+      <span class="qa-now">🔊 ${bs ? 'البسملة' : 'سورة ' + esc(AR.SURAHS[s - 1]) + ' ' + AR.toArabicDigits(a)}</span>
+      ${reciterSelect(P.r, 'data-a="rc" class="qa-rc" title="القارئ"')}
       <label class="muted">تكرار <select data-a="rep">${[1, 2, 3, 5, 7, 10].map(n => `<option ${n === P.rep ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-      <button class="btn sm" data-a="x" title="إيقاف">✕</button>`;
+      <button class="btn sm" data-a="x" title="إيقاف">✕</button>
+      ${P.q.length > 2 ? `<div class="lp-row"><input type="range" class="lp-pos" data-a="pos" min="0" max="${P.q.length - 1}" value="${P.i}" style="--p:${(100 * P.i / (P.q.length - 1)).toFixed(1)}%"><span class="lp-time muted">${AR.toArabicDigits(P.i + 1)} / ${AR.toArabicDigits(P.q.length)}</span></div>` : ''}`;
     b.querySelector('[data-a=prev]').onclick = () => step(-1);
     b.querySelector('[data-a=next]').onclick = () => step(1);
     b.querySelector('[data-a=tog]').onclick = toggle;
     b.querySelector('[data-a=x]').onclick = () => { P.q = []; stop(); };
     b.querySelector('[data-a=rep]').onchange = e => { P.rep = P.repLeft = +e.target.value; };
+    b.querySelector('[data-a=rc]').onchange = e => switchReciter(e.target.value);
+    const pos = b.querySelector('[data-a=pos]');
+    if (pos) { pos.oninput = () => { const t = b.querySelector('.lp-time'), q = P.q[+pos.value] || []; if (t) t.textContent = q[2] ? 'البسملة' : 'سورة ' + AR.SURAHS[q[0] - 1] + ' ' + AR.toArabicDigits(q[1]); }; pos.onchange = () => jump(+pos.value); }
   }
 
-  const reciterSelect = (cur, attrs = '') => `<select ${attrs}>${[['old', 'القرّاء القدامى'], ['new', 'القرّاء المعاصرون']].map(([e, l]) => `<optgroup label="${l}">${RECITERS.filter(r => r.era === e).map(r => `<option value="${r.id}" ${r.id === cur ? 'selected' : ''}>${esc(r.n)} — ${esc(r.d)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+  const reciterSelect = (cur, attrs = '') => `<select ${attrs}>${[['old', 'القرّاء القدامى'], ['new', 'القرّاء المعاصرون'], ['full', 'بالسورة كاملة (استماع فقط)']].map(([e, l]) => `<optgroup label="${l}">${RECITERS.filter(r => r.era === e).map(r => `<option value="${r.id}" ${r.id === cur ? 'selected' : ''}>${esc(r.n)} — ${esc(r.d)}</option>`).join('')}</optgroup>`).join('')}</select>`;
 
   // ===== شاشة الاستماع =====
+  const MB = { husary: 900, 'husary-muallim': 1900, alafasy: 680, minshawi: 900 };
+  const sizeOf = r => rec(r).full ? '≈ ١ جيجا' : '≈ ' + AR.toArabicDigits(Math.round((MB[r] || 800) / 100) / 10) + ' جيجا';
   V.listen = async (el, _, p) => {
     const cur = (await DB.setting('reciter')) || 'husary';
-    const scope = p.juz ? 'juz' : 'surah';
-    el.innerHTML = `<h1>🎧 الاستماع إلى القرآن</h1>
-      <div class="sub">اختر القارئ والسورة أو الجزء. التشغيل آية آية مع إبراز الآية الجارية، ويمكنك تكرار كل آية للحفظ. نزّل ما تريد ليعمل بدون إنترنت.</div>
+    const scope = p.all ? 'all' : p.juz ? 'juz' : 'surah';
+    el.innerHTML = `<div class="row"><h1>🎧 الاستماع إلى القرآن</h1><span class="spacer"></span><a class="btn" href="#/radio">📻 إذاعات القرآن</a></div>
+      <div class="sub">اختر القارئ والسورة أو الجزء أو المصحف كاملاً. التشغيل آية آية مع إبراز الآية الجارية وتكرارها للحفظ (عدا قرّاء «السورة كاملة» فللاستماع فقط). نزّل ما تريد ليعمل بدون إنترنت.</div>
       <div class="card"><div class="filters" style="flex-wrap:wrap">
         <label>القارئ ${reciterSelect(cur, 'id="lsR"')}</label>
-        <label>النطاق <select id="lsScope"><option value="surah">سورة</option><option value="juz" ${scope === 'juz' ? 'selected' : ''}>جزء</option></select></label>
-        <select id="lsS">${AR.SURAHS.map((n, i) => `<option value="${i + 1}" ${+p.s === i + 1 ? 'selected' : ''}>${AR.toArabicDigits(i + 1)}. ${esc(n)}</option>`).join('')}</select>
+        <label>النطاق <select id="lsScope"><option value="surah">سورة</option><option value="juz" ${scope === 'juz' ? 'selected' : ''}>جزء</option><option value="all" ${scope === 'all' ? 'selected' : ''}>المصحف كاملاً</option></select></label>
+        <select id="lsS"></select>
         <select id="lsJ" style="display:none">${JUZ.map((_, i) => `<option value="${i + 1}" ${+p.juz === i + 1 ? 'selected' : ''}>الجزء ${AR.toArabicDigits(i + 1)}</option>`).join('')}</select>
-        <label>تكرار الآية <select id="lsRep">${[1, 2, 3, 5, 7, 10].map(n => `<option>${n}</option>`).join('')}</select></label>
+        <label id="lsRepL">تكرار الآية <select id="lsRep">${[1, 2, 3, 5, 7, 10].map(n => `<option>${n}</option>`).join('')}</select></label>
       </div>
-      <div class="row" style="gap:8px;margin-top:8px">
+      <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
         <button class="btn primary" id="lsPlay">▶ استمع</button>
         <button class="btn" id="lsOpen">📖 افتح المصحف مع الصوت</button>
         <button class="btn" id="lsDl">⬇ نزّل للاستماع بدون إنترنت</button>
         <span id="lsInfo" class="muted"></span>
-      </div></div>
+      </div>
+      <div class="lp-dlbar hidden" id="lsBar"><i></i></div></div>
+      <div class="card ls-full"><div class="row" style="gap:8px;flex-wrap:wrap"><b>📦 المصحف كاملاً بصوت قارئ واحد</b><span class="spacer"></span><button class="btn primary" id="lsAll">⬇ نزّل المصحف كاملاً</button></div>
+        <div class="muted" id="lsAllInfo" style="font-size:13px;margin-top:6px"></div></div>
       <h2>📦 المنزَّل على جهازك</h2><div id="lsStore" class="muted">جارٍ الحساب…</div>
-      <div class="info" style="margin-top:14px">💡 للتحميل الكامل للمصحف بصوت قارئ واحد: اختر «جزء» ونزّل الأجزاء واحداً بعد الآخر (الجزء نحو 10–25 ميجا حسب القارئ). المصادر: everyayah.com وcdn.islamic.network.</div>`;
+      <div class="info" style="margin-top:14px">💡 التنزيل يكمل من حيث توقف: لو انقطع الإنترنت اضغط التنزيل مرة أخرى فيكمل الباقي فقط. المصادر: everyayah.com وcdn.islamic.network وmp3quran.net وarchive.org.</div>`;
     const $ = s => el.querySelector(s);
-    const list = () => $('#lsScope').value === 'juz' ? juzAyat(+$('#lsJ').value) : surahAyat(+$('#lsS').value);
-    const showScope = () => { const j = $('#lsScope').value === 'juz'; $('#lsJ').style.display = j ? '' : 'none'; $('#lsS').style.display = j ? 'none' : ''; info(); };
-    const info = async () => { const L = list(), n = await stored($('#lsR').value, L); $('#lsInfo').textContent = `${L.length} آية — منزَّل منها ${n}` + (n === L.length ? ' ✔ تعمل بدون إنترنت' : ''); };
+    const R = () => $('#lsR').value, isFull = () => !!rec(R()).full;
+    const fillS = () => { const have = new Set(surahsOf(R())), cur2 = +$('#lsS').value || +p.s || 1; $('#lsS').innerHTML = AR.SURAHS.map((n, i) => have.has(i + 1) ? `<option value="${i + 1}" ${cur2 === i + 1 ? 'selected' : ''}>${AR.toArabicDigits(i + 1)}. ${esc(n)}</option>` : '').join(''); };
+    const list = () => $('#lsScope').value === 'all' ? Array.from({ length: 114 }, (_, i) => i + 1).flatMap(surahAyat) : $('#lsScope').value === 'juz' ? juzAyat(+$('#lsJ').value) : surahAyat(+$('#lsS').value);
+    const surahList = () => { const have = new Set(surahsOf(R())); return [...new Set(list().map(x => x[0]))].filter(x => have.has(x)); };
+    const showScope = () => { const sc = $('#lsScope').value; $('#lsJ').style.display = sc === 'juz' ? '' : 'none'; $('#lsS').style.display = sc === 'surah' ? '' : 'none'; $('#lsRepL').style.display = isFull() ? 'none' : ''; $('#lsOpen').style.display = isFull() ? 'none' : ''; info(); };
+    const info = async () => {
+      if (isFull()) { const L = surahList(), n = await storedSurahs(R(), L); $('#lsInfo').textContent = `${AR.toArabicDigits(L.length)} سورة — منزَّل منها ${AR.toArabicDigits(n)}` + (L.length && n === L.length ? ' ✔ تعمل بدون إنترنت' : ''); }
+      else { const L = list(), n = await stored(R(), L); $('#lsInfo').textContent = `${AR.toArabicDigits(L.length)} آية — منزَّل منها ${AR.toArabicDigits(n)}` + (n === L.length ? ' ✔ تعمل بدون إنترنت' : ''); }
+      const tot = isFull() ? surahsOf(R()).length : 6236, got = isFull() ? await storedSurahs(R()) : await stored(R());
+      $('#lsAllInfo').innerHTML = `بصوت <b>${esc(rec(R()).n)}</b>: ${got >= tot ? '✔ المصحف كله منزَّل على جهازك ويعمل بدون إنترنت' : `منزَّل ${AR.toArabicDigits(Math.round(100 * got / tot))}٪ — الحجم الكامل ${sizeOf(R())} تقريباً. يُفضَّل التنزيل على شبكة واي فاي، ويمكنك الإيقاف والإكمال لاحقاً.`}${rec(R()).full && rec(R()).only ? '<br>هذا القارئ متاح له ' + AR.toArabicDigits(surahsOf(R()).length) + ' سورة فقط.' : ''}`;
+      $('#lsAll').textContent = got >= tot ? '✔ مكتمل' : got ? '⬇ أكمل تنزيل المصحف' : '⬇ نزّل المصحف كاملاً';
+    };
     const store = async () => {
       const ks = await allKeys(), by = {}; ks.forEach(k => { const r = k.split('/')[0]; by[r] = (by[r] || 0) + 1; });
-      $('#lsStore').innerHTML = Object.keys(by).length ? `<table class="t"><tr><th>القارئ</th><th>آيات منزّلة</th><th></th></tr>${Object.entries(by).map(([r, n]) => `<tr><td>${esc(rec(r).n)} <small class="muted">${esc(rec(r).d)}</small></td><td>${n} من 6236 (${Math.round(n / 62.36)}٪)</td><td><button class="btn sm" data-del="${r}">حذف</button></td></tr>`).join('')}</table>` : 'لا شيء بعد.';
+      $('#lsStore').innerHTML = Object.keys(by).length ? `<table class="t"><tr><th>القارئ</th><th>المنزَّل</th><th></th></tr>${Object.entries(by).map(([r, n]) => `<tr><td>${esc(rec(r).n)} <small class="muted">${esc(rec(r).d)}</small></td><td>${rec(r).full ? `${AR.toArabicDigits(n)} سورة من ${AR.toArabicDigits(surahsOf(r).length)}` : `${AR.toArabicDigits(n)} آية من ٦٢٣٦ (${AR.toArabicDigits(Math.round(n / 62.36))}٪)`}</td><td><button class="btn sm" data-del="${r}">حذف</button></td></tr>`).join('')}</table>` : 'لا شيء بعد.';
       $('#lsStore').querySelectorAll('[data-del]').forEach(b => b.onclick = async () => { if (!await APP.ask('حذف تلاوات «' + rec(b.dataset.del).n + '» من الجهاز؟')) return; await removeReciter(b.dataset.del); store(); info(); });
     };
     $('#lsScope').onchange = showScope; $('#lsS').onchange = info; $('#lsJ').onchange = info;
-    $('#lsR').onchange = async e => { await DB.setting('reciter', e.target.value); P.r = e.target.value; info(); };
-    $('#lsPlay').onclick = () => play(list(), { reciter: $('#lsR').value, rep: +$('#lsRep').value });
-    $('#lsOpen').onclick = () => { const [s, a] = list()[0]; P.pending = { list: list(), reciter: $('#lsR').value, rep: +$('#lsRep').value }; location.hash = '#/quran/' + s + (a > 1 ? '?a=' + a : ''); };
-    $('#lsDl').onclick = async e => {
-      const btn = e.target;
-      if (btn.dataset.busy) { cancelDl = true; return; }
-      btn.dataset.busy = 1; btn.textContent = '⏹ إيقاف التنزيل';
-      const r = await download($('#lsR').value, list(), (d, n, f) => { $('#lsInfo').textContent = `جارٍ التنزيل ${d} من ${n}` + (f ? ` (تعذر ${f})` : ''); });
-      delete btn.dataset.busy; btn.textContent = '⬇ نزّل للاستماع بدون إنترنت';
-      APP.toast(r.cancelled ? 'أُوقف التنزيل' : r.fail ? `تم مع تعذر ${r.fail} آية — أعد المحاولة لإكمالها` : '✔ تم التنزيل، تعمل الآن بدون إنترنت', 5000);
+    $('#lsR').onchange = async e => { await DB.setting('reciter', e.target.value); if (!rec(e.target.value).full) P.r = e.target.value; fillS(); showScope(); };
+    $('#lsPlay').onclick = () => isFull() ? playFull(R(), surahList()) : play(list(), { reciter: R(), rep: +$('#lsRep').value });
+    $('#lsOpen').onclick = () => { const [s, a] = list()[0]; P.pending = { list: list(), reciter: R(), rep: +$('#lsRep').value }; location.hash = '#/quran/' + s + (a > 1 ? '?a=' + a : ''); };
+    // التنزيل (نطاق مختار أو المصحف كله): يستمر والشاشة مقفلة، ويكمل من حيث توقف
+    let busy = null;
+    const runDl = async (btn, all) => {
+      if (busy) { cancelDl = true; return; }
+      const r = R(), full = isFull(), bar = $('#lsBar'), labels = [$('#lsDl').textContent, $('#lsAll').textContent];
+      busy = btn; btn.textContent = '⏹ إيقاف التنزيل'; bar.classList.remove('hidden');
+      if (window.KEEPALIVE) KEEPALIVE.start('⬇ تنزيل التلاوة', rec(r).n, { controls: false });
+      const prog = (d, n, f) => { const t = `جارٍ التنزيل ${AR.toArabicDigits(d)} من ${AR.toArabicDigits(n)}` + (f ? ` (تعذّر ${AR.toArabicDigits(f)})` : ''); $('#lsInfo').textContent = t; bar.firstElementChild.style.width = (100 * d / n).toFixed(1) + '%'; if (window.KEEPALIVE && d % 20 === 0) KEEPALIVE.update({ text: t }); };
+      let res;
+      if (full) res = await downloadFull(r, all ? surahsOf(r) : surahList(), prog);
+      else { let L = all ? Array.from({ length: 114 }, (_, i) => i + 1).flatMap(surahAyat) : list(); const have = new Set((await allKeys()).filter(k => k.startsWith(r + '/'))); L = L.filter(([s, a]) => !have.has(key(r, s, a))); res = await download(r, L, prog); }
+      if (window.KEEPALIVE) KEEPALIVE.stop();
+      busy = null; $('#lsDl').textContent = labels[0].startsWith('⏹') ? '⬇ نزّل للاستماع بدون إنترنت' : labels[0]; bar.classList.add('hidden');
+      APP.toast(res.cancelled ? 'أُوقف التنزيل — اضغط مرة أخرى للإكمال' : res.fail ? `تم مع تعذّر ${AR.toArabicDigits(res.fail)} — اضغط التنزيل مرة أخرى لإكمالها` : '✔ تم التنزيل، يعمل الآن بدون إنترنت', 5000);
       info(); store();
     };
-    showScope(); store();
+    $('#lsDl').onclick = e => runDl(e.currentTarget, false);
+    $('#lsAll').onclick = async e => { if (busy) { cancelDl = true; return; } if (!(await APP.ask(`تنزيل المصحف كاملاً بصوت «${rec(R()).n}» (${sizeOf(R())} تقريباً)؟ يُفضَّل أن تكون على واي فاي.`))) return; runDl(e.currentTarget, true); };
+    fillS(); showScope(); store();
   };
 
-  window.QA = { RECITERS, JUZ, COUNTS, juzAyat, surahAyat, juzOf, play, stop, P, reciterSelect, stored, download, rec };
+  // ===== إذاعات القرآن الكريم (بث مباشر) =====
+  const RADIOS = [
+    { id: 'cairo', n: 'إذاعة القرآن الكريم من القاهرة', d: 'مصر — ٩٨٫٢ إف إم', url: 'https://stream.radiojar.com/8s5u5tpdtwzuv' },
+    { id: 'saudi', n: 'إذاعة القرآن الكريم من السعودية', d: 'المملكة العربية السعودية', url: 'https://stream.radiojar.com/0tpy1h0kxtzuv' },
+  ];
+  V.radio = async el => {
+    const extra = ((window.NEWS && NEWS.data && NEWS.data.radios) || []).filter(x => x && x.url && x.n);
+    const all = RADIOS.concat(extra);
+    el.innerHTML = `<div class="row"><h1>📻 إذاعات القرآن الكريم</h1><span class="spacer"></span><a class="btn" href="#/listen">🎧 الاستماع للقرآن</a></div>
+      <div class="sub">بث مباشر على مدار الساعة — يحتاج اتصالاً بالإنترنت. يستمر التشغيل والشاشة مقفلة، وتتحكم فيه من الإشعار.</div>
+      <div class="grid">${all.map((r, i) => `<div class="card radio-card"><div class="radio-ic">📻</div><b>${esc(r.n)}</b><div class="muted" style="font-size:13px">${esc(r.d || '')}</div><button class="btn primary" data-r="${i}" style="margin-top:8px">▶ استمع الآن</button></div>`).join('')}</div>`;
+    el.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { const r = all[+b.dataset.r]; LP.play([{ title: r.n, sub: 'بث مباشر', url: r.url, live: true }], { name: 'radio', icon: '📻' }); });
+  };
+
+  window.QA = { RECITERS, JUZ, COUNTS, juzAyat, surahAyat, juzOf, play, stop, P, reciterSelect, stored, download, rec, playFull, surahsOf, RADIOS };
 })();

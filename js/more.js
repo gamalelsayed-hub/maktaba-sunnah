@@ -76,7 +76,7 @@
     // الأقسام القديمة (المصادر والاستيراد اليدوي) تُطوى تحت «خيارات متقدمة» لتبسيط الشاشة
     const adv = document.createElement('details');
     adv.innerHTML = '<summary>⚙️ خيارات متقدمة: الاستيراد اليدوي، والمصادر، والكتب المثبتة</summary>';
-    [...el.children].slice(1).forEach(c => adv.appendChild(c));
+    [...el.children].slice(1).filter(c => !c.classList.contains('hk-promo')).forEach(c => adv.appendChild(c));
     el.appendChild(adv);
     const sec = document.createElement('div');
     sec.innerHTML = `<h2>📦 حزم جاهزة — حمّل كتب الفن كله بضغطة</h2>
@@ -92,7 +92,7 @@
       <div class="row" style="margin-bottom:8px"><button class="btn primary" id="optAll">تثبيت الكل (${Math.round(opt.reduce((s, m) => s + m.size, 0) / 1e6)} ميجا)</button><span id="optMsg" class="muted"></span></div>
       <table class="t"><tr><th>الكتاب</th><th>النوع</th><th>الحجم</th><th></th></tr>${opt.map(m => `<tr><td>${esc(m.title)}<br><small class="muted">${esc(m.author || '')}</small></td><td>${TYPE[(window.PACK_MANIFEST.find(x => x.id === m.id) || {}).type] || ''}</td><td>${(m.size / 1e6).toFixed(1)} ميجا</td>
         <td>${st(m) === 'ok' ? '<span class="tag st-ok">✔ مثبت</span> <a class="btn sm" href="#/book/' + m.id + '">تصفح</a>' : `<button class="btn sm primary" data-opt="${m.id}">${st(m) === 'old' ? 'تحديث' : 'تثبيت'}</button>`}</td></tr>`).join('')}</table>`;
-    el.insertBefore(sec, el.children[1] || null);
+    el.insertBefore(sec, (el.querySelector('.hk-promo') || el.children[0]).nextSibling || null);
     const installIds = async ids => {
       const msg = $('#optMsg');
       try { await IMPORT.installPacks((i, n, title, m) => { msg.textContent = '(' + i + '/' + n + ') ' + title + ' — ' + m; }, ids); }
