@@ -31,7 +31,10 @@
   function onErr() {
     const it = P.q[P.i];
     if (P.opts.onError && P.opts.onError(it, P.i) === true) return;
-    if (it && it.live) { APP.toast('تعذّر الاتصال بالإذاعة — تحقق من الإنترنت أو جرّب لاحقاً', 5000); stop(); return; }
+    if (it && it.live) { // البث المباشر: نعيد الاتصال تلقائياً عند الانقطاع
+      P.retry = (P.retry || 0) + 1;
+      if (P.retry <= 6) { APP.toast('انقطع البث — نعيد الاتصال…', 2500); const g = P.gen; setTimeout(() => { if (g === P.gen && P.q.length) { a.src = it.url + (it.url.includes('?') ? '&' : '?') + 'r=' + Date.now(); a.play().catch(() => { }); } }, 1500 * P.retry); return; }
+      APP.toast('تعذّر الاتصال بالإذاعة — تحقق من الإنترنت أو جرّب لاحقاً', 5000); stop(); return; }
     if (P.i + 1 < P.q.length) { APP.toast('تعذّر تشغيل «' + (it ? it.title : '') + '» — ننتقل للتالي', 3000); playAt(P.i + 1); }
     else { APP.toast('تعذّر التشغيل — تحقق من الإنترنت أو نزّله للاستماع بدون إنترنت', 5000); stop(); }
   }
@@ -40,6 +43,9 @@
   a.onerror = () => { if (P.q.length && a.getAttribute('src') && !silent()) onErr(); };
   a.onended = () => { if (silent()) return; const it = P.q[P.i]; if (it && it.done) it.done(); if (P.opts.repeat && P.q.length === 1) { a.currentTime = 0; a.play().catch(() => { }); return; } playAt(P.i + 1); };
   a.onplay = a.onpause = () => { bar(); notify(); };
+  a.onplaying = () => { P.retry = 0; clearTimeout(P.stallT); };
+  // إذا توقف البث المباشر ينتظر البيانات أكثر من ١٢ ثانية نعيد الاتصال
+  a.onwaiting = a.onstalled = () => { const it = P.q[P.i]; if (!it || !it.live || a.paused) return; clearTimeout(P.stallT); P.stallT = setTimeout(() => { if (P.q[P.i] === it && !a.paused && a.readyState < 3) onErr(); }, 12000); };
   a.ontimeupdate = () => tick();
   a.onloadedmetadata = () => tick();
 
