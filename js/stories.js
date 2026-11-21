@@ -137,5 +137,25 @@
     if ($('#hkDel')) $('#hkDel').onclick = async () => { if (!(await APP.ask('حذف الحكايات المنزّلة من الجهاز؟'))) return; await delAll(); APP.rerender(); };
   };
 
+  // ===== أداة مشتركة: قراءة نص بتسجيل القارئ إن وُجد وإلا بصوت الجهاز، وتنتظر انتهاءه =====
+  // SAY.item({ id, title, text, name, icon }) ← Promise تنتهي عند انتهاء القراءة (أو false إن أُوقفت)
+  let sayGen = 0;
+  const SAY = {
+    async item(o) {
+      const my = ++sayGen, v = await voiceOf(o.id);
+      if (my !== sayGen) return false;
+      return new Promise(res => {
+        const done = ok => { if (my === sayGen) res(ok); else res(false); };
+        if (v) {
+          const url = v.blob ? URL.createObjectURL(v.blob) : v.url;
+          LP.play([{ title: o.title, sub: o.sub || '', url }], { name: o.name || 'say', icon: o.icon || '🔊', onEnd: () => { if (v.blob) URL.revokeObjectURL(url); done(true); }, onError: () => { LP.stop(); if (window.TTS) TTS.read(o.text, o.title, { onEnd: () => done(true) }); else done(true); return true; } });
+        } else if (window.TTS) TTS.read(o.text, o.title, { onEnd: () => done(true) });
+        else done(true);
+      });
+    },
+    cancel() { sayGen++; if (['say', 'ruqyah', 'asma'].includes(LP.P.name)) LP.stop(); if (window.TTS) TTS.stop(); },
+    voiceOf,
+  };
+  window.SAY = SAY;
   window.HEKAYAT = { start, stop: stopAll, COLS };
 })();

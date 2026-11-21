@@ -1132,3 +1132,28 @@ body.dark .lv-backup.due { background: rgba(245, 217, 139, .08); color: inherit;
 .news-body { line-height: 1.9; margin: 6px 0; text-align: start; }
 @media (max-width: 860px) { .lp-bar .qa-now { flex-basis: 100%; text-align: center; } .qa-rc { max-width: 130px; } }
 .lv-q { font-size: 1.7em; line-height: 2.2; text-align: center; }
+/* الرقية وأسماء الله الحسنى */
+.lib-promos { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.hk-shelf-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 10px; }
+.hk-shelf-row .hk-shelf { margin: 0; flex: 1; min-width: 110px; }
+.rq-ayat { font-size: 1.35em; line-height: 2.1; margin: 8px 0 0; }
+.rq-dua { font-size: 1.15em; line-height: 2; margin: 0 0 6px; }
+.as-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.as-grid a { text-decoration: none; }
+.as-emb { position: relative; aspect-ratio: 1; border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff;
+  background: radial-gradient(circle at 30% 20%, hsl(var(--h) 55% 46%), hsl(var(--h) 60% 24%)); box-shadow: inset 0 0 0 3px hsla(45, 80%, 70%, .55), 0 6px 16px rgba(0,0,0,.15); }
+.as-emb b { font-family: 'Amiri Quran', 'Amiri', serif; font-size: 19px; line-height: 1.2; text-shadow: 0 2px 6px rgba(0,0,0,.35); padding: 0 6px; text-align: center; }
+.as-emb .as-orn { position: absolute; top: 6px; font-size: 14px; color: hsla(45, 90%, 75%, .9); }
+.as-emb .as-num { position: absolute; bottom: 6px; font-size: 11px; opacity: .8; }
+.as-emb.big { width: min(260px, 70vw); margin: 4px auto 14px; }
+.as-emb.big b { font-size: 52px; }
+.as-today { display: flex; gap: 14px; align-items: center; text-decoration: none; color: inherit; }
+.as-today .as-emb { width: 96px; flex: none; }
+.as-today .as-emb b { font-size: 18px; }
+.as-today > span { display: flex; flex-direction: column; gap: 3px; }
+.as-today > span b { font-size: 20px; }
+.as-sec h3 { margin: 0 0 6px; }
+.as-sec p { margin: 0; line-height: 1.9; }
+.as-ayah { font-size: 1.35em; }
+.as-dua { border-color: var(--brand2); }
+.as-ctl { gap: 8px; justify-content: center; flex-wrap: wrap; }
