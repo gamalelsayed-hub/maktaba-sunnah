@@ -1537,3 +1537,12 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .lg-wiz .lg-ask{font-size:18px;line-height:2}
 .lg-irab{margin-top:8px}.lg-irab-card{line-height:2}.lg-irab-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;color:#0f4c5c}.lg-irab-h small{color:var(--muted,#777)}
 .lg-irab-t{max-height:360px;overflow:auto;font-size:15.5px;line-height:2.1;white-space:normal}
+/* 📌 ما لا يسع المسلم جهله */
+.wj-hero{background:linear-gradient(135deg,#7a3e0f,#c2771f)!important;color:#fff}
+.wj-today{border:2px solid #f0c27b;background:#fffaf0}.wj-today small{color:#c2771f;font-weight:700}.wj-today h2{margin:6px 0}.wj-today p{line-height:2}
+.wj-prog{height:10px;background:#f1e6d4;border-radius:999px;overflow:hidden;margin:12px 0 4px}.wj-prog div{height:100%;background:#c2771f}
+.wj-notif .row{gap:12px;align-items:center;flex-wrap:wrap}.wj-notif input[type=time]{padding:6px;border-radius:8px;border:1px solid var(--line,#ddd);font:inherit}
+.wj-l small{color:#c2771f}.wj-b{font-size:17px;line-height:2.1}
+.wj-ev{display:block;padding:10px 12px;margin:6px 0;border-radius:12px;background:var(--panel,#fff);border:1px solid var(--line,#e5e5e5);text-decoration:none;color:inherit;line-height:2}.wj-ev.q div{font-family:var(--quran-font,inherit);font-size:18px}.wj-ev small{color:var(--muted,#777)}
+.wj-mini{display:block;margin:10px 0;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#fff6e6,#fff);border:1.5px solid #f0c27b;text-decoration:none;color:inherit}
+.wj-mini small{display:block;color:#c2771f;font-weight:700}.wj-mini b{display:block;font-size:16px;margin:4px 0}.wj-mini span{color:var(--muted,#666);font-size:13.5px;line-height:1.8}
