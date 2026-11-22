@@ -29,7 +29,7 @@
       return;
     }
     el.innerHTML = hero() + searchBox() + tabs('') + ERA_ORDER.map(er => { const ps = A.poets.filter(p => p.era === er); return ps.length ? `<h3>${esc(A.eras[er])}</h3><div class="ad-poets">${ps.map(p => `<a class="card ad-poet" href="#/adab/poet/${p.id}"><b>${esc(p.name)}</b><small>ت ${esc(p.death)} · ${D(p.poems)} قصيدة</small></a>`).join('')}</div>` : ''; }).join('')
-      + `<div class="muted th-note">المتنبي: الديوان كاملاً مع الشرح في «شرح ديوان المتنبي» للواحدي (تبويب كتب الأدب). وتراجم الشعراء وأخبارهم في «طبقات فحول الشعراء» و«الشعر والشعراء».</div>`;
+      + `<div class="muted th-note">المختارات مشكولة. أما نصوص الدواوين فمنقولة كما هي في مصادرها (المكتبة الشاملة والموسوعة الشعرية) بلا تشكيل.<br>المتنبي: الديوان كاملاً مع الشرح في «شرح ديوان المتنبي» للواحدي (تبويب كتب الأدب). وتراجم الشعراء وأخبارهم في «طبقات فحول الشعراء» و«الشعر والشعراء».</div>`;
     bindSearch(el);
   };
 
