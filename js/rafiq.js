@@ -88,7 +88,22 @@
   }
 
   V.rafiq = async (el, [sec, a, b]) => {
+    const age = await DB.setting('rafiq-age');
+    if (!age) {
+      el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🧭</div><h2>أهلاً بك في «رفيق»</h2><p>كم عمرك؟ ليعرض لك القسم ما يناسبك.</p>
+        <div class="rf-who">${[['u12', '🧒', 'أقل من ١٢ سنة'], ['teen', '🧑', 'من ١٢ إلى ١٧ سنة'], ['adult', '👨', '١٨ سنة فأكثر']].map(([k, ic, t]) => `<button class="card" data-age="${k}"><span>${ic}</span><b>${t}</b></button>`).join('')}</div>
+        <small class="muted">لا نطلب تاريخ ميلادك، والجواب يُحفظ على جوالك فقط.</small><div style="margin-top:8px"><a class="btn sm" href="#/">رجوع</a></div></div>`;
+      el.querySelectorAll('[data-age]').forEach(x => x.onclick = async () => { const a = x.dataset.age; await DB.setting('rafiq-age', a); if (a === 'teen') await DB.setting('rafiq-who', 'shab'); else if (a === 'adult') await DB.setting('rafiq-who', null); window.SECNAV && SECNAV.refresh(); APP.rerender(); });
+      return;
+    }
+    if (age === 'u12') {
+      el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🧭</div><h2>هذا القسم للشباب الأكبر سناً</h2><p>لك قسم كامل ممتع: الحروف، وجزء عمّ، والقصص، والألعاب التعليمية.</p>
+        <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap"><a class="btn primary" href="#/kids">🧒 اذهب إلى قسم الأطفال</a><button class="btn sm" id="rqAgeX">تغيير العمر</button></div></div>`;
+      el.querySelector('#rqAgeX').onclick = async () => { await DB.setting('rafiq-age', null); APP.rerender(); };
+      return;
+    }
     let who = await DB.setting('rafiq-who');
+    if (age === 'teen' && who !== 'shab') { who = 'shab'; await DB.setting('rafiq-who', 'shab'); }
     if (!WHO[who]) {
       el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🧭</div><h2>أهلاً بك في «رفيق»</h2><p>اختر ما يناسبك، ليعرض لك القسم ما يخصّك:</p>
         <div class="rf-who">${Object.entries(WHO).map(([k, [ic, t, d]]) => `<button class="card" data-who="${k}"><span>${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>
@@ -117,7 +132,7 @@
           <a class="fam-tile" href="#/rafiq/qudwa"><span class="fam-ic">🌟</span><b>قدوتي: شباب الصحابة</b></a>
           ${who === 'shab' ? '' : '<a class="fam-tile" href="#/tarbiya"><span class="fam-ic">👨‍👩‍👧</span><b>تربية الأبناء</b></a>'}</div>
         <div class="muted" style="font-size:12.5px;margin-top:10px">بياناتك على جوالك فقط. وكل مبدأ هنا بدليله من القرآن والسنة، ويفتح نصه من مكتبة التطبيق.</div>`;
-      el.querySelector('#rqWho').onclick = async () => { await DB.setting('rafiq-who', null); window.SECNAV && SECNAV.refresh(); APP.rerender(); };
+      el.querySelector('#rqWho').onclick = async () => { await DB.setting('rafiq-who', null); await DB.setting('rafiq-age', null); window.SECNAV && SECNAV.refresh(); APP.rerender(); };
       el.querySelectorAll('[data-ck]').forEach(x => x.onclick = async () => { const v = await getU(); v.check[t] = v.check[t] || {}; v.check[t][x.dataset.ck] = v.check[t][x.dataset.ck] ? 0 : 1; const ks = Object.keys(v.check).sort(); ks.slice(0, -60).forEach(k => delete v.check[k]); await saveU(v); APP.rerender(); });
       el.querySelector('#rqSt').onclick = async () => { const v = await getU(); if (v.streak) { if (!(await APP.ask('إعادة عدّ أيام الثبات؟ لا تيأس، فالتوبة تمحو ما قبلها، وابدأ من جديد.'))) return; v.best = Math.max(v.best || 0, days || 0); } v.streak = new Date().toISOString(); await saveU(v); APP.rerender(); };
       animate(el);

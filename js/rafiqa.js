@@ -72,8 +72,24 @@
   // ===== البوابة: تختار عند أول دخول (فتاة / زوجة / أم) فيتكيّف المحتوى =====
   const WHO = { girl: ['👧', 'فتاة', 'لم أتزوج بعد'], wife: ['💍', 'زوجة', 'متزوجة'], mom: ['🤱', 'أم', 'أمٌّ أو حامل'] };
   let who = 'girl';
+  const AGES = [['u12', '🧒', 'أقل من ١٢ سنة'], ['teen', '🌱', 'من ١٢ إلى ١٧ سنة'], ['adult', '🌷', '١٨ سنة فأكثر']];
   async function gate(el) {
+    const age = await DB.setting('rafiqa-age');
+    if (!age) {
+      el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🌸</div><h2>أهلاً بكِ في «رفيقة»</h2><p>كم عمرك؟ ليعرض لكِ القسم ما يناسبك.</p>
+        <div class="rf-who">${AGES.map(([k, ic, t]) => `<button class="card" data-age="${k}"><span>${ic}</span><b>${t}</b></button>`).join('')}</div>
+        <small class="muted">لا نطلب تاريخ ميلادك، والجواب يُحفظ على جوالك فقط.</small><div style="margin-top:8px"><a class="btn sm" href="#/">رجوع</a></div></div>`;
+      el.querySelectorAll('[data-age]').forEach(x => x.onclick = async () => { const a = x.dataset.age; await DB.setting('rafiqa-age', a); if (a === 'teen') await DB.setting('rafiqa-who', 'girl'); else if (a === 'adult') await DB.setting('rafiqa-who', null); window.SECNAV && SECNAV.refresh(); rer(); });
+      return false;
+    }
+    if (age === 'u12') {
+      el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🌷</div><h2>هذا القسم للفتيات الأكبر سناً</h2><p>لكِ قسم كامل ممتع: الحروف، وجزء عمّ، والقصص، والأناشيد.</p>
+        <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap"><a class="btn primary" href="#/kids">🧒 اذهبي إلى قسم الأطفال</a><button class="btn sm" id="rfAgeX">تغيير العمر</button></div></div>`;
+      el.querySelector('#rfAgeX').onclick = async () => { await DB.setting('rafiqa-age', null); rer(); };
+      return false;
+    }
     const w = await DB.setting('rafiqa-who');
+    if (age === 'teen') { who = 'girl'; if (w !== 'girl') await DB.setting('rafiqa-who', 'girl'); return true; }
     if (w && WHO[w]) { who = w; return true; }
     el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🌸</div><h2>أهلاً بكِ في «رفيقة»</h2>
       <p>اختاري ما يناسبك، ليعرض لكِ القسم ما يخصّك:</p>
@@ -125,7 +141,7 @@
         <div class="row rf-whobar"><small>${WHO[who][0]} القسم معروض لكِ: <b>${WHO[who][1]}</b></small><span class="spacer"></span><button class="btn sm" id="rfWho">تغيير</button></div>
         <div class="fam-grid">${SECS.filter(([k]) => !(isGirl() && (k === 'preg' || k === 'parent'))).map(([k, ic, t, d]) => [k, ic, t, isGirl() ? (GIRL_D[k] || d) : d]).map(([k, ic, t, d]) => `<a class="fam-tile rf-tile" href="${k === 'parent' ? '#/tarbiya' : '#/rafiqa/' + k}"><span class="fam-ic">${ic}</span><b>${t}</b><small>${d}</small></a>`).join('')}</div>
         <div class="muted" style="font-size:12.5px;margin-top:10px">المعلومات الطبية للتوعية، وليست بديلاً عن الطبيبة. والأحكام بأدلتها من الكتاب والسنة وكتب أهل العلم.</div>`;
-      el.querySelector('#rfWho').onclick = async () => { await DB.setting('rafiqa-who', null); window.SECNAV && SECNAV.refresh(); rer(); };
+      el.querySelector('#rfWho').onclick = async () => { await DB.setting('rafiqa-who', null); await DB.setting('rafiqa-age', null); window.SECNAV && SECNAV.refresh(); rer(); };
       return;
     }
     el.innerHTML = `<div class="row rf-top">${back}<span class="spacer"></span></div><div id="rfB"></div>`;
