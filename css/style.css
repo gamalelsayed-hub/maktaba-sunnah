@@ -1512,3 +1512,28 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .nb-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
 .nb-b{border:1px solid #e3d29a;background:#fff;border-radius:999px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}.nb-b small{color:#999}
 .nb-msg{margin-top:6px;font-size:13px}
+/* 🔤 علوم العربية */
+.lg-hero{background:linear-gradient(135deg,#0f4c5c,#1b7f8c)!important;color:#fff}
+.lg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lg-tile{position:relative;display:flex;flex-direction:column;gap:4px;text-decoration:none;color:inherit}.lg-tile span{font-size:26px}.lg-tile small{color:var(--muted,#777);line-height:1.6}
+.lg-tile.soon{opacity:.55}.lg-tile i{position:absolute;top:8px;left:8px;font-style:normal;font-size:11px;background:#eee;border-radius:999px;padding:2px 8px}
+.lg-list{display:flex;flex-direction:column;gap:6px}
+.lg-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line,#e5e5e5);background:var(--panel,#fff);text-decoration:none;color:inherit}
+.lg-row.ok{border-color:#9fd3b0;background:#f1fbf4}.lg-n{width:28px;height:28px;border-radius:50%;background:#e6f2f4;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 28px}.lg-row.ok .lg-n{background:#2e9e5b;color:#fff}
+.lg-t{margin:10px 0}.lg-idea{background:#eef8f9;border-color:#bfe3e8}.lg-idea p{line-height:2;margin:6px 0 0}
+.lg-rules li{line-height:2;margin-bottom:4px}
+.lg-ex .lg-exa{font-size:19px;font-family:var(--quran-font,inherit);margin-bottom:4px}.lg-ex small{color:var(--muted,#666);line-height:1.8;display:block}
+.lg-q{margin:8px 0}.lg-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.lg-opts.col{flex-direction:column}
+.lg-o{padding:9px 14px;border-radius:12px;border:1.5px solid var(--line,#ddd);background:var(--panel,#fff);font:inherit;cursor:pointer;text-decoration:none;color:inherit;text-align:center}
+.lg-o.ok{border-color:#2e9e5b;background:#e9f8ef}.lg-o.no{border-color:#d9534f;background:#fdecec}
+.lg-why{margin-top:8px;line-height:1.9}
+.lg-big{display:block;text-align:center;margin:12px 0;padding:12px}
+.lg-train{text-align:center}.lg-src{color:#1b7f8c;font-size:13px;margin-bottom:6px}
+.lg-sent{font-size:26px;line-height:2.2;margin:6px 0 12px;font-family:var(--quran-font,inherit)}
+.lg-w{padding:2px 6px;border-radius:8px}.lg-w.cur{background:#ffe9a8;box-shadow:0 0 0 2px #e9c45a}.lg-w.did{color:#2e9e5b}
+.lg-ask{font-size:17px;margin-bottom:6px}.lg-train .lg-opts{justify-content:center}
+.lg-full{background:#f1fbf4;border:1px solid #9fd3b0;border-radius:12px;padding:10px;margin:10px 0;line-height:2;text-align:right}
+.lg-score{margin:6px 0}
+.lg-wiz .lg-ask{font-size:18px;line-height:2}
+.lg-irab{margin-top:8px}.lg-irab-card{line-height:2}.lg-irab-h{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;color:#0f4c5c}.lg-irab-h small{color:var(--muted,#777)}
+.lg-irab-t{max-height:360px;overflow:auto;font-size:15.5px;line-height:2.1;white-space:normal}
