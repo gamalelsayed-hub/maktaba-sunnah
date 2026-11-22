@@ -1304,3 +1304,30 @@ body.dark .rf-run.rest, body.dark .rf-run.warm, body.dark .rf-run.cool { backgro
 .rf-who button small { color: var(--muted); font-size: 11.5px; }
 .rf-whobar { align-items: center; margin-bottom: 8px; }
 .rf-nc, .rf-nc:hover { text-decoration: none !important; }
+/* ===== طابع رفيقة: ألوان تطبيق «رفيقة» نفسها ===== */
+body.rf-theme {
+  --bg: #FCF4F8; --bg2: #FBE5F0; --panel: #FFFFFF; --ink: #33202D; --muted: #7D6474; --line: #F1DCE7; --line2: #EBCFDD;
+  --brand: #9B2F6B; --brand-d: #7E2156; --brand-l: #FBE5F0; --brand2: #9B2F6B; --gold: #B8407F; --gold-l: #FBE5F0;
+  --hero-a: #B8407F; --hero-b: #9A5CC6;
+  --sh: 0 2px 6px rgba(155,47,107,.06), 0 6px 18px rgba(155,47,107,.08); --sh-h: 0 10px 26px rgba(155,47,107,.16);
+}
+body.rf-theme .topbar { background: linear-gradient(135deg, #B8407F, #9A5CC6); box-shadow: 0 2px 12px rgba(155,47,107,.3); }
+body.rf-theme .topbar::after { background: linear-gradient(90deg, transparent, #FBE5F0, transparent); }
+body.rf-theme .card { border-radius: 18px; border-color: #F1DCE7; box-shadow: 0 3px 10px rgba(155,47,107,.08); }
+body.rf-theme h1, body.rf-theme h2, body.rf-theme h3 { color: #7E2156; }
+body.rf-theme .btn.primary { background: linear-gradient(135deg, #B8407F, #9A5CC6); border-color: transparent; color: #fff; }
+body.rf-theme .btn { border-radius: 999px; }
+body.rf-theme .tabs button.on { color: #9B2F6B; border-color: #B8407F; }
+body.rf-theme .fam-tile { border-radius: 18px; border-color: #F1DCE7; box-shadow: 0 3px 10px rgba(155,47,107,.07); }
+body.rf-theme .warn { background: #FDE3E8; border-color: #F4B6C4; color: #7E2136; }
+body.rf-theme .bt-row { border-color: #F1DCE7; border-radius: 14px; }
+body.rf-theme .lr-progress i { background: linear-gradient(90deg, #B8407F, #9A5CC6); }
+body.rf-theme .rf-hero { background: linear-gradient(135deg, #B8407F, #9A5CC6); border-radius: 22px; box-shadow: 0 8px 22px rgba(155,47,107,.25); }
+body.rf-theme .rf-chips button.on { background: #9B2F6B; border-color: #9B2F6B; }
+body.rf-theme .rf-cal button[data-k="predicted"], body.rf-theme .rf-cal button[data-k="fertile"], body.rf-theme .rf-cal button[data-k="pms"] { color: #33202D; border-style: dashed; }
+body.rf-theme .rf-clock { color: #9B2F6B; }
+body.rf-theme .tag { background: #FBE5F0; color: #7E2156; }
+body.rf-theme .bottomnav, body.rf-theme .bnav { border-top-color: #F1DCE7; }
+body.dark.rf-theme { --bg: #1d1219; --bg2: #26161f; --panel: #2a1a24; --ink: #f6e9f0; --muted: #c4a8b8; --line: #3d2633; --line2: #4a2e3e; --brand: #f08cc0; --brand2: #f08cc0; }
+body.dark.rf-theme .card, body.dark.rf-theme .fam-tile, body.dark.rf-theme .bt-row { border-color: #3d2633; }
+body.dark.rf-theme h1, body.dark.rf-theme h2, body.dark.rf-theme h3 { color: #f08cc0; }

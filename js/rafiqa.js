@@ -3,6 +3,9 @@
    القسم خلف بوابة للفتيات من سن البلوغ والنساء. */
 (() => {
   const V = APP.views;
+  // طابع «رفيقة» الخاص (ألوانها وروحها) يُطبَّق ما دامت داخل القسم
+  const theme = () => document.body.classList.toggle('rf-theme', /^#\/rafiqa/.test(location.hash));
+  window.addEventListener('hashchange', theme); theme();
   const esc = s => AR.escapeHtml(String(s == null ? '' : s));
   const D = n => AR.toArabicDigits(String(n));
   const pad = n => String(n).padStart(2, '0');
@@ -129,8 +132,8 @@
   };
 
   // ================= دورتي =================
-  const PHC = { period: '#e53958', follicular: '#7e57c2', fertile: '#43a047', ovulation: '#2e7d32', luteal: '#5c6bc0', pms: '#fb8c00', late: '#8d6e63' };
-  const MARK = { period: '#e53958', predicted: '#f8bbd0', fertile: '#81c784', ovulation: '#2e7d32', pms: '#ffcc80' };
+  const PHC = { period: '#E04F7E', follicular: '#8E6CCB', fertile: '#3C9C8E', ovulation: '#2E7D6F', luteal: '#5A8ED6', pms: '#D0843A', late: '#C73552' };
+  const MARK = { period: '#E04F7E', predicted: '#FDE4EC', fertile: '#DFF4EF', ovulation: '#3C9C8E', pms: '#FDEEDC' };
   function marks(r, info) {
     const map = {}, t = today(), s = [...r.periods].sort((a, b) => a.start.localeCompare(b.start));
     for (const p of s) { const end = p.end || (p === s[s.length - 1] && info.onPeriod ? t : addDays(p.start, (info.avgP || 6) - 1)); for (let k = p.start; k <= end; k = addDays(k, 1)) map[k] = 'period'; }
@@ -279,7 +282,7 @@
     const km = lerp(p.lk, p.rk, 0.5), sp = Math.max(7, Math.hypot(p.lk[0] - p.rk[0], p.lk[1] - p.rk[1]) / 2 + 4), hem = k => [km[0] + px * k + (km[0] - p.hip[0]) * .15, km[1] + py * k + (km[1] - p.hip[1]) * .15];
     const dress = `M${sh(-4.5)} Q${mid[0] - px * 6},${mid[1] - py * 6} ${hp(-6.5)} L${hem(-sp)} L${hem(sp)} L${hp(6.5)} Q${mid[0] + px * 6},${mid[1] + py * 6} ${sh(4.5)} Z`;
     const belly = lerp(p.neck, p.hip, .62); let nx = px, ny = py; if (Math.abs(dx) < 6) { nx = .9; ny = 0; } else if (ny < 0) { nx = -nx; ny = -ny; }
-    return `<svg viewBox="0 0 100 100" class="rf-fig"><line x1="4" y1="91" x2="96" y2="91" stroke="#ddd" stroke-width="1.5"/>
+    return `<svg viewBox="0 0 100 100" class="rf-fig" width="100%" height="100%"><line x1="4" y1="91" x2="96" y2="91" stroke="#ddd" stroke-width="1.5"/>
       ${L('hip', 'lk', 6, '#E6AFC8')}${L('lk', 'lf', 4.6, '#BC93AB')}${L('neck', 'le', 4.6, '#E6AFC8')}${L('le', 'lh', 4.2, '#E6AFC8')}${L('rk', 'rf', 4.6, '#8C5577')}
       <path d="${dress}" fill="#D47FA6"/>${preg ? `<ellipse cx="${belly[0] + nx * 5}" cy="${belly[1] + ny * 5}" rx="7.5" ry="7.2" fill="#D47FA6" stroke="#fff" stroke-width=".8"/>` : ''}
       ${e.kegel ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="${3 + t * 4}" fill="none" stroke="#81c784" stroke-width="1.4"/>` : ''}
@@ -307,7 +310,7 @@
     if (cat === 'run') return runRoutine(el, r, id);
     if (cat === 'ex') {
       const e = F.exercises[id], d = (F.details || {})[id] || {};
-      el.innerHTML = `<div class="card rf-ex"><div data-fig="${id}" data-preg="${isPreg(e.cat) ? 1 : 0}" class="rf-figbox big"></div><h2>${esc(e.name)}</h2>
+      el.innerHTML = `<div class="card rf-ex"><div data-fig="${id}" data-preg="${isPreg(e.cat) ? 1 : 0}" class="rf-figbox big" style="width:200px;height:200px;margin:0 auto"></div><h2>${esc(e.name)}</h2>
         <ol>${e.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol>${e.tip ? `<p>💡 ${esc(e.tip)}</p>` : ''}
         ${d.target ? `<p><b>العضلات:</b> ${esc(d.target)}</p>` : ''}${d.breath ? `<p><b>التنفّس:</b> ${esc(d.breath)}</p>` : ''}
         ${d.mistakes ? `<b>أخطاء شائعة</b><ul>${d.mistakes.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${d.easier ? `<p><b>أسهل:</b> ${esc(d.easier)}</p>` : ''}${d.harder ? `<p><b>أصعب:</b> ${esc(d.harder)}</p>` : ''}
@@ -317,7 +320,7 @@
     const c = F.cats.find(x => x.key === cat), ex = Object.entries(F.exercises).filter(([, e]) => e.cat === cat && !(isGirl() && e.kegel)), rt = F.routines.filter(x => x.cat === cat);
     el.innerHTML = `<h1>${esc(c ? c.name : '')}</h1><div class="sub">${esc(c ? c.desc : '')}</div>
       ${rt.length ? `<h2>▶ برامج جاهزة</h2><div class="bt-list">${rt.map(x => `<a class="bt-row" href="#/rafiqa/fit/run/${x.id}" style="text-decoration:none;color:inherit"><b>${esc(x.name)}</b><small class="muted">${esc(x.level || '')} · ${D(x.list.length)} تمارين × ${D(x.rounds)} جولات</small><span class="spacer"></span><span class="btn sm primary">ابدئي</span></a>`).join('')}</div>` : ''}
-      <h2>التمارين</h2><div class="rf-exs">${ex.map(([k, e]) => `<a class="card rf-exc" href="#/rafiqa/fit/ex/${k}"><div data-fig="${k}" data-preg="${isPreg(cat) ? 1 : 0}" class="rf-figbox"></div><b>${esc(e.name)}</b></a>`).join('')}</div>`;
+      <h2>التمارين</h2><div class="rf-exs">${ex.map(([k, e]) => `<a class="card rf-exc" href="#/rafiqa/fit/ex/${k}"><div data-fig="${k}" data-preg="${isPreg(cat) ? 1 : 0}" class="rf-figbox" style="width:110px;height:110px"></div><b>${esc(e.name)}</b></a>`).join('')}</div>`;
     animate(el);
   }
   let run = null;
@@ -337,7 +340,7 @@
       const s = steps[run.i], e = F.exercises[s.id];
       el.innerHTML = `<div class="card rf-run ${s.k}"><div class="row"><b>${esc(rt.name)}</b><span class="spacer"></span><small>${D(run.i + 1)}/${D(steps.length)}</small></div>
         <div class="tag">${LBL[s.k]}${s.k === 'ex' ? ' — الجولة ' + D(s.rn + 1) + ' من ' + D(rounds) : ''}</div>
-        <div data-fig="${s.id}" data-pause="${run.paused || s.k === 'rest' || s.k === 'ready' ? 1 : 0}" data-preg="${!isGirl() && (rt.cat === 'preg' || (r.preg && r.preg.lmp)) ? 1 : 0}" class="rf-figbox big"></div>
+        <div data-fig="${s.id}" data-pause="${run.paused || s.k === 'rest' || s.k === 'ready' ? 1 : 0}" data-preg="${!isGirl() && (rt.cat === 'preg' || (r.preg && r.preg.lmp)) ? 1 : 0}" class="rf-figbox big" style="width:200px;height:200px;margin:0 auto"></div>
         <h2>${s.k === 'rest' ? 'التالي: ' : ''}${esc(e.name)}</h2><div class="rf-clock">${D(run.left)}</div>
         <div class="lr-progress"><i style="width:${Math.round(run.i / steps.length * 100)}%"></i></div>
         <div class="row" style="gap:8px;justify-content:center;margin-top:10px"><button class="btn" id="rP">⏮</button><button class="btn primary" id="rT">${run.paused ? '▶ استمري' : '⏸ إيقاف مؤقت'}</button><button class="btn" id="rN">⏭</button><button class="btn" id="rX">✕ إنهاء</button></div>
