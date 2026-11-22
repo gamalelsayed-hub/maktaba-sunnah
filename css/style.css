@@ -1414,3 +1414,18 @@ body.sec-mode #secTabs { display: flex; }
 .sec-grp > summary:hover { background: var(--bg2); }
 .sec-grp > a { margin-inline-start: 14px !important; }
 .sec-foot a { font-size: 13px; }
+/* ===== الدعوة ===== */
+.dw-hero { background: linear-gradient(135deg, #0b4f6c, #127a8a); color: #fff; }
+.dw-hero h1, .dw-hero div { color: #fff; }
+.dw-parts { display: flex; flex-direction: column; gap: 10px; }
+.dw-part { display: flex; gap: 14px; align-items: center; text-decoration: none !important; color: inherit; }
+.dw-part .dw-ic { font-size: 40px; }
+.dw-part b { font-size: 18px; display: block; } .dw-part small { display: block; line-height: 1.7; }
+.dw-q { margin: 8px 0; padding: 8px 12px; border-inline-start: 4px solid #127a8a; background: var(--bg2); border-radius: 8px; }
+.dw-q .quran-text { font-size: 21px; line-height: 2.1; }
+.dw-book { background: #fdf8ec; border: 1px solid #ecdcb4; border-radius: 12px; padding: 10px 12px; margin: 8px 0; }
+body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
+.dw-bh { font-weight: 700; font-size: 13.5px; color: #8a6a1d; }
+.dw-book p { font-family: var(--quran, 'Amiri', serif); font-size: 17px; line-height: 2; margin: 6px 0; }
+.dw-intro { font-size: 16px; line-height: 2; border-inline-start: 5px solid #127a8a; }
+.dw-card p { font-size: 17px; line-height: 2; margin: 4px 0; }

@@ -519,5 +519,159 @@ window.PACK_MANIFEST=[
   "version": "b32dddcc6280",
   "optional": false,
   "type": "matn"
+ },
+ {
+  "file": "book-jawab-sahih",
+  "id": "jawab-sahih",
+  "title": "الجواب الصحيح لمن بدّل دين المسيح",
+  "author": "ابن تيمية (ت ٧٢٨هـ)",
+  "count": 284,
+  "size": 3501424,
+  "version": "db7329f73439",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-hidayat-hayara",
+  "id": "hidayat-hayara",
+  "title": "هداية الحيارى في أجوبة اليهود والنصارى",
+  "author": "ابن قيم الجوزية (ت ٧٥١هـ)",
+  "count": 118,
+  "size": 739406,
+  "version": "ab80ef92e5b2",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-izhar-haqq",
+  "id": "izhar-haqq",
+  "title": "إظهار الحق",
+  "author": "رحمة الله الهندي (ت ١٣٠٨هـ)",
+  "count": 701,
+  "size": 2078485,
+  "version": "825f3eb13f62",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-fisal",
+  "id": "fisal",
+  "title": "الفِصَل في الملل والأهواء والنحل",
+  "author": "ابن حزم (ت ٤٥٦هـ)",
+  "count": 243,
+  "size": 3207380,
+  "version": "11162c18a008",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-milal",
+  "id": "milal",
+  "title": "الملل والنحل",
+  "author": "الشهرستاني (ت ٥٤٨هـ)",
+  "count": 246,
+  "size": 1217436,
+  "version": "1be09a5f1ed2",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-ifham-yahud",
+  "id": "ifham-yahud",
+  "title": "بذل المجهود في إفحام اليهود",
+  "author": "السموأل المغربي (ت ٥٧٠هـ)، وكان يهودياً فأسلم",
+  "count": 25,
+  "size": 148003,
+  "version": "6bc55d6b00bf",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-iclam-nasara",
+  "id": "iclam-nasara",
+  "title": "الإعلام بما في دين النصارى من الفساد والأوهام",
+  "author": "القرطبي (ت ٦٧١هـ)",
+  "count": 265,
+  "size": 1091566,
+  "version": "4465872cafd9",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-radd-nasara-jahiz",
+  "id": "radd-nasara-jahiz",
+  "title": "الرد على النصارى",
+  "author": "الجاحظ (ت ٢٥٥هـ)",
+  "count": 11,
+  "size": 73264,
+  "version": "ec57fcb8e40a",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-dar-taarud",
+  "id": "dar-taarud",
+  "title": "درء تعارض العقل والنقل",
+  "author": "ابن تيمية (ت ٧٢٨هـ)",
+  "count": 1139,
+  "size": 6697555,
+  "version": "55ed04878019",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-miftah-sada",
+  "id": "miftah-sada",
+  "title": "مفتاح دار السعادة",
+  "author": "ابن قيم الجوزية (ت ٧٥١هـ)",
+  "count": 243,
+  "size": 2370773,
+  "version": "7effb3ac875a",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-shifa-alil",
+  "id": "shifa-alil",
+  "title": "شفاء العليل في القضاء والقدر والحكمة والتعليل",
+  "author": "ابن قيم الجوزية (ت ٧٥١هـ)",
+  "count": 86,
+  "size": 1577805,
+  "version": "3e715ccf40b4",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-iqtisad",
+  "id": "iqtisad",
+  "title": "الاقتصاد في الاعتقاد",
+  "author": "أبو حامد الغزالي (ت ٥٠٥هـ)",
+  "count": 20,
+  "size": 423765,
+  "version": "7c865cfcbef6",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-fasl-maqal",
+  "id": "fasl-maqal",
+  "title": "فصل المقال فيما بين الحكمة والشريعة من الاتصال",
+  "author": "ابن رشد الحفيد (ت ٥٩٥هـ)",
+  "count": 24,
+  "size": 76175,
+  "version": "d8c9cb09711d",
+  "optional": true,
+  "type": "dawahbook"
+ },
+ {
+  "file": "book-amr-maruf",
+  "id": "amr-maruf",
+  "title": "الأمر بالمعروف والنهي عن المنكر",
+  "author": "ابن تيمية (ت ٧٢٨هـ)",
+  "count": 13,
+  "size": 117240,
+  "version": "413fdda628d7",
+  "optional": true,
+  "type": "dawahbook"
  }
 ];

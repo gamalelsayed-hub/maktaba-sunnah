@@ -64,7 +64,7 @@
     if (pos.length > 1 && Math.max(...pos) - Math.min(...pos) < 400) sc += 5;
     return sc;
   }
-  const DEEP_TYPES = ['sharh', 'tafsir', 'fiqhbook', 'sirabook', 'tafsirbook', 'hadithbook', 'other', 'rijal', 'qiraatbook', 'matn'];
+  const DEEP_TYPES = ['sharh', 'tafsir', 'fiqhbook', 'sirabook', 'tafsirbook', 'hadithbook', 'other', 'rijal', 'qiraatbook', 'matn', 'dawahbook'];
   async function deepFind(words, rootRe, bookIds, f, onBook) {
     const seen = f.seen || new Set();
     return DB.deepScan(bookIds, it => {
@@ -302,7 +302,7 @@
   };
 
   // ================= المكتبة والاستيراد =================
-  const TYPE_AR = { quran: 'قرآن', tafsir: 'تفسير', hadith: 'حديث', sharh: 'شرح', fiqh: 'مسائل فقهية', fiqhbook: 'كتاب فقه', qawaid: 'قواعد', rijal: 'رجال', gharib: 'غريب', sira: 'أحداث السيرة', sirabook: 'كتاب سيرة/تاريخ', sahaba: 'صحابة', mutash: 'متشابه القرآن', qiraatbook: 'قراءات وتجويد', matn: 'متن', other: 'أخرى' };
+  const TYPE_AR = { quran: 'قرآن', tafsir: 'تفسير', hadith: 'حديث', sharh: 'شرح', fiqh: 'مسائل فقهية', fiqhbook: 'كتاب فقه', qawaid: 'قواعد', rijal: 'رجال', gharib: 'غريب', sira: 'أحداث السيرة', sirabook: 'كتاب سيرة/تاريخ', sahaba: 'صحابة', mutash: 'متشابه القرآن', qiraatbook: 'قراءات وتجويد', matn: 'متن', dawahbook: 'دعوة ومقارنة أديان', other: 'أخرى' };
   V.library = async el => {
     const all = Object.values(APP.state.books);
     const inst = all.filter(b => b.count), shelf = all.filter(b => !b.count);
