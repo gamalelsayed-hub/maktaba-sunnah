@@ -59,7 +59,7 @@
       ${tasksCard}
       <div class="grid" style="margin-bottom:6px">${prTile}${dkTile}</div>
       ${dash}
-      ${APP.familyDoors ? APP.familyDoors() : ''}
+      <a class="btn" href="#/start" style="margin:6px 0 14px">↩ شاشة البداية: كل أقسام الأسرة</a>
       <h2>ابدأ من هنا</h2>
       <div class="quick">
         ${Q('#/prayer', '🕌', 'c1', 'المواقيت')}${Q('#/adhkar', '📿', 'c2', 'الأذكار')}${Q('#/adhkar/tasbih', '🧮', 'c3', 'المسبحة')}${Q('#/hijri', '📅', 'c3', 'التقويم والصيام')}${Q('#/zakat', '💰', 'c6', 'الزكاة')}${Q('#/quran', '📖', 'c1', 'المصحف')}${Q('#/mushaf', '📄', 'c1', 'المصحف بالصفحات')}${Q('#/mymushaf', '📕', 'c2', 'مصحفي الخاص')}${Q('#/khatma', '📅', 'c2', 'الختمة')}${Q('#/listen', '🎧', 'c3', 'الاستماع')}${Q('#/tasmee?new=1', '📝', 'c2', 'اختبر حفظك')}${Q('#/tajweed', '🎙️', 'c5', 'التجويد')}

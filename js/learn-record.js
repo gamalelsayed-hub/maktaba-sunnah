@@ -20,7 +20,7 @@
         ${C('r:#/qiraat', '#/qiraat', '📜', 'القراءات والتجويد', 'العشر ومتونها')}
         ${C('r:#/bayt', '#/bayt', '🏡', 'إدارة البيت', 'الوجبات والتسوق والميزانية')}
       </div>
-      <div class="sp-note">يفتح التطبيق على اختيارك في المرات القادمة، وتنتقل بين الأقسام كلها من القائمة متى شئت.</div>
+      <div class="sp-note">هذه هي الشاشة الرئيسية، وترجع إليها من أي قسم بزر «↩ شاشة البداية».</div>
     </div>`;
     el.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
       try { localStorage.setItem('audience', a.dataset.aud); } catch (e) { } LEARN.stop();
@@ -31,13 +31,8 @@
   // عند فتح التطبيق: أول مرة شاشة الاختيار، وبعدها يفتح على آخر قسم اختاره (إلا إن فُتح على رابط محدد كإشعار)
   try {
     const h = location.hash;
-    if (!h || h === '#/' || h === '#') {
-      const aud = localStorage.getItem('audience');
-      if (!aud) location.replace('#/start');
-      else if (aud === 'kids') location.replace('#/kids');
-      else if (aud === 'lit') location.replace('#/literacy');
-      else if (aud.startsWith('r:#/')) location.replace(aud.slice(2));
-    }
+    // الشاشة الرئيسية الرسمية: شاشة اختيار القسم دائماً عند فتح التطبيق (إلا إن فُتح على رابط محدد كإشعار)
+    if (!h || h === '#/' || h === '#') location.replace('#/start');
   } catch (e) { }
 
   // ===== استوديو التسجيل =====
