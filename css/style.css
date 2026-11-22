@@ -2,6 +2,8 @@
    هوية: أخضر زمردي عميق + ذهبي مخطوطات + ورق دافئ. خطوط مدمجة تعمل بدون إنترنت. */
 @font-face { font-family: 'Amiri Quran'; src: url(../fonts/AmiriQuran-Regular.ttf) format('truetype'); font-display: swap; }
 @font-face { font-family: 'Naskh'; src: url(../fonts/NotoNaskhArabic.ttf) format('truetype'); font-weight: 400 700; font-display: swap; }
+@font-face { font-family: 'Ruqaa'; src: url(../fonts/ArefRuqaa-Regular.ttf) format('truetype'); font-display: swap; }
+@font-face { font-family: 'Kufi'; src: url(../fonts/ReemKufi.ttf) format('truetype'); font-weight: 400 700; font-display: swap; }
 @font-face { font-family: 'Plex Arabic'; src: url(../fonts/IBMPlexSansArabic-Regular.ttf) format('truetype'); font-weight: 400; font-display: swap; }
 @font-face { font-family: 'Plex Arabic'; src: url(../fonts/IBMPlexSansArabic-Medium.ttf) format('truetype'); font-weight: 500 600; font-display: swap; }
 @font-face { font-family: 'Plex Arabic'; src: url(../fonts/IBMPlexSansArabic-Bold.ttf) format('truetype'); font-weight: 700 800; font-display: swap; }
@@ -1550,3 +1552,13 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .ms-tb table{width:100%;border-collapse:collapse;margin-top:6px}.ms-tb td{padding:5px 6px;border-bottom:1px solid var(--line,#eee)}.ms-tb td:first-child{color:var(--muted,#777);font-size:13px;width:38%}
 .ms-w{font-family:var(--quran);font-size:19px}
 .ms-scroll{overflow-x:auto}.ms-mz{border-collapse:collapse;min-width:640px;width:100%;background:var(--panel,#fff)}.ms-mz th,.ms-mz td{padding:7px;border:1px solid var(--line,#e5e5e5);text-align:center}.ms-mz th{background:#e6f2f4;font-size:13px}
+
+/* 🖋️ الخط العربي */
+.kh-sample{font-size:30px;line-height:1.6}
+.kh-head{display:flex;justify-content:space-between;margin:10px 0}
+.kh-board{position:relative;height:320px;background:#fffdf6;border:2px solid #eadbb5;border-radius:16px;overflow:hidden;touch-action:none}
+.kh-guide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:transparent;-webkit-text-stroke:1.5px #c9b88f;opacity:.9;pointer-events:none;line-height:1.2;padding:0 8px 30px;text-align:center;direction:rtl}
+.kh-guide{color:rgba(201,184,143,.25)}.kh-guide.off{opacity:0}
+.kh-line{position:absolute;left:8px;right:8px;top:62%;border-top:1px dashed #e3d4ae;pointer-events:none}
+.kh-board canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;z-index:2}
+.kh-score{text-align:center}.kh-score b{display:block;font-size:30px}.kh-stars{font-size:28px}.kh-score small{display:block;color:var(--muted,#777)}
