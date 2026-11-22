@@ -21,22 +21,7 @@
   // ===== رسمة شاب بقميص وبنطال، بنفس محرّك حركات «رفيقة» =====
   const JOINTS = ['head', 'neck', 'hip', 'le', 'lh', 're', 'rh', 'lk', 'lf', 'rk', 'rf'];
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-  function figSvg(e, t) {
-    const PO = window.FITMEN.poses, A = PO[e.frames[0]] || PO.stand, B = PO[e.frames[1]] || A, p = {};
-    JOINTS.forEach(j => p[j] = lerp(A[j] || PO.stand[j], B[j] || A[j] || PO.stand[j], t));
-    const L = (a, b, w, c) => `<line x1="${p[a][0]}" y1="${p[a][1]}" x2="${p[b][0]}" y2="${p[b][1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
-    const dx = p.hip[0] - p.neck[0], dy = p.hip[1] - p.neck[1], len = Math.hypot(dx, dy) || 1, px = -dy / len, py = dx / len;
-    const sh = k => [p.neck[0] + px * k, p.neck[1] + py * k], hp = k => [p.hip[0] + px * k, p.hip[1] + py * k];
-    const shirt = `M${sh(-6)} L${hp(-5)} L${hp(5)} L${sh(6)} Z`;
-    const toN = [p.neck[0] - p.head[0], p.neck[1] - p.head[1]], tl = Math.hypot(toN[0], toN[1]) || 1;
-    const hair = `M${p.head[0] - toN[1] / tl * 6.6},${p.head[1] + toN[0] / tl * 6.6} A6.6,6.6 0 0 1 ${p.head[0] + toN[1] / tl * 6.6},${p.head[1] - toN[0] / tl * 6.6} Z`;
-    return `<svg viewBox="0 0 100 100" width="100%" height="100%"><line x1="4" y1="91" x2="96" y2="91" stroke="#d6dde6" stroke-width="1.5"/>
-      ${L('hip', 'lk', 6.2, '#5b6b7f')}${L('lk', 'lf', 5.4, '#5b6b7f')}${L('neck', 'le', 4.8, '#7fa3cf')}${L('le', 'lh', 4.2, '#e9c3a6')}
-      ${L('hip', 'rk', 6.6, '#3c4a5c')}${L('rk', 'rf', 5.8, '#3c4a5c')}<circle cx="${p.lf[0]}" cy="${p.lf[1]}" r="2.6" fill="#22303f"/><circle cx="${p.rf[0]}" cy="${p.rf[1]}" r="2.8" fill="#22303f"/>
-      <path d="${shirt}" fill="#1E4E8C" stroke="#1E4E8C" stroke-width="3" stroke-linejoin="round"/>
-      ${L('neck', 're', 5.2, '#2a62a8')}${L('re', 'rh', 4.4, '#f0cdb7')}<circle cx="${p.rh[0]}" cy="${p.rh[1]}" r="2.3" fill="#f0cdb7"/><circle cx="${p.lh[0]}" cy="${p.lh[1]}" r="2.1" fill="#e9c3a6"/>
-      <circle cx="${p.head[0]}" cy="${p.head[1]}" r="6.6" fill="#f0cdb7"/><path d="${hair}" fill="#2b1d16"/></svg>`;
-  }
+  const figSvg = (e, t) => window.FIG.svg(window.FITMEN.poses, e, t, { look: 'man' });
   let animT = null;
   function animate(root) {
     clearInterval(animT); const t0 = Date.now();

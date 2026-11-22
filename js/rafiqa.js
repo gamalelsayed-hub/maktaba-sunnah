@@ -274,22 +274,7 @@
   // ================= التمارين =================
   const JOINTS = ['head', 'neck', 'hip', 'le', 'lh', 're', 'rh', 'lk', 'lf', 'rk', 'rf'];
   const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-  function figSvg(e, t, preg) {
-    const PO = R().fitness.poses, A = PO[e.frames[0]] || PO.stand, B = PO[e.frames[1]] || A, p = {};
-    JOINTS.forEach(j => p[j] = lerp(A[j] || PO.stand[j], B[j] || A[j] || PO.stand[j], t));
-    const L = (a, b, w, c) => `<line x1="${p[a][0]}" y1="${p[a][1]}" x2="${p[b][0]}" y2="${p[b][1]}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
-    const dx = p.hip[0] - p.neck[0], dy = p.hip[1] - p.neck[1], len = Math.hypot(dx, dy) || 1, px = -dy / len, py = dx / len;
-    const mid = lerp(p.neck, p.hip, 0.5), sh = k => [p.neck[0] + px * k, p.neck[1] + py * k], hp = k => [p.hip[0] + px * k, p.hip[1] + py * k];
-    const km = lerp(p.lk, p.rk, 0.5), sp = Math.max(7, Math.hypot(p.lk[0] - p.rk[0], p.lk[1] - p.rk[1]) / 2 + 4), hem = k => [km[0] + px * k + (km[0] - p.hip[0]) * .15, km[1] + py * k + (km[1] - p.hip[1]) * .15];
-    const dress = `M${sh(-4.5)} Q${mid[0] - px * 6},${mid[1] - py * 6} ${hp(-6.5)} L${hem(-sp)} L${hem(sp)} L${hp(6.5)} Q${mid[0] + px * 6},${mid[1] + py * 6} ${sh(4.5)} Z`;
-    const belly = lerp(p.neck, p.hip, .62); let nx = px, ny = py; if (Math.abs(dx) < 6) { nx = .9; ny = 0; } else if (ny < 0) { nx = -nx; ny = -ny; }
-    return `<svg viewBox="0 0 100 100" class="rf-fig" width="100%" height="100%"><line x1="4" y1="91" x2="96" y2="91" stroke="#ddd" stroke-width="1.5"/>
-      ${L('hip', 'lk', 6, '#E6AFC8')}${L('lk', 'lf', 4.6, '#BC93AB')}${L('neck', 'le', 4.6, '#E6AFC8')}${L('le', 'lh', 4.2, '#E6AFC8')}${L('rk', 'rf', 4.6, '#8C5577')}
-      <path d="${dress}" fill="#D47FA6"/>${preg ? `<ellipse cx="${belly[0] + nx * 5}" cy="${belly[1] + ny * 5}" rx="7.5" ry="7.2" fill="#D47FA6" stroke="#fff" stroke-width=".8"/>` : ''}
-      ${e.kegel ? `<circle cx="${p.hip[0]}" cy="${p.hip[1]}" r="${3 + t * 4}" fill="none" stroke="#81c784" stroke-width="1.4"/>` : ''}
-      ${L('neck', 're', 4.8, '#D47FA6')}${L('re', 'rh', 4.4, '#D47FA6')}<circle cx="${p.rh[0]}" cy="${p.rh[1]}" r="2" fill="#F0CDB7"/><circle cx="${p.lh[0]}" cy="${p.lh[1]}" r="1.9" fill="#F0CDB7"/>
-      <circle cx="${p.head[0]}" cy="${p.head[1]}" r="7.4" fill="#7E2156"/><ellipse cx="${p.head[0]}" cy="${p.head[1] + .5}" rx="4.3" ry="4.9" fill="#F0CDB7"/></svg>`;
-  }
+  const figSvg = (e, t, preg) => window.FIG.svg(R().fitness.poses, e, t, { look: 'woman', preg, kegel: e.kegel });
   // تحريك كل الرسومات الظاهرة
   let animT = null;
   function animate(root) {
