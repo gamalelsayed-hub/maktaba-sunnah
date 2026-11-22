@@ -84,7 +84,7 @@
     if ((PH[look] || []).includes(id)) {
       let ph = el.querySelector('.fig-ph');
       if (!ph) { el.innerHTML = `<div class="fig-ph"><img src="img/fit/${look}/${id}-1.webp" alt=""><img src="img/fit/${look}/${id}-2.webp" alt=""></div>`; ph = el.querySelector('.fig-ph'); }
-      ph.lastChild.style.opacity = Math.max(0, Math.min(1, (t - .47) / .06)).toFixed(2);
+      ph.lastChild.style.opacity = t > .5 ? '1' : '0'; ph.firstChild.style.opacity = t > .5 ? '0' : '1';
       return;
     }
     el.innerHTML = svgFn();
