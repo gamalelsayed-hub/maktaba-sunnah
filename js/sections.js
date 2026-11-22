@@ -8,7 +8,9 @@
     bayt: { t: '🏡 إدارة البيت', cls: 'bt', links: async () => [['#/bayt', '🏡', 'اليوم'], ['#/bayt/meals', '🍲', 'الوجبات'], ['#/bayt/pantry', '🧺', 'المطبخ'], ['#/bayt/shop', '🛒', 'التسوق'], ['#/bayt/chores', '🧹', 'مهام البيت'], ['#/bayt/lessons', '📚', 'دروس الأولاد'], ['#/bayt/budget', '💰', 'الميزانية'], ['#/mirath', '⚖️', 'حاسبة الميراث']] },
     qiraat: { t: '📜 القراءات والتجويد', cls: 'qr', links: async () => [['#/qiraat', '🏠', 'الرئيسية'], ['#/qiraat/surah', '📖', 'حسب السورة'], ['#/qiraat/search', '🔎', 'قراءات كلمة'], ['#/qiraat/mutun', '📜', 'المتون'], ['#/qiraat/kutub', '📚', 'الشروح والكتب'], ['#/qiraat/qurra', '👥', 'القراء ورواتهم'], ['#/tajweed', '🎙️', 'دروس التجويد']] },
   };
-  SECS.mirath = SECS.tarbiya;
+  SECS.parents = { t: '👨‍👩‍👧 الأب والأم', cls: 'pa', links: async () => [['#/parents', '🏠', 'الأب والأم'], ['#/tarbiya', '🧭', 'منهج التربية'], ['#/tarbiya/barnamaj', '📅', 'برنامج حسب العمر'], ['#/tarbiya/wasail', '🛠️', 'وسائل التربية'], ['#/tarbiya/marahil', '📈', 'المراحل'], ['#/tarbiya/mawlud', '👶', 'حقوق المولود'], ['#/tarbiya/akhta', '⚠️', 'أخطاء شائعة'], ['#/tarbiya/mushkilat', '🧩', 'مشكلات وحلول'], ['#/bayt', '🏡', 'البيت اليوم'], ['#/bayt/meals', '🍲', 'الوجبات'], ['#/bayt/pantry', '🧺', 'المطبخ'], ['#/bayt/shop', '🛒', 'التسوق'], ['#/bayt/chores', '🧹', 'مهام البيت'], ['#/bayt/lessons', '📚', 'دروس الأولاد'], ['#/bayt/budget', '💰', 'الميزانية'], ['#/mirath', '⚖️', 'حاسبة المواريث'], ['#/tarbiya/birr', '🤍', 'البرّ'], ['#/tarbiya/masadir', '📖', 'المصادر']] };
+  SECS.tarbiya = SECS.bayt = SECS.mirath = SECS.parents;
+  SECS.qiraat.links = ((f) => async () => [...(await f()), ['#/ilm', '📚', 'طلب العلم']])(SECS.qiraat.links);
   let cur = null;
   async function apply() {
     const top = (location.hash.match(/^#\/([^/?]+)/) || [])[1];

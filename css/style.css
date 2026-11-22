@@ -1401,3 +1401,4 @@ body.sec-mode #secTabs { display: flex; }
 .mr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; } .mr-f { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: var(--bg2); border-radius: 10px; padding: 6px 10px; } .mr-f input[type=number] { width: 64px; } .mr-t td, .mr-t th { text-align: center; }
 .sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 @media (min-width: 520px) { .sp-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } .sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: auto; } }
+.pa-hero { background: linear-gradient(135deg, #0f5a46, #2e7d6b); color: #fff; } .pa-hero h1, .pa-hero div { color: #fff; }
