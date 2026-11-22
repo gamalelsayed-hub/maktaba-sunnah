@@ -50,38 +50,42 @@
   }
   function dl(canvas, name) { const a = document.createElement('a'); a.download = name + '.png'; a.href = canvas.toDataURL('image/png'); document.body.appendChild(a); a.click(); a.remove(); APP.toast && APP.toast('حُفظت الصورة 👍'); }
 
-  // ===== التلوين =====
+  // ===== التلوين: الطفل يلوّن بإصبعه (شخبطة) تحت خطوط الرسمة =====
   function color(b, pic) {
-    let cur = COLORS[0]; const fill = loadFill(pic.id);
-    b.innerHTML = `<div class="kdw-wrap"><div class="kdw-board">${svgOf(pic, els(pic))}</div>${palette(b, cur)}
-      <div class="kdw-act"><button class="btn" id="kUndo">↩️ تراجع</button><button class="btn" id="kClear">🧽 مسح الألوان</button><button class="btn" id="kSave">💾 حفظ الصورة</button></div>
-      <div class="kdw-tip">اختر لوناً ثم المس أي جزء من الرسمة ليتلوّن.</div></div>`;
-    const svg = b.querySelector('svg'), fs = [...svg.querySelectorAll('.kdw-f')], hist = [];
-    fs.forEach((p, i) => { p.style.fill = fill[i] || '#fff'; p.onclick = () => { hist.push([i, p.style.fill]); p.style.fill = cur; fill[i] = cur; saveFill(pic.id, fill); }; });
-    bindPal(b, c => cur = c);
-    b.querySelector('#kUndo').onclick = () => { const h = hist.pop(); if (!h) return; fs[h[0]].style.fill = h[1]; fill[h[0]] = h[1]; saveFill(pic.id, fill); };
-    b.querySelector('#kClear').onclick = () => { fs.forEach((p, i) => { p.style.fill = '#fff'; }); for (const k in fill) delete fill[k]; saveFill(pic.id, fill); };
-    b.querySelector('#kSave').onclick = () => download(svg, 'تلوين-' + pic.n);
+    const t = tools(b); t.setSize(14); t.setColor('#e53935');
+    b.innerHTML = `<div class="kdw-wrap"><div class="kdw-board kdw-paper" id="kPad"><div class="kdw-outline">${svgOf(pic, els(pic))}</div></div>${t.h}
+      <div class="kdw-act"><button class="btn" id="kUndo">↩️ تراجع</button><button class="btn" id="kClear">🧽 امسح الألوان</button><button class="btn" id="kSave">💾 حفظ الصورة</button></div>
+      <div class="kdw-tip">اختر لوناً وحجم الفرشاة، ثم لوّن بإصبعك داخل الرسمة كما تحب.</div></div>`;
+    const saved = (() => { try { return JSON.parse(localStorage.getItem(key(pic.id) + '-s') || '[]'); } catch (e) { return []; } })();
+    const pd = pad(b.querySelector('#kPad'), t.col, t.size, saved, st => { try { localStorage.setItem(key(pic.id) + '-s', JSON.stringify(st.slice(-400))); } catch (e) { } });
+    t.bind(pd);
+    b.querySelector('#kUndo').onclick = pd.undo; b.querySelector('#kClear').onclick = pd.clear;
+    b.querySelector('#kSave').onclick = () => {
+      const c = document.createElement('canvas'); c.width = pd.cv.width; c.height = pd.cv.height; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(pd.cv, 0, 0);
+      const s = new XMLSerializer().serializeToString(b.querySelector('.kdw-outline svg')), img = new Image();
+      img.onload = () => { x.drawImage(img, 0, 0, c.width, c.height); dl(c, 'تلوين-' + pic.n); };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s.replace('<svg', '<svg style="fill:none;stroke:#222;stroke-width:3.2;stroke-linejoin:round;stroke-linecap:round"').replace(/class="kdw-f"/g, 'fill="none" stroke="#222" stroke-width="3.2"').replace(/<path /g, '<path fill="none" stroke="#222" stroke-width="3.2" '));
+    };
   }
 
   // ===== لوحة رسم (للرسم الحر والدروس) =====
-  function pad(holder, getColor, getSize) {
-    const cv = document.createElement('canvas'); cv.className = 'kdw-cv'; holder.appendChild(cv);
-    const ctx = cv.getContext('2d'), strokes = [];
+  function pad(holder, getColor, getSize, init, onChange) {
+    const cv = document.createElement('canvas'); cv.className = 'kdw-cv'; holder.insertBefore(cv, holder.firstChild);
+    const ctx = cv.getContext('2d'), strokes = init ? init.slice() : []; const ch = () => onChange && onChange(strokes);
     const fit = () => { const r = holder.getBoundingClientRect(), d = window.devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; ctx.setTransform(d, 0, 0, d, 0, 0); redraw(); };
     const redraw = () => { ctx.clearRect(0, 0, cv.width, cv.height); strokes.forEach(s => { ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = ctx.lineJoin = 'round'; ctx.beginPath(); s.p.forEach(([x, y], i) => { const r = cv.getBoundingClientRect(); const X = x * r.width, Y = y * r.height; i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); if (s.p.length === 1) { ctx.lineTo(s.p[0][0] * cv.getBoundingClientRect().width + .1, s.p[0][1] * cv.getBoundingClientRect().height); } ctx.stroke(); }); };
     let cur = null;
     const pt = e => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); cur = { c: getColor(), w: getSize(), p: [pt(e)] }; strokes.push(cur); redraw(); });
     cv.addEventListener('pointermove', e => { if (!cur) return; cur.p.push(pt(e)); redraw(); });
-    const end = () => cur = null; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    const end = () => { if (cur) ch(); cur = null; }; cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
     setTimeout(fit, 30); window.addEventListener('resize', fit);
-    return { undo() { strokes.pop(); redraw(); }, clear() { strokes.length = 0; redraw(); }, cv, strokes };
+    return { undo() { strokes.pop(); redraw(); ch(); }, clear() { strokes.length = 0; redraw(); ch(); }, cv, strokes };
   }
   function tools(b) {
     let col = '#212121', size = 6;
-    const h = `${palette(b, col)}<div class="kdw-size">${[3, 6, 12, 22].map(s => `<button class="kdw-s${s === size ? ' on' : ''}" data-s="${s}"><i style="width:${s}px;height:${s}px"></i></button>`).join('')}<button class="kdw-s" data-s="er">🧽</button></div>`;
-    return { h, bind(pd) {
+    const mk = () => `${palette(b, col)}<div class="kdw-size">${[3, 6, 14, 26].map(s => `<button class="kdw-s${s === size ? ' on' : ''}" data-s="${s}"><i style="width:${s}px;height:${s}px"></i></button>`).join('')}<button class="kdw-s" data-s="er">🧽</button></div>`;
+    return { setSize(n) { size = n; }, setColor(c) { col = c; }, get h() { return mk(); }, bind(pd) {
       bindPal(b, c => { col = c; b.querySelectorAll('.kdw-s[data-s="er"]').forEach(x => x.classList.remove('on')); });
       b.querySelectorAll('.kdw-s').forEach(x => x.onclick = () => { b.querySelectorAll('.kdw-s').forEach(y => y.classList.remove('on')); x.classList.add('on'); if (x.dataset.s === 'er') { col = '#ffffff'; size = 24; } else { size = +x.dataset.s; if (col === '#ffffff') col = '#212121'; } });
     }, col: () => col, size: () => size };

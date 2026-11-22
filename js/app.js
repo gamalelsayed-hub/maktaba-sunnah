@@ -415,9 +415,9 @@
       const el = $('#view');
       const removed = (await DB.setting('removedBooks')) || [];
       const chosen = (await DB.setting('optionalBooks')) || [];
-      const list = window.PACK_MANIFEST.filter(m => !removed.includes(m.id) && (!IMPORT.isNative() || !m.optional || chosen.includes(m.id)));
+      const list = window.PACK_MANIFEST.filter(m => !removed.includes(m.id) && (!m.optional || chosen.includes(m.id)));
       const mb = Math.round(list.reduce((s, m) => s + m.size, 0) / 1e6);
-      el.innerHTML = `<h1>تثبيت المكتبة</h1><div class="sub">يُثبَّت القرآن الكريم وكتب الحديث وشروحها والتفاسير وكتب الفقه والسيرة داخل البرنامج (${list.length} كتاباً، نحو ${mb} ميجا) — مرة واحدة فقط، ثم يعمل كل شيء بدون إنترنت.</div>
+      el.innerHTML = `<h1>تثبيت المكتبة</h1><div class="sub">يُثبَّت القرآن الكريم وكتب الحديث الأساسية داخل البرنامج (${list.length} كتاباً، نحو ${mb} ميجا) — مرة واحدة فقط، ثم تعمل بدون إنترنت. أما الشروح والتفاسير والمطولات وكتب التاريخ والأدب فتحمّلها من داخل كل قسم عند حاجتك إليها.</div>
         <div class="card"><div class="progress"><div id="insBar" style="width:0%"></div></div><div id="insMsg" style="margin-top:8px"></div></div>
         <table class="t">${list.map(m => `<tr><td>${esc(m.title)}</td><td>${m.count.toLocaleString('ar')} نص</td><td id="ins-${m.id}" class="muted">بالانتظار</td></tr>`).join('')}</table>`;
       try {
