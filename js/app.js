@@ -292,6 +292,7 @@
       document.body.classList.toggle('simple-ui', p !== 'talib');
     },
     setReviewer(on) {
+      on = !!on && !!APP.state.reviewerUnlocked;
       APP.state.reviewer = on; DB.setting('reviewer', on);
       $('#reviewerBtn').textContent = 'وضع المراجع: ' + (on ? 'تشغيل' : 'إيقاف');
       $('#reviewerBtn').classList.toggle('on', on);
@@ -364,7 +365,9 @@
       const s = { fontSize: await DB.setting('fontSize'), dark: await DB.setting('dark'), theme: await DB.setting('theme') };
       APP.applyLook(s);
       APP.state.hideUnreviewed = !!(await DB.setting('hideUnreviewed'));
-      APP.state.reviewerUnlocked = !!(await DB.setting('reviewerUnlocked'));
+      // وضع المراجع لا يبقى مفتوحاً إلا إن فُتح بكلمة سر صاحب التطبيق (يُغلق ما فُتح بكلمات سر أنشأها مستخدمون في النسخ السابقة)
+      APP.state.reviewerUnlocked = !!(await DB.setting('reviewerUnlocked')) && (await DB.setting('reviewerPass')) === APP.OWNER_KEY;
+      if (!APP.state.reviewerUnlocked) await DB.setting('reviewerUnlocked', false);
       APP.setReviewer(APP.state.reviewerUnlocked && !!(await DB.setting('reviewer')));
       // مراجعات منشورة مع البرنامج (data/review.js) تُدمج عند التشغيل
       if (window.PACK_REVIEW && window.PACK_REVIEW.length) {
@@ -386,14 +389,19 @@
       else if (p === 'talib') setTimeout(() => APP.optPrompt(), 1500);
     },
 
-    // قفل وضع المراجع بكلمة سر (تُحفظ مُجزّأة SHA-256 على هذا الجهاز)
+    // قفل وضع المراجع: كلمة سر صاحب التطبيق وحده (بصمتها PBKDF2 مثبتة هنا، لا يمكن إنشاء كلمة سر جديدة على أي جهاز)
     async hash(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('maktaba:' + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); },
+    OWNER_KEY: '45baf842bf13b649abe8ed3d0a9b75c3fcad8a08b4381f0367e078aff458da1c',
+    async ownerHash(p) {
+      const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(p), 'PBKDF2', false, ['deriveBits']);
+      const b = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode('zad-alusra-owner-v1'), iterations: 200000, hash: 'SHA-256' }, k, 256);
+      return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+    },
     async unlockReviewer() {
-      const saved = await DB.setting('reviewerPass');
-      const r = await APP.ask(saved ? 'دخول المراجع' : 'إنشاء كلمة سر المراجع', [{ key: 'p', label: saved ? 'كلمة السر' : 'اختر كلمة سر (احفظها عندك)' }]);
+      const r = await APP.ask('دخول المراجع', [{ key: 'p', label: 'كلمة سر صاحب التطبيق' }]);
       if (!r || !r.p) return;
-      if (!saved) await DB.setting('reviewerPass', await APP.hash(r.p));
-      else if (saved !== await APP.hash(r.p)) return APP.toast('كلمة السر غير صحيحة');
+      if (await APP.ownerHash(r.p) !== APP.OWNER_KEY) return APP.toast('كلمة السر غير صحيحة');
+      await DB.setting('reviewerPass', APP.OWNER_KEY);
       APP.state.reviewerUnlocked = true; await DB.setting('reviewerUnlocked', true);
       APP.setReviewer(true); APP.toast('تم فتح وضع المراجع'); APP.rerender();
     },

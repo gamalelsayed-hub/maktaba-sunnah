@@ -246,6 +246,7 @@
 
   // ================= المراجعة العلمية =================
   V.review = async (el, parts) => {
+    if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="warn">هذه الصفحة لصاحب التطبيق فقط.</div>'; return; }
     if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="warn">هذه الشاشة للمراجع العلمي. ادخل من <a href="#/settings">الإعدادات ← دخول المراجع</a>.</div>'; return; }
     if (parts[0] === 'next') {
       const bookId = parts[1];
@@ -422,10 +423,10 @@
       <div class="card"><h3>🎨 ألوان التطبيق</h3><div class="th-sw">${[['emerald', 'زمردي', '#0d5c3f'], ['royal', 'أزرق ملكي', '#1e3a8a'], ['teal', 'فيروزي', '#0f5e66'], ['sand', 'رملي', '#7a4a1d'], ['ruby', 'عنّابي', '#6e1f30'], ['slate', 'رمادي فاخر', '#2f3b4c']].map(([k, n, c]) => `<button data-theme="${k}" class="${(theme || 'emerald') === k ? 'on' : ''}"><i style="background:linear-gradient(135deg,${c},#b0852b)"></i>${n}</button>`).join('')}</div><div class="muted" style="font-size:12px;margin-top:6px">تعمل مع الوضع الليلي أيضاً.</div></div>
       <div class="card"><h3>✨ الإحساس باللمس</h3><label><input type="checkbox" id="hapt" ${(() => { try { return localStorage.getItem('haptics') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> اهتزاز خفيف عند الضغط على الأزرار (في تطبيق الجوال)</label><br><label><input type="checkbox" id="motion" ${(() => { try { return localStorage.getItem('motion') !== '0'; } catch (e) { return true; } })() ? 'checked' : ''}> حركات انتقال ناعمة بين الصفحات</label></div>
       ${window.TTS ? TTS.settingsHtml() : ''}
-      <div class="card"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
-        ? `<div class="row"><span class="tag st-ok">وضع المراجع مفتوح على هذا الجهاز</span><button class="btn" id="rvLock">قفل وضع المراجع</button><button class="btn" id="rvPass">تغيير كلمة السر</button></div>
+      <div class="card ${APP.state.reviewerUnlocked ? '' : 'hidden'}" id="rvCard"><h3>المراجع العلمي</h3>${APP.state.reviewerUnlocked
+        ? `<div class="row"><span class="tag st-ok">وضع المراجع مفتوح على هذا الجهاز</span><button class="btn" id="rvLock">قفل وضع المراجع</button></div>
            <label style="display:block;margin-top:8px"><input type="checkbox" id="hideUn" ${APP.state.hideUnreviewed ? 'checked' : ''}> إظهار النصوص المعتمدة فقط للمستخدم (عند إغلاق وضع المراجع)</label>`
-        : '<button class="btn" id="rvUnlock">دخول المراجع</button> <small class="muted">للمراجع العلمي فقط</small>'}</div>
+        : '<button class="btn" id="rvUnlock">دخول المراجع</button> <small class="muted">لصاحب التطبيق فقط</small>'}</div>
       <div class="card"><h3>النسخ الاحتياطي لبياناتي</h3><div class="sub">المحفوظات، التعليمات، الهوامش، الملاحظات، الحفظ، والمراجعة.</div><div class="row"><button class="btn primary" id="bkExp">تصدير نسخة احتياطية</button><label class="btn">استعادة نسخة <input type="file" id="bkImp" accept=".json" hidden></label></div></div>
       <div class="card"><h3>🔒 الخصوصية</h3><div>التطبيق لا يجمع أي بيانات، وكل ما تحفظه يبقى على جهازك. <a href="https://gamalelsayed-hub.github.io/maktaba-sunnah/privacy.html" target="_blank" rel="noopener">سياسة الخصوصية</a></div></div><div class="card"><h3>المصادر والتراخيص</h3>${Object.values(APP.state.books).filter(b => b.count && (b.source || b.license)).map(b => `<div style="margin-bottom:8px"><b>${esc(b.title)}</b>: ${esc(b.source || '')}${b.id === 'quran' ? ' — <a href="https://tanzil.net" target="_blank" rel="noopener">tanzil.net</a>' : ''}${b.license ? `<details><summary>نص الترخيص</summary><pre style="white-space:pre-wrap;font-size:12px">${esc(b.license)}</pre></details>` : ''}</div>`).join('') || '<div class="muted">—</div>'}</div>
       <div class="card"><h3>إعادة الضبط</h3><button class="btn" id="reset" style="color:var(--red)">حذف كل البيانات والبدء من جديد</button></div>`;
@@ -436,8 +437,9 @@
     $('#motion').onchange = e => { try { localStorage.setItem('motion', e.target.checked ? '1' : '0'); } catch (x) { } document.body.classList.toggle('no-motion', !e.target.checked); };
     $('#dark').onchange = e => { DB.setting('dark', e.target.checked); APP.applyLook({ fontSize: +$('#fs').value, dark: e.target.checked, theme: document.body.dataset.theme }); };
     if ($('#rvUnlock')) $('#rvUnlock').onclick = () => APP.unlockReviewer();
+    { let taps = 0, t0 = 0; const h = el.querySelector('h1'); if (h) h.onclick = () => { const n = Date.now(); taps = n - t0 < 1500 ? taps + 1 : 1; t0 = n; if (taps >= 7) $('#rvCard').classList.remove('hidden'); }; }
     if ($('#rvLock')) $('#rvLock').onclick = () => APP.lockReviewer();
-    if ($('#rvPass')) $('#rvPass').onclick = async () => { const r = await APP.ask('كلمة سر جديدة', [{ key: 'p', label: 'كلمة السر الجديدة' }]); if (r && r.p) { await DB.setting('reviewerPass', await APP.hash(r.p)); APP.toast('تم تغيير كلمة السر'); } };
+    if (false && $('#rvPass')) $('#rvPass').onclick = async () => { const r = await APP.ask('كلمة سر جديدة', [{ key: 'p', label: 'كلمة السر الجديدة' }]); if (r && r.p) { await DB.setting('reviewerPass', await APP.hash(r.p)); APP.toast('تم تغيير كلمة السر'); } };
     if ($('#hideUn')) $('#hideUn').onchange = e => { APP.state.hideUnreviewed = e.target.checked; DB.setting('hideUnreviewed', e.target.checked); };
     if (window.TTS) TTS.bindSettings(el);
     if (el.querySelector('#chkUp')) { el.querySelector('#chkUp').onclick = () => UPDATER.check(true); UPDATER.current().then(v => { const n = el.querySelector('#appVer'); if (n) n.textContent = 'نسختك: ' + v; }); }

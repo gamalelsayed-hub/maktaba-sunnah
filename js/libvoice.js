@@ -177,6 +177,7 @@
   // ---------- الشاشة: قائمة الكتب ----------
   const V = APP.views;
   V.voicerec = async (el, [bookId, startId]) => {
+    if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="warn">هذه الصفحة لصاحب التطبيق فقط.</div>'; return; }
     if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="card">هذه الشاشة للمراجع العلمي فقط.</div>'; return; }
     if (bookId) return focus(el, bookId, startId ? decodeURIComponent(startId) : null);
     const s = await stats();
