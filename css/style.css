@@ -1373,3 +1373,14 @@ body.rq-theme .rf-whobar .btn, body.rq-theme .btn { border-radius: 999px; }
 .bref { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
 .tuhfa-sh { background: var(--gold-l, #fff8e1); }
 .tuhfa-sh p, .tuhfa-sh li { line-height: 2; }
+.sp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 520px) { .sp-grid { grid-template-columns: repeat(4, 1fr); } }
+.sp-card.sp-rf { background: linear-gradient(160deg, #fff, #FCEBF3); border-color: #F1DCE7; }
+.sp-card.sp-rf b { color: #9B2F6B; }
+.sp-card.sp-rq { background: linear-gradient(160deg, #fff, #E6F0FB); border-color: #cfe0f3; }
+.sp-card.sp-rq b { color: #1E4E8C; }
+.fam-door[href="#/rafiqa"] { background: linear-gradient(160deg, var(--panel), #FCEBF3); border-color: #F1DCE7; }
+.fam-door[href="#/rafiqa"] b { color: #9B2F6B; }
+.fam-door[href="#/rafiq"] { background: linear-gradient(160deg, var(--panel), #E6F0FB); border-color: #cfe0f3; }
+.fam-door[href="#/rafiq"] b { color: #1E4E8C; }
+body.dark .fam-door[href="#/rafiqa"], body.dark .fam-door[href="#/rafiq"] { background: var(--panel); }

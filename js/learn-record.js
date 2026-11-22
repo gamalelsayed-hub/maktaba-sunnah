@@ -5,15 +5,22 @@
   // ===== شاشة البداية: من أنت؟ =====
   V.start = async el => {
     document.body.classList.add('learn-mode'); document.body.classList.remove('learn-kids', 'learn-lit');
+    const C = (aud, href, ic, t, d, cls = '') => `<a class="sp-card ${cls}" href="${href}" data-aud="${aud}"><span class="sp-ic">${ic}</span><b>${t}</b><small>${d}</small></a>`;
     el.innerHTML = `<div class="sp">
-      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>زاد الأسرة المسلمة</h1><div class="sp-motto">العلمُ يرفعُ بيتاً لا عِمادَ له</div></div>
-      <a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">📚</span><div><b>المكتبة</b><small>القرآن الكريم وتفسيره، والحديث وشروحه، والفقه والسيرة، والأذكار والمواقيت</small></div><span class="sp-go">‹</span></a>
-      <div class="sp-sub">🎓 التعلّم للأسرة</div>
-      <div class="sp-two">
-        <a class="sp-card" href="#/kids" data-aud="kids"><span class="sp-ic">🧒</span><b>الأطفال</b><small>الحروف والكتابة والأرقام وجزء عمّ</small></a>
-        <a class="sp-card" href="#/literacy" data-aud="lit"><span class="sp-ic">✍️</span><b>تعلّم القراءة والكتابة</b><small>للكبار، بالصوت والصورة</small></a>
+      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>زاد الأسرة المسلمة</h1><div class="sp-motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div></div>
+      <a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">🕌</span><div><b>للجميع</b><small>القرآن الكريم، والصلاة والأذان، والأذكار والأدعية، والرقية، والمكتبة كاملة</small></div><span class="sp-go">‹</span></a>
+      <div class="sp-sub">👨‍👩‍👧‍👦 اختر ما يناسبك</div>
+      <div class="sp-grid">
+        ${C('r:#/rafiqa', '#/rafiqa', '🌸', 'رفيقة', 'للمرأة والفتاة', 'sp-rf')}
+        ${C('r:#/rafiq', '#/rafiq', '🧭', 'رفيق', 'للشباب', 'sp-rq')}
+        ${C('r:#/tarbiya', '#/tarbiya', '👨‍👩‍👧', 'تربية الأبناء', 'للأب والأم')}
+        ${C('kids', '#/kids', '🧒', 'الأطفال', 'الحروف وجزء عمّ والقصص')}
+        ${C('lit', '#/literacy', '✍️', 'تعليم الكبار', 'القراءة والكتابة من الصفر')}
+        ${C('r:#/ilm', '#/ilm', '📚', 'طلب العلم', 'الحديث والفقه والتفسير')}
+        ${C('r:#/qiraat', '#/qiraat', '📜', 'القراءات والتجويد', 'العشر ومتونها')}
+        ${C('r:#/bayt', '#/bayt', '🏡', 'إدارة البيت', 'الوجبات والتسوق والميزانية')}
       </div>
-      <div class="sp-note">يحفظ التطبيق اختيارك ويفتح عليه في المرات القادمة، وتنتقل بين الأقسام من القائمة متى شئت.</div>
+      <div class="sp-note">يفتح التطبيق على اختيارك في المرات القادمة، وتنتقل بين الأقسام كلها من القائمة متى شئت.</div>
     </div>`;
     el.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
       try { localStorage.setItem('audience', a.dataset.aud); } catch (e) { } LEARN.stop();
@@ -29,6 +36,7 @@
       if (!aud) location.replace('#/start');
       else if (aud === 'kids') location.replace('#/kids');
       else if (aud === 'lit') location.replace('#/literacy');
+      else if (aud.startsWith('r:#/')) location.replace(aud.slice(2));
     }
   } catch (e) { }
 
