@@ -127,7 +127,7 @@
     el.innerHTML = '<div class="card muted">جارٍ التحميل…</div>';
     try { await load(); } catch (e) { el.innerHTML = '<div class="warn">تعذّر تحميل محتوى «رفيقة».</div>'; return; }
     const r = await get();
-    const back = sec ? `<a class="btn sm" href="#/rafiqa${sec && a ? '/' + sec : ''}">← ${sec && a ? 'رجوع' : 'رفيقة'}</a>` : '';
+    const back = sec ? `<a class="btn sm" href="#/rafiqa${sec && a ? '/' + sec : ''}">← ${sec && a ? 'رجوع' : 'زاد الرفيقة'}</a>` : '';
     if (sec === 'parent') { location.replace('#/tarbiya'); return; }
     const F = { cycle, preg, fit, fiqh, seerah, status, life, books }[sec];
     if (!F) {
@@ -135,7 +135,7 @@
       const ph = info.has ? R().cycle.phases[isGirl() && (info.phase === 'fertile' || info.phase === 'ovulation') ? 'follicular' : info.phase] : null;
       const pi = r.preg && r.preg.lmp ? pregInfo(r.preg.lmp) : null;
       const sw = R().seerah.women, si = Math.floor(Date.now() / 864e5) % sw.length, sd = sw[si];
-      el.innerHTML = `<div class="rf-hero"><h1>🌸 رفيقة</h1><div>رفيقتك في كل مراحل حياتك: صحتك، ودينك، وبيتك.</div></div>
+      el.innerHTML = `<div class="rf-hero"><h1>🌸 زاد الرفيقة</h1><div>رفيقتك في كل مراحل حياتك: صحتك، ودينك، وبيتك.</div></div>
         <div class="rf-now">${!isGirl() && pi && pi.week >= 0 && pi.week <= 42 ? `<a class="card rf-nc" href="#/rafiqa/preg"><b>🤰 الأسبوع ${D(pi.week)} من الحمل</b><small>باقٍ على الولادة ${D(Math.max(0, pi.left))} يوماً</small></a>` : info.has ? `<a class="card rf-nc" href="#/rafiqa/cycle" style="--c:#c2185b"><b>${esc(ph.name)}</b><small>${info.onPeriod ? 'اليوم ' + D(info.dayOfPeriod) + ' من الدورة' : info.past ? 'متأخرة ' + D(info.past) + ' يوماً' : 'الدورة القادمة بعد ' + D(info.until) + ' يوماً تقريباً'}</small></a>` : `<a class="card rf-nc" href="#/rafiqa/cycle"><b>🩸 ابدئي بتسجيل دورتك</b><small>ليتوقّع التطبيق موعدها القادم</small></a>`}
           <a class="card rf-nc" href="#/rafiqa/seerah/w/${sd.id}"><b>🌟 قدوة اليوم: ${esc(sd.name)}</b><small>${esc(sd.short)}</small></a></div>
         <div class="row rf-whobar"><small>${WHO[who][0]} القسم معروض لكِ: <b>${WHO[who][1]}</b></small><span class="spacer"></span><button class="btn sm" id="rfWho">تغيير</button></div>
@@ -297,7 +297,7 @@
     clearInterval(animT); const t0 = Date.now();
     animT = setInterval(() => {
       if (!document.body.contains(root)) { clearInterval(animT); return; }
-      root.querySelectorAll('[data-fig]').forEach(f => { if (f.dataset.pause === '1' && f.firstChild) return; const e = R().fitness.exercises[f.dataset.fig]; if (!e) return; const t = f.dataset.pause === '1' ? 0 : (1 - Math.cos((Date.now() - t0) / (e.speed || 1200) * Math.PI)) / 2; f.innerHTML = figSvg(e, t, f.dataset.preg === '1'); });
+      root.querySelectorAll('[data-fig]').forEach(f => { if (f.dataset.pause === '1' && f.firstChild) return; const e = R().fitness.exercises[f.dataset.fig]; if (!e) return; const t = f.dataset.pause === '1' ? 0 : (1 - Math.cos((Date.now() - t0) / (e.speed || 1200) * Math.PI)) / 2; window.FIG.draw(f, 'woman', f.dataset.fig, t, () => figSvg(e, t, f.dataset.preg === '1')); });
     }, 60);
   }
   async function fit(el, r, cat, id) {

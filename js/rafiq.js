@@ -27,7 +27,7 @@
     clearInterval(animT); const t0 = Date.now();
     animT = setInterval(() => {
       if (!document.body.contains(root)) { clearInterval(animT); return; }
-      root.querySelectorAll('[data-fig]').forEach(f => { if (f.dataset.pause === '1' && f.firstChild) return; const e = window.FITMEN.exercises[f.dataset.fig]; if (!e) return; const t = f.dataset.pause === '1' ? 0 : (1 - Math.cos((Date.now() - t0) / (e.speed || 1200) * Math.PI)) / 2; f.innerHTML = figSvg(e, t); });
+      root.querySelectorAll('[data-fig]').forEach(f => { if (f.dataset.pause === '1' && f.firstChild) return; const e = window.FITMEN.exercises[f.dataset.fig]; if (!e) return; const t = f.dataset.pause === '1' ? 0 : (1 - Math.cos((Date.now() - t0) / (e.speed || 1200) * Math.PI)) / 2; window.FIG.draw(f, 'man', f.dataset.fig, t, () => figSvg(e, t)); });
     }, 60);
   }
   const box = (id, big, pause) => `<div data-fig="${id}" ${pause ? 'data-pause="1"' : ''} class="rf-figbox${big ? ' big' : ''}" style="width:${big ? 200 : 110}px;height:${big ? 200 : 110}px;${big ? 'margin:0 auto' : ''}"></div>`;
@@ -120,7 +120,7 @@
       const u = await getU(), t = today(), ck = u.check[t] || {};
       const days = u.streak ? Math.floor((Date.now() - new Date(u.streak).getTime()) / 864e5) : null;
       const wk = u.log.filter(x => (Date.now() - new Date(x.d).getTime()) < 7 * 864e5).length;
-      el.innerHTML = `<div class="rf-hero rq-hero"><h1>🧭 رفيق</h1><div>رفيقك في دينك وأخلاقك وصحتك ومستقبلك.</div></div>
+      el.innerHTML = `<div class="rf-hero rq-hero"><h1>🧭 زاد الرفيق</h1><div>رفيقك في دينك وأخلاقك وصحتك ومستقبلك.</div></div>
         <div class="row rf-whobar"><small>${WHO[who][0]} القسم معروض لك: <b>${WHO[who][1]}</b></small><span class="spacer"></span><button class="btn sm" id="rqWho">تغيير</button></div>
         <div class="card rq-today"><h3>✅ يومي</h3><div class="rq-checks">${CHECK.map(([k, l]) => `<button class="${ck[k] ? 'on' : ''}" data-ck="${k}">${l}</button>`).join('')}</div>
           <div class="muted">${D(Object.keys(ck).filter(k => ck[k]).length)} من ${D(CHECK.length)} اليوم</div></div>

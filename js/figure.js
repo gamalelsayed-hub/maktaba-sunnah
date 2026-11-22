@@ -75,4 +75,18 @@
     return s + '</svg>';
   }
   window.FIG = { svg };
+
+  // صور حقيقية للتمارين (اختيارية): img/fit/<man|woman>/<id>-1.webp و <id>-2.webp، وأسماؤها مسجّلة في img/fit/index.json
+  // إن وُجدت الصورتان تُعرض بالتبادل الناعم بدل الرسم، وإلا يبقى الرسم المتحرك.
+  let PH = { man: [], woman: [] };
+  try { fetch('img/fit/index.json?v=' + (window.DATA_V || ''), { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).then(j => { if (j) PH = j; }).catch(() => { }); } catch (e) { }
+  window.FIG.draw = (el, look, id, t, svgFn) => {
+    if ((PH[look] || []).includes(id)) {
+      let ph = el.querySelector('.fig-ph');
+      if (!ph) { el.innerHTML = `<div class="fig-ph"><img src="img/fit/${look}/${id}-1.webp" alt=""><img src="img/fit/${look}/${id}-2.webp" alt=""></div>`; ph = el.querySelector('.fig-ph'); }
+      ph.lastChild.style.opacity = Math.max(0, Math.min(1, (t - .15) / .7)).toFixed(2);
+      return;
+    }
+    el.innerHTML = svgFn();
+  };
 })();

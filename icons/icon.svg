@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f7a4d"/><stop offset="1" stop-color="#0d4a2e"/></linearGradient>
+<linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#e3a92b"/></linearGradient>
+<linearGradient id="pg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fffdf5"/><stop offset="1" stop-color="#efe6cc"/></linearGradient>
+</defs>
+<rect width="512" height="512" fill="url(#bg)"/>
+<!-- house with dome roof -->
+<path d="M106 250 Q106 130 256 92 Q406 130 406 250 L406 404 L106 404 Z" fill="none" stroke="url(#gd)" stroke-width="20" stroke-linejoin="round"/>
+<!-- crescent -->
+<mask id="cm"><rect width="512" height="512" fill="#fff"/><circle cx="267" cy="51" r="22" fill="#000"/></mask><circle cx="256" cy="58" r="26" fill="url(#gd)" mask="url(#cm)"/>
+<!-- family: faceless figures -->
+<g fill="#ffe7a3">
+ <circle cx="196" cy="186" r="22"/><path d="M164 290 Q164 220 196 216 Q228 220 228 290 Z"/>
+ <circle cx="266" cy="194" r="19"/><path d="M238 290 Q236 228 266 224 Q296 228 294 290 Z"/>
+ <circle cx="324" cy="222" r="15"/><path d="M302 290 Q302 246 324 244 Q346 246 346 290 Z"/>
+</g>
+<!-- open book -->
+<path d="M134 300 Q195 282 256 312 L256 392 Q195 362 134 380 Z" fill="url(#pg)"/>
+<path d="M378 300 Q317 282 256 312 L256 392 Q317 362 378 380 Z" fill="url(#pg)"/>
+<path d="M256 312 L256 392" stroke="#c9a24a" stroke-width="4"/>
+<g stroke="#b88a2c" stroke-width="5" stroke-linecap="round" opacity=".8">
+ <path d="M154 318 Q196 306 238 324"/><path d="M154 338 Q196 326 238 344"/><path d="M154 358 Q196 346 238 364"/>
+ <path d="M358 318 Q316 306 274 324"/><path d="M358 338 Q316 326 274 344"/><path d="M358 358 Q316 346 274 364"/>
+</g>
+<path d="M126 404 L386 404" stroke="url(#gd)" stroke-width="20" stroke-linecap="round"/>
+</svg>

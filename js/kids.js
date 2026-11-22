@@ -237,17 +237,18 @@
     if (sec === 'duas') return duasView(sh, id, k);
     if (sec === 'exam') return LIT.gradTest(sh('🏆 اختبار البطل', '#/kids'), 'kids');
     if (sec === 'dict' || sec === 'review') { if (!(await LIT.reading({ sec, id, sub, area: 'kids', base: '#/kids', pg: k, sh }))) location.replace('#/kids'); return; }
+    if (sec === 'draw') return window.KDRAW(sh, id, sub);
     if (sec === 'shapes') return shapesLesson(sh('🔷 الأشكال', '#/kids/numbers'), '#/kids/numbers');
     if (sec === 'parents') return LX.parents(sh('🔒 للأهل', '#/kids'));
     if (sec === 'rest' || await LX.overLimit()) return LX.rest(sh('🌙', ''));
     if (sec === 'letters') { location.replace('#/kids/read/letters' + (id != null ? '/' + id : '')); return; }
     if (!sec) {
-      const b = sh('🌟 عالم الصغار', '');
+      const b = sh('🌟 زاد البراعم', '');
       const hi = sessionStorage.getItem('kids-hi') !== new Date().toDateString();
       if (hi) { sessionStorage.setItem('kids-hi', new Date().toDateString()); setTimeout(() => say('p_char_hi'), 300); }
       const nMiss = Object.keys(p.miss || {}).length;
       tiles(b, [['#/learnme', '🗺️', 'p_t_map'], ['#/kids/watch', '🎬', 'p_t_watch'], ['#/kids/read', '🔤', 'p_t_letters'], ['#/kids/words', '🖼️', 'p_t_words'], ['#/kids/dict', '🎧', 'p_l_dict'], ['#/kids/stories', '📚', 'p_t_stories'], ['#/kids/sent', '🧩', 'p_l_sent'],
-        ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/duas', '🤲', 'p_t_duas'], ['#/kids/games', '🎮', 'p_t_games'], ...(nMiss ? [['#/kids/review', '🔁', 'p_l_review']] : []), ['#/kids/exam', '🏆', 'p_t_exam', k.kgrad]]);
+        ['#/kids/write', '✍️', 'p_t_write'], ['#/kids/numbers', '🔢', 'p_t_numbers'], ['#/kids/quran', '📖', 'p_t_quran'], ['#/kids/duas', '🤲', 'p_t_duas'], ['#/kids/games', '🎮', 'p_t_games'], ['#/kids/draw', '🎨', 'p_t_draw'], ...(nMiss ? [['#/kids/review', '🔁', 'p_l_review']] : []), ['#/kids/exam', '🏆', 'p_t_exam', k.kgrad]]);
       b.insertAdjacentHTML('afterbegin', '<div class="st-motto sm">«إنما العلمُ بالتعلُّم»</div>');
       return;
     }
