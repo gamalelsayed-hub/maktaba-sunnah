@@ -15,7 +15,10 @@
   V.lugha = async (el, [sec, id, sub], prm = {}) => {
     el.innerHTML = '<div class="muted">جارٍ التحميل…</div>';
     try { await load(); } catch (e) { el.innerHTML = '<div class="card">تعذر تحميل الدروس.</div>'; return; }
-    if (sec === 'nahw' && id) return lesson(el, id);
+    if (sec === 'sarf' && id === 'musarrif') return musarrif(el, prm);
+    if (sec === 'arud' && id === 'bahr') return bahrQuiz(el);
+    if (G.tracks && G.tracks[sec]) { const tk = G.tracks[sec]; if (id) return lessonView(el, tk.lessons.find(x => x.id === id), tk.lessons, '#/lugha/' + sec, tk.t, sec); return trackList(el, sec); }
+    if (sec === 'nahw' && id) return lessonView(el, G.lessons.find(x => x.id === id), G.lessons, '#/lugha/nahw', 'مسار النحو', 'nahw');
     if (sec === 'nahw') return path(el);
     if (sec === 'train') return train(el, id, prm.ids);
     if (sec === 'quran') return quran(el);
@@ -28,10 +31,12 @@
       ${T('#/lugha/train', '🎯', 'مدرّب الإعراب', 'أعرب الجمل كلمةً كلمة، واعرف خطأك فوراً')}
       ${T('#/lugha/quran', '📖', 'إعراب القرآن', 'تدرّب على إعراب الفاتحة وقصار السور، وإعراب أي آية من كتب الإعراب')}
       ${T('#/lugha/wiz', '🧭', 'كيف أُعرب أي كلمة؟', 'أسئلة متتابعة توصلك إلى الإعراب الصحيح')}
-      ${T('', '🔄', 'الصرف', 'مُصرِّف الأفعال والميزان والمشتقات', 1)}
-      ${T('', '🌸', 'البلاغة والتعبير', 'التشبيه والاستعارة والكناية والبديع وبنك التعابير', 1)}
-      ${T('', '✍️', 'الإملاء', 'الهمزات والتاء والألف اللينة والترقيم', 1)}
-      ${T('', '🎼', 'العروض', 'بحور الشعر وتقطيعه', 1)}
+      ${T('#/lugha/sarf', '🔄', 'الصرف', 'الميزان والتصريف والمشتقات، ومُصرِّف الأفعال التفاعلي')}
+      ${T('#/lugha/balagha', '🌸', 'البلاغة', 'المعاني والبيان والبديع: التشبيه والاستعارة والكناية')}
+      ${T('#/lugha/imla', '✍️', 'الإملاء والترقيم', 'الهمزات والتاء والألف اللينة وعلامات الترقيم')}
+      ${T('#/lugha/arud', '🎼', 'العروض والقافية', 'البحور ومفاتيحها، وتدريب «اعرف البحر» من الدواوين')}
+      ${T('#/lugha/furuq', '📚', 'الفروق اللغوية', 'كلمات نظنها مترادفة وبينها فروق دقيقة')}
+      ${T('#/lugha/tabir', '📝', 'التعبير وبنك التعابير', 'أدوات الربط، وبناء المقال، وتعابير لكل مقام')}
       ${T('', '🖋️', 'الخط العربي', 'تدريب النسخ والرقعة بالتتبع', 1)}
       ${T('#/lugha/kutub', '📚', 'كتب علوم العربية', 'الآجرومية وقطر الندى والألفية وشروحها، وكتب البلاغة والإعراب')}
     </div>`;
@@ -43,19 +48,25 @@
       G.levels.map(([k, t, d]) => { const ls = G.lessons.filter(l => l.lvl === k); const n = ls.filter(l => dn.has(l.id)).length; return `<h2>${t} <small class="muted">${D(n)}/${D(ls.length)}</small></h2><p class="muted">${esc(d)}</p><div class="lg-list">${ls.map((l, i) => `<a class="lg-row${dn.has(l.id) ? ' ok' : ''}" href="#/lugha/nahw/${l.id}"><span class="lg-n">${dn.has(l.id) ? '✓' : D(i + 1)}</span><b>${esc(l.t)}</b></a>`).join('')}</div>`; }).join('');
   }
 
-  async function lesson(el, id) {
-    const l = G.lessons.find(x => x.id === id); if (!l) { location.hash = '#/lugha/nahw'; return; }
-    const all = G.lessons, i = all.indexOf(l), nx = all[i + 1], pv = all[i - 1];
-    el.innerHTML = back('#/lugha/nahw', 'مسار النحو') + `<h1 class="lg-t">${esc(l.t)}</h1>
+  async function trackList(el, k) {
+    const tk = G.tracks[k], dn = await done();
+    const tools = k === 'sarf' ? `<a class="btn primary lg-big" href="#/lugha/sarf/musarrif">🔄 مُصرِّف الأفعال: اكتب أي فعل ثلاثي وشاهد تصريفه كاملاً</a>` : k === 'arud' ? `<a class="btn primary lg-big" href="#/lugha/arud/bahr">🎯 اعرف البحر: تدريب من أبيات الدواوين</a>` : '';
+    el.innerHTML = back('#/lugha', 'علوم العربية') + hero(tk.ic + ' ' + tk.t, tk.d) + tools + `<div class="lg-list">${tk.lessons.map((l, i) => `<a class="lg-row${dn.has(k + ':' + l.id) ? ' ok' : ''}" href="#/lugha/${k}/${l.id}"><span class="lg-n">${dn.has(k + ':' + l.id) ? '✓' : D(i + 1)}</span><b>${esc(l.t)}</b></a>`).join('')}</div>`;
+  }
+  async function lessonView(el, l, all, base, baseT, k) {
+    if (!l) { location.hash = base; return; }
+    const i = all.indexOf(l), nx = all[i + 1], pv = all[i - 1], key = k === 'nahw' ? l.id : k + ':' + l.id;
+    el.innerHTML = back(base, baseT) + `<h1 class="lg-t">${esc(l.t)}</h1>
       <div class="card lg-idea"><b>💡 الفكرة ببساطة</b><p>${esc(l.idea)}</p></div>
       <h3>📏 القواعد</h3><ul class="lg-rules">${l.rules.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
       <h3>📖 أمثلة</h3>${l.ex.map(([a, b]) => `<div class="card lg-ex"><div class="lg-exa">${esc(a)}</div>${b && b !== '—' ? `<small>${esc(b)}</small>` : ''}</div>`).join('')}
       ${l.r.length ? `<h3>📚 من المتون والشروح</h3><div class="th-refs">${l.r.map(r => `<a class="th-ref" href="#/item/${encodeURIComponent(r[0])}"><b>${esc(r[1])}</b><small>${esc(r[2])}</small></a>`).join('')}</div>` : ''}
       <h3>✅ اختبر فهمك</h3><div id="lgQ"></div>
-      ${l.s.length ? `<a class="btn primary lg-big" href="#/lugha/train/x?ids=${l.s.join(',')}">🎯 تدرّب على إعراب جمل هذا الدرس</a>` : ''}
-      <div class="row th-nav">${pv ? `<a class="btn" href="#/lugha/nahw/${pv.id}">→ ${esc(pv.t)}</a>` : '<span></span>'}${nx ? `<a class="btn" href="#/lugha/nahw/${nx.id}">${esc(nx.t)} ←</a>` : ''}</div>`;
+      ${l.s && l.s.length ? `<a class="btn primary lg-big" href="#/lugha/train/x?ids=${l.s.join(',')}">🎯 تدرّب على إعراب جمل هذا الدرس</a>` : ''}
+      ${k === 'sarf' ? `<a class="btn lg-big" href="#/lugha/sarf/musarrif">🔄 جرّب مُصرِّف الأفعال</a>` : ''}
+      <div class="row th-nav">${pv ? `<a class="btn" href="${base}/${pv.id}">→ ${esc(pv.t)}</a>` : '<span></span>'}${nx ? `<a class="btn" href="${base}/${nx.id}">${esc(nx.t)} ←</a>` : ''}</div>`;
     const Q = el.querySelector('#lgQ'); let right = 0;
-    Q.innerHTML = l.q.map(([q, o], k) => `<div class="card lg-q" data-k="${k}"><b>${D(k + 1)}. ${esc(q)}</b><div class="lg-opts">${o.map((x, j) => `<button class="lg-o" data-j="${j}">${esc(x)}</button>`).join('')}</div><div class="lg-why"></div></div>`).join('');
+    Q.innerHTML = l.q.map(([q, o], j) => `<div class="card lg-q" data-k="${j}"><b>${D(j + 1)}. ${esc(q)}</b><div class="lg-opts">${o.map((x, m) => `<button class="lg-o" data-j="${m}">${esc(x)}</button>`).join('')}</div><div class="lg-why"></div></div>`).join('');
     Q.querySelectorAll('.lg-q').forEach(c => {
       const [, , a, why] = l.q[+c.dataset.k];
       c.querySelectorAll('.lg-o').forEach(b => b.onclick = async () => {
@@ -64,11 +75,78 @@
         c.querySelector('.lg-why').innerHTML = `${ok ? '✅ أحسنت.' : '❌ ليس هذا.'} ${esc(why || '')}`;
         if (ok) right++;
         if (Q.querySelectorAll('[data-done]').length === l.q.length) {
-          if (right === l.q.length) { await markDone(l.id); APP.toast('أحسنت! أتممت الدرس ✓'); }
-          else Q.insertAdjacentHTML('beforeend', `<div class="muted">أجبت ${D(right)} من ${D(l.q.length)}. راجع القواعد ثم <a href="#/lugha/nahw/${l.id}" onclick="setTimeout(()=>APP.rerender(),0)">أعد الاختبار</a>.</div>`);
+          if (right === l.q.length) { await markDone(key); APP.toast('أحسنت! أتممت الدرس ✓'); }
+          else Q.insertAdjacentHTML('beforeend', `<div class="muted">أجبت ${D(right)} من ${D(l.q.length)}. راجع القواعد ثم <a href="javascript:void 0" onclick="APP.rerender()">أعد الاختبار</a>.</div>`);
         }
       });
     });
+  }
+
+  // ===== 🔄 مُصرِّف الأفعال (الثلاثي الصحيح السالم ومزيده) =====
+  const F = '\u064E', Du = '\u064F', K = '\u0650', S0 = '\u0652', SH = '\u0651';
+  const ABWAB = [['a', 'u', 'نصَر ينصُر', 'كتب'], ['a', 'i', 'ضرَب يضرِب', 'جلس'], ['a', 'a', 'فتَح يفتَح', 'ذهب'], ['i', 'a', 'فرِح يفرَح', 'علم'], ['u', 'u', 'كرُم يكرُم', 'حسن'], ['i', 'i', 'حسِب يحسِب', 'حسب']];
+  const V_ = { a: F, i: K, u: Du };
+  const strip = s => s.replace(/[\u064B-\u0652\u0640]/g, '').trim();
+  function conj(root, bab) {
+    const [f, e, l] = [...root], [pv, mv] = ABWAB[bab], P = f + F + e + V_[pv] + l, ST = f + S0 + e + V_[mv] + l;
+    const madi = [['أنا', P.slice(0, -1) + l + S0 + 'تُ'], ['نحن', P.slice(0, -1) + l + S0 + 'نَا'], ['أنتَ', P.slice(0, -1) + l + S0 + 'تَ'], ['أنتِ', P.slice(0, -1) + l + S0 + 'تِ'], ['أنتما', P.slice(0, -1) + l + S0 + 'تُمَا'], ['أنتم', P.slice(0, -1) + l + S0 + 'تُمْ'], ['أنتنّ', P.slice(0, -1) + l + S0 + 'تُنَّ'], ['هو', P + F], ['هي', P + F + 'تْ'], ['هما', P + F + 'ا'], ['هما (مؤنث)', P + F + 'تَا'], ['هم', P + Du + 'وا'], ['هنّ', P + S0 + 'نَ']];
+    const m = (pre, suf) => pre + ST + suf;
+    const mud = [['أنا', m('أَ', Du)], ['نحن', m('نَ', Du)], ['أنتَ', m('تَ', Du)], ['أنتِ', m('تَ', K + 'ينَ')], ['أنتما', m('تَ', F + 'انِ')], ['أنتم', m('تَ', Du + 'ونَ')], ['أنتنّ', m('تَ', S0 + 'نَ')], ['هو', m('يَ', Du)], ['هي', m('تَ', Du)], ['هما', m('يَ', F + 'انِ')], ['هم', m('يَ', Du + 'ونَ')], ['هنّ', m('يَ', S0 + 'نَ')]];
+    const h = mv === 'u' ? 'اُ' : 'اِ';
+    const amr = [['أنتَ', h + ST + S0], ['أنتِ', h + ST + K + 'ي'], ['أنتما', h + ST + F + 'ا'], ['أنتم', h + ST + Du + 'وا'], ['أنتنّ', h + ST + S0 + 'نَ']];
+    const maj = [f + Du + e + K + l + F, 'يُ' + f + S0 + e + F + l + Du];
+    const fa = f + F + 'ا' + e + K + l + 'ٌ', mf = 'مَ' + f + S0 + e + Du + 'و' + l + 'ٌ';
+    const mazid = [
+      ['أفعَلَ', 'أَ' + f + S0 + e + F + l + F, 'يُ' + f + S0 + e + K + l + Du, 'إِ' + f + S0 + e + F + 'ا' + l + 'ٌ', 'مُ' + f + S0 + e + K + l + 'ٌ', 'مُ' + f + S0 + e + F + l + 'ٌ', 'التعدية غالباً'],
+      ['فعَّلَ', f + F + e + SH + F + l + F, 'يُ' + f + F + e + SH + K + l + Du, 'تَ' + f + S0 + e + K + 'ي' + l + 'ٌ', 'مُ' + f + F + e + SH + K + l + 'ٌ', 'مُ' + f + F + e + SH + F + l + 'ٌ', 'التكثير أو التعدية'],
+      ['فاعَلَ', f + F + 'ا' + e + F + l + F, 'يُ' + f + F + 'ا' + e + K + l + Du, 'مُ' + f + F + 'ا' + e + F + l + F + 'ةٌ', 'مُ' + f + F + 'ا' + e + K + l + 'ٌ', 'مُ' + f + F + 'ا' + e + F + l + 'ٌ', 'المشاركة'],
+      ['تفعَّلَ', 'تَ' + f + F + e + SH + F + l + F, 'يَتَ' + f + F + e + SH + F + l + Du, 'تَ' + f + F + e + SH + Du + l + 'ٌ', 'مُتَ' + f + F + e + SH + K + l + 'ٌ', 'مُتَ' + f + F + e + SH + F + l + 'ٌ', 'المطاوعة أو التكلّف'],
+      ['تفاعَلَ', 'تَ' + f + F + 'ا' + e + F + l + F, 'يَتَ' + f + F + 'ا' + e + F + l + Du, 'تَ' + f + F + 'ا' + e + Du + l + 'ٌ', 'مُتَ' + f + F + 'ا' + e + K + l + 'ٌ', 'مُتَ' + f + F + 'ا' + e + F + l + 'ٌ', 'المشاركة بين اثنين فأكثر'],
+      ['انفعَلَ', 'اِنْ' + f + F + e + F + l + F, 'يَنْ' + f + F + e + K + l + Du, 'اِنْ' + f + K + e + F + 'ا' + l + 'ٌ', 'مُنْ' + f + F + e + K + l + 'ٌ', '—', 'المطاوعة'],
+      ['افتعَلَ', ...ifta(f, e, l), 'الاتخاذ أو المطاوعة'],
+      ['استفعَلَ', 'اِسْتَ' + f + S0 + e + F + l + F, 'يَسْتَ' + f + S0 + e + K + l + Du, 'اِسْتِ' + f + S0 + e + F + 'ا' + l + 'ٌ', 'مُسْتَ' + f + S0 + e + K + l + 'ٌ', 'مُسْتَ' + f + S0 + e + F + l + 'ٌ', 'الطلب غالباً'],
+    ];
+    return { madi, mud, amr, maj, fa, mf, mazid };
+  }
+  function ifta(f, e, l) {
+    let t = 'تَ', ff = f; if ('صضطظ'.includes(f)) t = 'طَ'; else if ('دذز'.includes(f)) t = 'دَ';
+    if (f === 'ط') { ff = ''; t = 'طَّ'; } if (f === 'د' || f === 'ذ') { ff = ''; t = 'دَّ'; }
+    const mid = (ff ? ff + S0 : '') + t;
+    return ['اِ' + mid + e + F + l + F, 'يَ' + mid + e + K + l + Du, 'اِ' + (ff ? ff + S0 : '') + t.replace('َ', 'ِ') + e + F + 'ا' + l + 'ٌ', 'مُ' + mid + e + K + l + 'ٌ', 'مُ' + mid + e + F + l + 'ٌ'];
+  }
+  async function musarrif(el, prm) {
+    const v = strip(prm.v || 'كتب'), bab = +(prm.b || 0);
+    el.innerHTML = back('#/lugha/sarf', 'الصرف') + hero('🔄 مُصرِّف الأفعال', 'اكتب فعلاً ثلاثياً صحيحاً سالماً (مثل: كتب، جلس، فتح، علم) واختر بابه، فيظهر تصريفه كاملاً مع المزيد والمشتقات.') +
+      `<form class="th-search" id="msF"><input name="v" value="${esc(v)}" maxlength="6" placeholder="الفعل الماضي: كتب"><button class="btn primary">صرّف</button></form>
+      <div class="chips">${ABWAB.map((b, i) => `<a class="chip${i === bab ? ' on' : ''}" href="#/lugha/sarf/musarrif?v=${encodeURIComponent(v)}&b=${i}">${b[2]}</a>`).join('')}</div><div id="msO"></div>`;
+    el.querySelector('#msF').onsubmit = e => { e.preventDefault(); location.hash = '#/lugha/sarf/musarrif?v=' + encodeURIComponent(strip(e.target.v.value)) + '&b=' + bab; };
+    const O = el.querySelector('#msO'), r = [...v];
+    if (r.length !== 3) { O.innerHTML = '<div class="card">اكتب فعلاً ثلاثياً (ثلاثة أحرف) مثل: كتب.</div>'; return; }
+    const weak = r.some(c => 'اويءأؤئى'.includes(c)) || r[1] === r[2];
+    const c = conj(v, bab), tb = (t, rows) => `<div class="card ms-tb"><b>${t}</b><table>${rows.map(([p, w]) => `<tr><td>${esc(p)}</td><td class="ms-w">${esc(w)}</td></tr>`).join('')}</table></div>`;
+    O.innerHTML = (weak ? `<div class="card th-khilaf">⚠️ «${esc(v)}» فيه حرف علة أو همزة أو تضعيف، وهذه لها أحكام إعلال وإدغام لا يطبقها هذا المصرِّف؛ فالجدول التالي تقريبي، وراجع درس «الصحيح والمعتل».</div>` : '') +
+      `<div class="ms-grid">${tb('الماضي', c.madi)}${tb('المضارع', c.mud)}${tb('الأمر', c.amr)}<div class="card ms-tb"><b>المبني للمجهول والمشتقات</b><table><tr><td>الماضي المجهول</td><td class="ms-w">${c.maj[0]}</td></tr><tr><td>المضارع المجهول</td><td class="ms-w">${c.maj[1]}</td></tr><tr><td>اسم الفاعل</td><td class="ms-w">${c.fa}</td></tr><tr><td>اسم المفعول</td><td class="ms-w">${c.mf}</td></tr><tr><td>المصدر</td><td class="ms-w muted">سماعي في الثلاثي، راجع المعجم ودرس «المصادر»</td></tr></table></div></div>
+      <h3>🧩 المزيد من «${esc(v)}»</h3><div class="ms-scroll"><table class="ms-mz"><tr><th>الوزن</th><th>الماضي</th><th>المضارع</th><th>المصدر</th><th>اسم الفاعل</th><th>اسم المفعول</th><th>من معانيه</th></tr>${c.mazid.map(x => `<tr>${x.map((y, i) => `<td class="${i > 0 && i < 6 ? 'ms-w' : ''}">${esc(y)}</td>`).join('')}</tr>`).join('')}</table></div>
+      <p class="muted">ليست كل الأوزان مستعملة مع كل فعل؛ فالعربية تستعمل منها ما ورد عن العرب، والجدول يبيّن القياس.</p>`;
+  }
+
+  // ===== 🎯 اعرف البحر: أبيات حقيقية من الدواوين المثبتة =====
+  async function bahrQuiz(el) {
+    const ids = (window.PACK_MANIFEST || []).filter(m => m.type === 'diwan').map(m => m.id);
+    let pool = []; for (const id of ids) { const its = await DB.byIndex('items', 'bookId', id); its.forEach(it => { if (/^البحر: /.test(it.chapter || '')) pool.push(it); }); if (pool.length > 1500) break; }
+    const B = ['طويل', 'بسيط', 'كامل', 'وافر', 'رجز', 'رمل', 'خفيف', 'متقارب', 'سريع', 'منسرح', 'مديد', 'هزج', 'مجتث', 'متدارك', 'مضارع', 'مقتضب'];
+    const bahrOf = it => B.find(b => (it.chapter || '').includes(b));
+    pool = pool.filter(bahrOf);
+    let sc = 0, n = 0;
+    const next = () => {
+      if (!pool.length) { el.innerHTML = back('#/lugha/arud', 'العروض') + `<div class="card">هذا التدريب يأخذ أبياتاً من الدواوين المثبتة في مكتبتك. حمّل بعض الدواوين أولاً من <a href="#/adab">قسم الشعر والأدب</a>.</div>`; return; }
+      const it = pool[Math.floor(Math.random() * pool.length)], ans = bahrOf(it), bayt = it.text.split('\n')[0];
+      const opts = [ans, ...B.filter(b => b !== ans).sort(() => Math.random() - .5).slice(0, 3)].sort(() => Math.random() - .5);
+      el.innerHTML = back('#/lugha/arud', 'العروض') + `<h1 class="lg-t">🎯 اعرف البحر</h1><div class="muted">صحيح: ${D(sc)} من ${D(n)}</div>
+        <div class="card lg-train"><div class="ad-poem">${bayt.split(' … ').map(x => `<div>${esc(x)}</div>`).join('')}</div><div class="lg-ask">من أي بحر هذا البيت؟</div><div class="lg-opts">${opts.map(o => `<button class="lg-o" data-v="${o}">${o}</button>`).join('')}</div><div class="lg-why"></div></div>`;
+      el.querySelectorAll('.lg-o').forEach(b => b.onclick = () => { n++; const ok = b.dataset.v === ans; if (ok) sc++; b.classList.add(ok ? 'ok' : 'no'); el.querySelector(`.lg-o[data-v="${ans}"]`).classList.add('ok'); el.querySelectorAll('.lg-o').forEach(x => x.disabled = true); el.querySelector('.lg-why').innerHTML = `${ok ? '✅ أحسنت.' : '❌ البحر: ' + ans + '.'} <small class="muted">${esc(it.chapter)} — <a href="#/adab/poem/${encodeURIComponent(it.id)}">القصيدة</a></small><br><button class="btn primary" id="bqN">بيت آخر ←</button>`; el.querySelector('#bqN').onclick = next; });
+    };
+    el.innerHTML = '<div class="muted">جارٍ جمع الأبيات…</div>'; next();
   }
 
   // ===== مدرّب الإعراب =====
