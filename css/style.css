@@ -1402,3 +1402,15 @@ body.sec-mode #secTabs { display: flex; }
 .sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 @media (min-width: 520px) { .sp-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } .sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: auto; } }
 .pa-hero { background: linear-gradient(135deg, #0f5a46, #2e7d6b); color: #fff; } .pa-hero h1, .pa-hero div { color: #fff; }
+/* قائمة القسم: مضغوطة بمجموعات منسدلة */
+#secNav a { padding: 6px 12px; gap: 8px; font-size: 14px; border-radius: 10px; }
+#secNav .ni { width: 26px; height: 26px; font-size: 15px; }
+.sec-head { font-size: 16px; padding: 10px 12px 8px; }
+.sec-grp { margin: 2px 6px; }
+.sec-grp > summary { list-style: none; cursor: pointer; padding: 7px 10px; border-radius: 10px; font-weight: 700; font-size: 13.5px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+.sec-grp > summary::-webkit-details-marker { display: none; }
+.sec-grp > summary::after { content: '‹'; transform: rotate(-90deg); transition: transform .2s; font-size: 16px; }
+.sec-grp[open] > summary::after { transform: rotate(90deg); }
+.sec-grp > summary:hover { background: var(--bg2); }
+.sec-grp > a { margin-inline-start: 14px !important; }
+.sec-foot a { font-size: 13px; }
