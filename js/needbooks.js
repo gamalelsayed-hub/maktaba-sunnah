@@ -12,6 +12,7 @@
     qiraat: () => ({ t: 'شروح القراءات والتجويد', ids: T('qiraatbook') }),
     dawah: () => ({ t: 'مكتبة الداعية: مقارنة الأديان والرد على الشبهات', ids: T('dawahbook') }),
     tarikh: () => ({ t: 'كتب التاريخ', ids: ['tarikh-khulafa', 'mukhtasar-fida', 'dawla-aliyya', 'jabarti', 'bidaya-nihaya', 'kamil-athir', 'tarikh-tabari', 'tarikh-khaldun'] }),
+    usul: () => ({ t: 'كتب أصول العلوم: الورقات والنخبة والإتقان والطحاوية ومتون المذاهب والتزكية', ids: T('usulbook') }),
     lugha: () => ({ t: 'كتب علوم العربية: المتون والشروح وإعراب القرآن', ids: T('lughabook') }),
     adab: () => ({ t: 'الدواوين وكتب الأدب', ids: T('diwan').concat(T('adabbook')) }),
   };
@@ -48,7 +49,7 @@
   }
   Object.keys(MAP).forEach(k => {
     const orig = V[k]; if (!orig) return;
-    V[k] = async (el, parts, p) => { const r = await orig(el, parts, p); try { if (!parts || !parts.length || ['tarikh', 'adab', 'dawah', 'qiraat', 'lugha'].includes(k) && parts.length <= 1) await banner(el, k); } catch (e) { } return r; };
+    V[k] = async (el, parts, p) => { const r = await orig(el, parts, p); try { if (!parts || !parts.length || ['tarikh', 'adab', 'dawah', 'qiraat', 'lugha', 'usul'].includes(k) && parts.length <= 1) await banner(el, k); } catch (e) { } return r; };
   });
   window.NEEDBOOKS = { banner };
 })();

@@ -38,6 +38,7 @@
       ${T('#/lugha/furuq', '📚', 'الفروق اللغوية', 'كلمات نظنها مترادفة وبينها فروق دقيقة')}
       ${T('#/lugha/tabir', '📝', 'التعبير وبنك التعابير', 'أدوات الربط، وبناء المقال، وتعابير لكل مقام')}
       ${T('#/khatt', '🖋️', 'الخط العربي', 'تدريب النسخ والرقعة والكوفي بالتتبع وقياس الدقة')}
+      ${T('#/adab', '🪶', 'الشعر والأدب', 'الشعراء ودواوينهم بالتشكيل، وكتب الأدب')}
       ${T('#/lugha/kutub', '📚', 'كتب علوم العربية', 'الآجرومية وقطر الندى والألفية وشروحها، وكتب البلاغة والإعراب')}
     </div>`;
   };
@@ -48,10 +49,10 @@
       G.levels.map(([k, t, d]) => { const ls = G.lessons.filter(l => l.lvl === k); const n = ls.filter(l => dn.has(l.id)).length; return `<h2>${t} <small class="muted">${D(n)}/${D(ls.length)}</small></h2><p class="muted">${esc(d)}</p><div class="lg-list">${ls.map((l, i) => `<a class="lg-row${dn.has(l.id) ? ' ok' : ''}" href="#/lugha/nahw/${l.id}"><span class="lg-n">${dn.has(l.id) ? '✓' : D(i + 1)}</span><b>${esc(l.t)}</b></a>`).join('')}</div>`; }).join('');
   }
 
-  async function trackList(el, k) {
-    const tk = G.tracks[k], dn = await done();
+  async function trackList(el, k, TRK = G.tracks, root = 'lugha', rootT = 'علوم العربية') {
+    const tk = TRK[k], dn = await done();
     const tools = k === 'sarf' ? `<a class="btn primary lg-big" href="#/lugha/sarf/musarrif">🔄 مُصرِّف الأفعال: اكتب أي فعل ثلاثي وشاهد تصريفه كاملاً</a>` : k === 'arud' ? `<a class="btn primary lg-big" href="#/lugha/arud/bahr">🎯 اعرف البحر: تدريب من أبيات الدواوين</a>` : '';
-    el.innerHTML = back('#/lugha', 'علوم العربية') + hero(tk.ic + ' ' + tk.t, tk.d) + tools + `<div class="lg-list">${tk.lessons.map((l, i) => `<a class="lg-row${dn.has(k + ':' + l.id) ? ' ok' : ''}" href="#/lugha/${k}/${l.id}"><span class="lg-n">${dn.has(k + ':' + l.id) ? '✓' : D(i + 1)}</span><b>${esc(l.t)}</b></a>`).join('')}</div>`;
+    el.innerHTML = back('#/' + root, rootT) + hero(tk.ic + ' ' + tk.t, tk.d) + tools + `<div class="lg-list">${tk.lessons.map((l, i) => `<a class="lg-row${dn.has(k + ':' + l.id) ? ' ok' : ''}" href="#/${root}/${k}/${l.id}"><span class="lg-n">${dn.has(k + ':' + l.id) ? '✓' : D(i + 1)}</span><b>${esc(l.t)}</b></a>`).join('')}</div>`;
   }
   async function lessonView(el, l, all, base, baseT, k) {
     if (!l) { location.hash = base; return; }
@@ -81,6 +82,24 @@
       });
     });
   }
+
+  // ===== 🧭 أصول العلوم =====
+  let U = null;
+  V.usul = async (el, [sec, id]) => {
+    el.innerHTML = '<div class="muted">جارٍ التحميل…</div>';
+    try { await load(); U = U || await loadJS('data/usul.js', 'USUL'); } catch (e) { el.innerHTML = '<div class="card">تعذر التحميل.</div>'; return; }
+    const T = U.tracks;
+    if (sec && T[sec]) { if (id) return lessonView(el, T[sec].lessons.find(x => x.id === id), T[sec].lessons, '#/usul/' + sec, T[sec].t, sec); return trackList(el, sec, T, 'usul', 'أصول العلوم'); }
+    const dn = await done();
+    el.innerHTML = hero('🧭 أصول العلوم', 'مفاتيح العلوم الشرعية: كيف يُستنبط الحكم، وكيف يُعرف الحديث الصحيح، وكيف نزل القرآن وجُمع، وأصول الاعتقاد، والمذاهب، وأعمال القلوب، والمعاملات، والطب النبوي. دروس مبسّطة على ترتيب المتون مع الإحالة إليها.') +
+      `<div class="lg-grid">${Object.entries(T).map(([k, t]) => `<a class="card lg-tile" href="#/usul/${k}"><span>${t.ic}</span><b>${esc(t.t)}</b><small>${D(t.lessons.length)} دروس · أنهيت ${D(t.lessons.filter(l => dn.has(k + ':' + l.id)).length)}</small></a>`).join('')}
+      <a class="card lg-tile" href="#/usul/kutub"><span>📚</span><b>كتب أصول العلوم</b><small>الورقات، والنخبة، والإتقان، والطحاوية، ومتون المذاهب…</small></a></div>`;
+    if (sec === 'kutub') {
+      const M = (window.PACK_MANIFEST || []).filter(m => m.type === 'usulbook');
+      const IL = [['usul', '⚖️ أصول الفقه'], ['mustalah', '📜 مصطلح الحديث'], ['ulumquran', '📖 علوم القرآن'], ['aqida', '🤍 العقيدة'], ['madhhab', '🕌 متون المذاهب'], ['tazkiya', '🌱 التزكية'], ['tibb', '🌿 الطب النبوي']];
+      el.innerHTML = back('#/usul', 'أصول العلوم') + hero('📚 كتب أصول العلوم') + IL.map(([k, t]) => { const bs = M.filter(m => m.ilm === k); return bs.length ? `<h3>${t}</h3><div class="bt-list">${bs.map(b => `<a class="bt-row" href="#/book/${b.id}" style="text-decoration:none;color:inherit"><b>${esc(b.title)}</b><small class="muted">${esc(b.author)}</small><span class="spacer"></span>↗</a>`).join('')}</div>` : ''; }).join('');
+    }
+  };
 
   // ===== 🔄 مُصرِّف الأفعال (الثلاثي الصحيح السالم ومزيده) =====
   const F = '\u064E', Du = '\u064F', K = '\u0650', S0 = '\u0652', SH = '\u0651';
