@@ -10,11 +10,15 @@
   };
   SECS.parents = { t: '👨‍👩‍👧 الأب والأم', cls: 'pa', links: async () => [['#/parents', '🏠', 'الأب والأم'], ['#/tarbiya', '🧭', 'منهج التربية'], ['#/tarbiya/barnamaj', '📅', 'برنامج حسب العمر'], ['#/tarbiya/wasail', '🛠️', 'وسائل التربية'], ['#/tarbiya/marahil', '📈', 'المراحل'], ['#/tarbiya/mawlud', '👶', 'حقوق المولود'], ['#/tarbiya/akhta', '⚠️', 'أخطاء شائعة'], ['#/tarbiya/mushkilat', '🧩', 'مشكلات وحلول'], ['#/bayt', '🏡', 'البيت اليوم'], ['#/bayt/meals', '🍲', 'الوجبات'], ['#/bayt/pantry', '🧺', 'المطبخ'], ['#/bayt/shop', '🛒', 'التسوق'], ['#/bayt/chores', '🧹', 'مهام البيت'], ['#/bayt/lessons', '📚', 'دروس الأولاد'], ['#/bayt/budget', '💰', 'الميزانية'], ['#/mirath', '⚖️', 'حاسبة المواريث'], ['#/tarbiya/birr', '🤍', 'البرّ'], ['#/tarbiya/masadir', '📖', 'المصادر']] };
   SECS.tarbiya = SECS.bayt = SECS.mirath = SECS.parents;
+  SECS.ilm = { t: '📚 طلب العلم', cls: 'ilm', links: async () => [['#/ilm', '🏠', 'طلب العلم'], ['#/search', '🔎', 'البحث في المكتبة'], ['#/ask', '❓', 'اسأل عن مسألة'], ['#/quran', '📖', 'المصحف والتفسير'], ['#/hadith', '📜', 'الحديث وشروحه'], ['#/fiqh', '⚖️', 'الفقه المقارن'], ['#/qawaid', '🧩', 'القواعد الفقهية'], ['#/sira', '🕌', 'السيرة والتاريخ'], ['#/sahaba', '👥', 'سير الصحابة'], ['#/rijal', '🔗', 'الرواة'], ['#/qiraat', '📜', 'القراءات والتجويد'], ['#/dawah', '📣', 'الدعوة إلى الله'], ['#/mirath', '🧮', 'حاسبة المواريث'], ['#/talab', '🎓', 'منهج طلب العلم'], ['#/khutba', '🎤', 'مُعين الخطيب'], ['#/saved', '⭐', 'محفوظاتي'], ['#/library', '⬇️', 'الكتب وتحميلها']] };
+  ['hadith', 'fiqh', 'qawaid', 'sira', 'sahaba', 'rijal', 'talab', 'khutba', 'saved', 'library', 'ask'].forEach(k => SECS[k] = SECS.ilm);
+  // صفحات مشتركة (الكتاب، والنص، والبحث): تبقى في القسم الذي جاء منه المستخدم، وإلا ففي طلب العلم
+  const STICKY = ['book', 'item', 'search'];
   SECS.qiraat.links = ((f) => async () => [...(await f()), ['#/ilm', '📚', 'طلب العلم']])(SECS.qiraat.links);
   let cur = null;
   async function apply() {
     const top = (location.hash.match(/^#\/([^/?]+)/) || [])[1];
-    const key = top === 'tajweed' && cur === 'qiraat' ? 'qiraat' : (SECS[top] ? top : null);
+    const key = top === 'tajweed' && cur === 'qiraat' ? 'qiraat' : STICKY.includes(top) ? cur : (SECS[top] ? top : null);
     const S = key && SECS[key], body = document.body;
     if (!S) { body.classList.remove('sec-mode'); cur = null; return; }
     const links = await S.links();
