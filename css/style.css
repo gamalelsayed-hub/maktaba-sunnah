@@ -1331,3 +1331,4 @@ body.rf-theme .bottomnav, body.rf-theme .bnav { border-top-color: #F1DCE7; }
 body.dark.rf-theme { --bg: #1d1219; --bg2: #26161f; --panel: #2a1a24; --ink: #f6e9f0; --muted: #c4a8b8; --line: #3d2633; --line2: #4a2e3e; --brand: #f08cc0; --brand2: #f08cc0; }
 body.dark.rf-theme .card, body.dark.rf-theme .fam-tile, body.dark.rf-theme .bt-row { border-color: #3d2633; }
 body.dark.rf-theme h1, body.dark.rf-theme h2, body.dark.rf-theme h3 { color: #f08cc0; }
+body.rf-theme .rf-hero h1, body.rf-theme .rf-hero div { color: #fff; }
