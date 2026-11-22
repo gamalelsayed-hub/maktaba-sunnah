@@ -1498,8 +1498,8 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .ad-list{display:flex;flex-direction:column}.ad-row{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line,#eee);text-decoration:none;color:inherit}.ad-row small{color:var(--muted,#777);white-space:nowrap}
 .ad-card .ad-head{display:flex;justify-content:space-between;margin-bottom:10px;color:#6d4c9a}
 .ad-poem mark{background:#ffe9a8}
-.fig-ph{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:#f4f4f4}
-.fig-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.fig-ph{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#ffffff,#e9f1ec)}
+.fig-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .fig-ph img:last-child{opacity:0}
 .kdw-outline{position:absolute;inset:0;pointer-events:none;z-index:2}
 .kdw-outline .kdw-svg path,.kdw-outline .kdw-svg path.kdw-f{fill:none!important;stroke:#222;stroke-width:3.4}
