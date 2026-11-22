@@ -307,14 +307,10 @@
   window.addEventListener('hashchange', () => { if (!/\/watch\/\d/.test(location.hash)) vgen++; });
 
   // نافذة الانتقال لقسم آخر (من الأطفال أو محو الأمية)
-  function switcher(from) {
-    const opts = [['kids', '#/kids', '🧒', 'الأطفال'], ['lit', '#/literacy', '✍️', 'تعلّم القراءة والكتابة'], ['adult', '#/', '📚', 'الشباب والكبار']].filter(o => o[0] !== from);
-    const d = document.createElement('div'); d.className = 'bd-pop';
-    d.innerHTML = `<div class="bd-card sw-card">${opts.map(([k, h, ic, t]) => `<a class="st-card ${k}" href="${h}" data-aud="${k}"><span class="st-ic">${ic}</span><b>${t}</b></a>`).join('')}<button class="lr-btn ghost" data-x>✖ رجوع</button></div>`;
-    document.body.appendChild(d);
-    d.querySelector('[data-x]').onclick = () => d.remove();
-    d.addEventListener('click', e => { if (e.target === d) d.remove(); });
-    d.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => { try { localStorage.setItem('audience', a.dataset.aud); } catch (x) { } LEARN.stop(); setTimeout(() => d.remove(), 50); }));
+  // زر الخروج من الأطفال أو محو الأمية: يرجع مباشرة إلى شاشة البداية (الشاشة الرئيسية)
+  function switcher() {
+    try { LEARN.stop(); } catch (x) { }
+    location.hash = '#/start';
   }
 
   window.LX = { switcher, watchView, letterVideo, drawLetter, who, overLimit, parents, rest, gate, certificate, streak, BADGES };
