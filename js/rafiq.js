@@ -93,7 +93,7 @@
       el.innerHTML = `<div class="card rf-gate"><div class="rf-ic">🧭</div><h2>أهلاً بك في «رفيق»</h2><p>اختر ما يناسبك، ليعرض لك القسم ما يخصّك:</p>
         <div class="rf-who">${Object.entries(WHO).map(([k, [ic, t, d]]) => `<button class="card" data-who="${k}"><span>${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>
         <small class="muted">يمكنك التغيير في أي وقت.</small><div style="margin-top:8px"><a class="btn sm" href="#/">رجوع</a></div></div>`;
-      el.querySelectorAll('[data-who]').forEach(x => x.onclick = async () => { await DB.setting('rafiq-who', x.dataset.who); APP.rerender(); });
+      el.querySelectorAll('[data-who]').forEach(x => x.onclick = async () => { await DB.setting('rafiq-who', x.dataset.who); window.SECNAV && SECNAV.refresh(); APP.rerender(); });
       return;
     }
     el.innerHTML = '<div class="card muted">جارٍ التحميل…</div>';
@@ -117,7 +117,7 @@
           <a class="fam-tile" href="#/rafiq/qudwa"><span class="fam-ic">🌟</span><b>قدوتي: شباب الصحابة</b></a>
           ${who === 'shab' ? '' : '<a class="fam-tile" href="#/tarbiya"><span class="fam-ic">👨‍👩‍👧</span><b>تربية الأبناء</b></a>'}</div>
         <div class="muted" style="font-size:12.5px;margin-top:10px">بياناتك على جوالك فقط. وكل مبدأ هنا بدليله من القرآن والسنة، ويفتح نصه من مكتبة التطبيق.</div>`;
-      el.querySelector('#rqWho').onclick = async () => { await DB.setting('rafiq-who', null); APP.rerender(); };
+      el.querySelector('#rqWho').onclick = async () => { await DB.setting('rafiq-who', null); window.SECNAV && SECNAV.refresh(); APP.rerender(); };
       el.querySelectorAll('[data-ck]').forEach(x => x.onclick = async () => { const v = await getU(); v.check[t] = v.check[t] || {}; v.check[t][x.dataset.ck] = v.check[t][x.dataset.ck] ? 0 : 1; const ks = Object.keys(v.check).sort(); ks.slice(0, -60).forEach(k => delete v.check[k]); await saveU(v); APP.rerender(); });
       el.querySelector('#rqSt').onclick = async () => { const v = await getU(); if (v.streak) { if (!(await APP.ask('إعادة عدّ أيام الثبات؟ لا تيأس، فالتوبة تمحو ما قبلها، وابدأ من جديد.'))) return; v.best = Math.max(v.best || 0, days || 0); } v.streak = new Date().toISOString(); await saveU(v); APP.rerender(); };
       animate(el);

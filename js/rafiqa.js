@@ -79,7 +79,7 @@
       <p>اختاري ما يناسبك، ليعرض لكِ القسم ما يخصّك:</p>
       <div class="rf-who">${Object.entries(WHO).map(([k, [ic, t, d]]) => `<button class="card" data-who="${k}"><span>${ic}</span><b>${t}</b><small>${d}</small></button>`).join('')}</div>
       <small class="muted">يمكنك التغيير في أي وقت، وبياناتك تبقى على جوالك فقط.</small><div style="margin-top:8px"><a class="btn sm" href="#/">رجوع</a></div></div>`;
-    el.querySelectorAll('[data-who]').forEach(x => x.onclick = async () => { await DB.setting('rafiqa-who', x.dataset.who); rer(); });
+    el.querySelectorAll('[data-who]').forEach(x => x.onclick = async () => { await DB.setting('rafiqa-who', x.dataset.who); window.SECNAV && SECNAV.refresh(); rer(); });
     return false;
   }
   const isGirl = () => who === 'girl';
@@ -125,7 +125,7 @@
         <div class="row rf-whobar"><small>${WHO[who][0]} القسم معروض لكِ: <b>${WHO[who][1]}</b></small><span class="spacer"></span><button class="btn sm" id="rfWho">تغيير</button></div>
         <div class="fam-grid">${SECS.filter(([k]) => !(isGirl() && (k === 'preg' || k === 'parent'))).map(([k, ic, t, d]) => [k, ic, t, isGirl() ? (GIRL_D[k] || d) : d]).map(([k, ic, t, d]) => `<a class="fam-tile rf-tile" href="${k === 'parent' ? '#/tarbiya' : '#/rafiqa/' + k}"><span class="fam-ic">${ic}</span><b>${t}</b><small>${d}</small></a>`).join('')}</div>
         <div class="muted" style="font-size:12.5px;margin-top:10px">المعلومات الطبية للتوعية، وليست بديلاً عن الطبيبة. والأحكام بأدلتها من الكتاب والسنة وكتب أهل العلم.</div>`;
-      el.querySelector('#rfWho').onclick = async () => { await DB.setting('rafiqa-who', null); rer(); };
+      el.querySelector('#rfWho').onclick = async () => { await DB.setting('rafiqa-who', null); window.SECNAV && SECNAV.refresh(); rer(); };
       return;
     }
     el.innerHTML = `<div class="row rf-top">${back}<span class="spacer"></span></div><div id="rfB"></div>`;

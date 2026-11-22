@@ -11,7 +11,7 @@
   const search = q => `<a class="btn sm" href="#/search?q=${encodeURIComponent(q)}">🔎 ابحث في المكتبة عن «${esc(q)}»</a>`;
   window.TB_EV = evHtml;
 
-  const TABS = [['manhaj', '🧭 المنهج'], ['wasail', '🛠️ الوسائل'], ['marahil', '📈 المراحل'], ['mawlud', '👶 حقوق المولود'], ['mushkilat', '🧩 مشكلات شائعة'], ['birr', '🤍 البرّ والميراث'], ['masadir', '📚 المصادر']];
+  const TABS = [['manhaj', '🧭 المنهج'], ['barnamaj', '📅 برنامج حسب العمر'], ['wasail', '🛠️ الوسائل'], ['marahil', '📈 المراحل'], ['mawlud', '👶 حقوق المولود'], ['akhta', '⚠️ أخطاء شائعة'], ['mushkilat', '🧩 مشكلات وحلول'], ['birr', '🤍 البرّ والميراث'], ['masadir', '📚 المصادر']];
   V.tarbiya = async (el, [tab, sub]) => {
     el.innerHTML = '<div class="card muted">جارٍ التحميل…</div>';
     let T; try { T = await load(); } catch (e) { el.innerHTML = '<div class="warn">تعذّر تحميل المحتوى.</div>'; return; }
@@ -30,9 +30,10 @@
     else if (tab === 'mawlud') h += `<p>من هدي النبي ﷺ في المولود، كما جمعه ابن القيم في «زاد المعاد»:</p>` + T.newborn.map(n => `<div class="card tb-item"><h3>${esc(n.t)}</h3>${evHtml(n.ev)}${n.zad ? `<a class="btn sm" href="#/item/${n.zad}">📖 اقرأ الفصل في زاد المعاد</a>` : ''}</div>`).join('');
     else if (tab === 'mushkilat') h += T.problems.map(p => `<details class="card"><summary><b>${esc(p.t)}</b></summary><p class="muted">${esc(p.d)}</p><ol>${p.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${search(p.q)}</details>`).join('') + '<div class="muted" style="font-size:12.5px">إذا استمرت المشكلة أو أثّرت في حياة الطفل ودراسته، فاستشر أخصائياً في نفس الطفل.</div>';
     else if (tab === 'birr') { const B = T.birr, I = T.inheritance; h += `<h2>🤍 برّ الوالدين</h2><div class="card"><ul>${B.life.map(x => `<li>${esc(x)}</li>`).join('')}</ul><b>بعد وفاتهما</b><ul>${B.after.map(x => `<li><b>${esc(x.t)}:</b> ${esc(x.d)}</li>`).join('')}</ul><b>لك أنت</b><ul>${B.forYou.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
-      <h2>⚖️ الميراث باختصار</h2><div class="card"><p>${esc(I.intro)}</p><ol>${I.order.map(x => `<li>${esc(x)}</li>`).join('')}</ol><ul>${I.shares.map(x => `<li><b>${esc(x.who)}:</b> ${esc(x.rule)}</li>`).join('')}</ul>${I.doubts.map(x => `<p class="muted">${esc(x)}</p>`).join('')}</div>`; }
+      <h2>⚖️ الميراث باختصار</h2><a class="btn primary" href="#/mirath" style="margin-bottom:8px">🧮 افتح حاسبة المواريث</a><div class="card"><p>${esc(I.intro)}</p><ol>${I.order.map(x => `<li>${esc(x)}</li>`).join('')}</ol><ul>${I.shares.map(x => `<li><b>${esc(x.who)}:</b> ${esc(x.rule)}</li>`).join('')}</ul>${I.doubts.map(x => `<p class="muted">${esc(x)}</p>`).join('')}</div>`; }
     else if (tab === 'masadir') h += T.sources.map(c => `<h2>${esc(c.cat)}</h2><div class="bt-list">${c.items.map(x => x.href ? `<a class="bt-row" href="${x.href}" style="text-decoration:none;color:inherit"><b>${esc(x.t)}</b><span class="spacer"></span>↗</a>` : `<div class="bt-row"><b>${esc(x.t)}</b></div>`).join('')}</div>`).join('') + '<p class="muted" style="font-size:12.5px">كل دليل في القسم تحققنا من وجوده في كتب المكتبة، ويفتح نصّه بالضغط عليه. وإن لم يكن الكتاب مثبتاً فثبّته من «طلب العلم ← الكتب وتحميلها».</p>';
     el.innerHTML = h;
     el.querySelectorAll('[data-t]').forEach(b => b.onclick = () => { location.hash = '#/tarbiya/' + b.dataset.t; });
+    el.querySelectorAll('[data-ag]').forEach(b => b.onclick = () => { location.hash = '#/tarbiya/barnamaj/' + b.dataset.ag; });
   };
 })();
