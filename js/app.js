@@ -391,7 +391,7 @@
 
     // قفل وضع المراجع: كلمة سر صاحب التطبيق وحده (بصمتها PBKDF2 مثبتة هنا، لا يمكن إنشاء كلمة سر جديدة على أي جهاز)
     async hash(s) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('maktaba:' + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); },
-    OWNER_KEY: '45baf842bf13b649abe8ed3d0a9b75c3fcad8a08b4381f0367e078aff458da1c',
+    OWNER_KEY: 'c29fdf6e6aa9ccf3ba647a65d061f18fd7d49b31683f2a8e962df30852a3a5f7',
     async ownerHash(p) {
       const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(p), 'PBKDF2', false, ['deriveBits']);
       const b = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode('zad-alusra-owner-v1'), iterations: 200000, hash: 'SHA-256' }, k, 256);
