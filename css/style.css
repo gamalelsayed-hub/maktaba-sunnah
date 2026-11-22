@@ -1343,3 +1343,14 @@ body.rq-theme .rq-hero h1, body.rq-theme .rq-hero div { color: #fff; }
 body.rq-theme .btn.primary { background: #1E4E8C; border-color: #1E4E8C; }
 body.rq-theme h1, body.rq-theme h2 { color: #1E4E8C; }
 body.dark.rq-theme h1, body.dark.rq-theme h2 { color: #7fb3ee; }
+.rq-checks { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.rq-checks button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; font-family: var(--ui); cursor: pointer; color: inherit; }
+.rq-checks button.on { background: #1E4E8C; border-color: #1E4E8C; color: #fff; }
+.rq-fitcta { display: flex; align-items: center; gap: 12px; text-decoration: none !important; color: inherit; margin: 10px 0; }
+body.rq-theme .card { border-radius: 16px; }
+body.rq-theme .rf-clock { color: #1E4E8C; }
+body.rq-theme .lr-progress i { background: linear-gradient(90deg, #1E4E8C, #0F7A8A); }
+body.rq-theme .tabs button.on { color: #1E4E8C; border-color: #2F80C8; }
+body.rq-theme .rf-whobar .btn, body.rq-theme .btn { border-radius: 999px; }
+.bt-sum .btn.sm { margin-top: 4px; padding: 2px 8px; font-size: 11.5px; }
+.bt-sum > a { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column; } .bt-sum > a b { font-size: 20px; }
