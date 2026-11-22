@@ -1354,3 +1354,22 @@ body.rq-theme .tabs button.on { color: #1E4E8C; border-color: #2F80C8; }
 body.rq-theme .rf-whobar .btn, body.rq-theme .btn { border-radius: 999px; }
 .bt-sum .btn.sm { margin-top: 4px; padding: 2px 8px; font-size: 11.5px; }
 .bt-sum > a { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column; } .bt-sum > a b { font-size: 20px; }
+/* ===== القراءات والمتون ===== */
+.qr-list { display: flex; flex-direction: column; gap: 8px; }
+.qr-w, .qr-nashr { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+.qr-hafs, .qr-t { font-family: var(--quran, 'Amiri Quran', serif); font-size: 21px; line-height: 2; }
+.qr-t { color: #9b2c2c; margin-inline-start: 8px; }
+.qr-rows > div { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; border-top: 1px dashed var(--line); padding: 2px 0; }
+.qr-v { border-top: 1px dashed var(--line); padding: 4px 0; }
+.qr-who { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.qr-who span { background: var(--brand-l); color: var(--brand); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+.qr-who span.kh { background: #fff3cd; color: #8a6d00; }
+.matn { display: flex; flex-direction: column; gap: 4px; }
+.matn-ch { margin-top: 18px; }
+.bayt { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; position: relative; }
+.bayt .bn { position: absolute; top: 6px; inset-inline-end: 8px; font-size: 11px; color: var(--muted); }
+.bayt .sh { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; font-family: var(--quran, 'Amiri', serif); font-size: 18px; line-height: 2; text-align: center; }
+@media (max-width: 520px) { .bayt .sh { grid-template-columns: 1fr; gap: 0; } .bayt .sh span:last-child { text-align: left; } .bayt .sh span:first-child { text-align: right; } }
+.bref { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.tuhfa-sh { background: var(--gold-l, #fff8e1); }
+.tuhfa-sh p, .tuhfa-sh li { line-height: 2; }

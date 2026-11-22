@@ -180,17 +180,6 @@ window.PACK_MANIFEST=[
   "type": "sharh"
  },
  {
-  "file": "book-tuhfa",
-  "id": "tuhfa",
-  "title": "تحفة الأحوذي بشرح جامع الترمذي",
-  "author": "المباركفوري",
-  "count": 2402,
-  "size": 12883569,
-  "version": "1214cb672ec7",
-  "optional": true,
-  "type": "sharh"
- },
- {
   "file": "book-sindi-nasai",
   "id": "sindi-nasai",
   "title": "حاشية السندي على سنن النسائي",
@@ -409,5 +398,126 @@ window.PACK_MANIFEST=[
   "version": "6c88019a9511",
   "optional": true,
   "type": "mutash"
+ },
+ {
+  "file": "book-ibraz",
+  "id": "ibraz",
+  "title": "إبراز المعاني من حرز الأماني (شرح الشاطبية)",
+  "author": "أبو شامة المقدسي (ت ٦٦٥هـ)",
+  "count": 1238,
+  "size": 2778723,
+  "version": "b9744325d7e5",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-siraj",
+  "id": "siraj",
+  "title": "سراج القارئ المبتدي (شرح الشاطبية)",
+  "author": "ابن القاصح (ت ٨٠١هـ)",
+  "count": 96,
+  "size": 1228641,
+  "version": "b3b2bf1b54b8",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-sharh-tayyiba-nazim",
+  "id": "sharh-tayyiba-nazim",
+  "title": "شرح طيبة النشر",
+  "author": "ابن الناظم: أحمد بن محمد بن الجزري (ت ٨٣٥هـ)",
+  "count": 92,
+  "size": 956327,
+  "version": "cf738a9534c3",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-sharh-tayyiba-nuwayri",
+  "id": "sharh-tayyiba-nuwayri",
+  "title": "شرح طيبة النشر",
+  "author": "محب الدين النويري (ت ٨٥٧هـ)",
+  "count": 449,
+  "size": 2665904,
+  "version": "0609ccd8cdb8",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-tamhid",
+  "id": "tamhid",
+  "title": "التمهيد في علم التجويد",
+  "author": "ابن الجزري (ت ٨٣٣هـ)",
+  "count": 44,
+  "size": 225146,
+  "version": "c7b4e2fcab35",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-nashr",
+  "id": "nashr",
+  "title": "النشر في القراءات العشر",
+  "author": "ابن الجزري (ت ٨٣٣هـ)",
+  "count": 274,
+  "size": 2742369,
+  "version": "c75cb82ac0a4",
+  "optional": true,
+  "type": "qiraatbook"
+ },
+ {
+  "file": "book-shatibiyya",
+  "id": "shatibiyya",
+  "title": "الشاطبية (حرز الأماني ووجه التهاني) — القراءات السبع",
+  "author": "القاسم بن فيره الشاطبي (ت ٥٩٠هـ)",
+  "count": 1171,
+  "size": 490811,
+  "version": "ae0c772de583",
+  "optional": false,
+  "type": "matn"
+ },
+ {
+  "file": "book-durra",
+  "id": "durra",
+  "title": "الدرة المضية في القراءات الثلاث المتممة للعشر",
+  "author": "ابن الجزري (ت ٨٣٣هـ)",
+  "count": 241,
+  "size": 95914,
+  "version": "33dcceff34a5",
+  "optional": false,
+  "type": "matn"
+ },
+ {
+  "file": "book-tayyiba",
+  "id": "tayyiba",
+  "title": "طيبة النشر في القراءات العشر",
+  "author": "ابن الجزري (ت ٨٣٣هـ)",
+  "count": 1015,
+  "size": 421952,
+  "version": "9ec7070c7bac",
+  "optional": false,
+  "type": "matn"
+ },
+ {
+  "file": "book-jazariyya",
+  "id": "jazariyya",
+  "title": "المقدمة الجزرية (فيما على قارئ القرآن أن يعلمه)",
+  "author": "ابن الجزري (ت ٨٣٣هـ)",
+  "count": 109,
+  "size": 39105,
+  "version": "3469600b2273",
+  "optional": false,
+  "type": "matn"
+ },
+ {
+  "file": "book-tuhfa",
+  "id": "tuhfa",
+  "title": "تحفة الأطفال والغلمان في تجويد القرآن",
+  "author": "سليمان الجمزوري (ت بعد ١١٩٨هـ)",
+  "count": 61,
+  "size": 21471,
+  "version": "b32dddcc6280",
+  "optional": false,
+  "type": "matn"
  }
 ];
