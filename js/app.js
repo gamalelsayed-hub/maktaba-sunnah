@@ -58,7 +58,18 @@
     gradeCls(g) { const n = AR.normalize(g); return /ضعيف|منكر|موضوع|باطل/.test(n) ? 'g-daif' : /حسن/.test(n) ? 'g-hasan' : /صحيح/.test(n) ? 'g-sahih' : 'g-none'; },
     gradeSummary(it) {
       const gs = it.grades || [];
-      if (!gs.length) return '<span class="tag g-none">لا يوجد حكم مسجل</span>';
+      if (!gs.length) {
+        // ١) التخريج المذكور في آخر الحديث (رياض الصالحين، بلوغ المرام، الأربعين...)
+        const tail = String(it.matn || '').replace(/[\u064B-\u0652\u200f\u200e]/g, '').slice(-260);
+        const m = tail.match(/متفق عليه|(?:رواه|أخرجه|اخرجه)\s+[^.()\[\]،]{2,45}/);
+        const w = tail.match(/(?:وصححه|وحسنه|وضعفه|حديث (?:حسن صحيح|صحيح|حسن|ضعيف)|بإسناد (?:صحيح|حسن|ضعيف)|إسناده (?:صحيح|حسن|ضعيف))[^.،)]{0,30}/);
+        const x = window.GRADE_XREF && GRADE_XREF[it.id];
+        let h = '';
+        if (m) h += `<span class="tag ${/متفق/.test(m[0]) ? 'g-sahih' : 'g-none'}">📌 ${esc(m[0].trim())}</span> `;
+        if (w) h += `<span class="tag ${APP.gradeCls(w[0])}">${esc(w[0].trim())}</span> `;
+        if (x) { const [bid, n] = x[0].split(':'); h += `<span class="tag ${APP.gradeCls(x[1])}">${esc(x[1])}</span> <small class="muted">له نظير في <a href="#/item/${encodeURIComponent(x[0])}">${esc(APP.bookTitle(bid))} (${AR.toArabicDigits(n)})</a> — حكم ${esc(x[2])}</small>`; }
+        return h || '<span class="tag g-none">لا يوجد حكم مسجل</span>';
+      }
       const ok = gs.filter(g => APP.gradeCls(g.grade) !== 'g-daif' && APP.gradeCls(g.grade) !== 'g-none');
       const bad = gs.filter(g => APP.gradeCls(g.grade) === 'g-daif');
       const alb = gs.find(g => /الالباني/.test(AR.normalize(g.grader)));
@@ -483,6 +494,7 @@
 
   window.APP = APP;
   window.addEventListener('load', () => setTimeout(() => { if (window.NOTIFY) NOTIFY.rescheduleAll(); }, 4000));
+  window.addEventListener('load', () => setTimeout(() => { const x = document.createElement('script'); x.src = 'data/grade-xref.js?v=' + (window.DATA_V || ''); x.onload = () => { if (/^#\/(item|hadith)/.test(location.hash) && window.APP && APP.rerender) APP.rerender(); }; document.head.appendChild(x); }, 1500));
   document.addEventListener('DOMContentLoaded', () => APP.init());
   // نسخة الويب: تفعيل العمل بدون إنترنت وإمكانية التثبيت كتطبيق
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !window.desktop) navigator.serviceWorker.register('sw.js').catch(() => {});

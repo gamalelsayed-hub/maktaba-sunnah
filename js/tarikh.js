@@ -25,7 +25,7 @@
   const searchBox = (q = '') => `<form class="th-search" id="thS"><input name="q" value="${esc(q)}" placeholder="ابحث: دولة، بلد، حقبة، شخصية، أو سنة هجرية مثل 656"><button class="btn primary">بحث</button></form>`;
   const bindSearch = el => { const f = el.querySelector('#thS'); if (f) f.onsubmit = e => { e.preventDefault(); const q = f.q.value.trim(); if (q) location.hash = '#/tarikh/q/' + encodeURIComponent(q); }; };
   const refRow = r => `<a class="th-ref" href="#/item/${encodeURIComponent(r[0])}"><b>📕 ${esc(r[2])}</b><small>${esc(r[1])}</small></a>`;
-  const tabs = cur => `<div class="tabs th-tabs">${[['', '🕰️ العصور'], ['buldan', '🗺️ البلدان'], ['khulafa', '👑 الخلفاء'], ['kutub', '📚 الكتب']].map(([k, l]) => `<a class="${cur === k ? 'on' : ''}" href="#/tarikh${k ? '/' + k : ''}">${l}</a>`).join('')}<a href="#/sira">🕌 السيرة</a><a href="#/sahaba">👥 الصحابة</a></div>`;
+  const tabs = cur => `<div class="tabs th-tabs">${[['', '🕰️ العصور'], ['buldan', '🗺️ البلدان'], ['khulafa', '👑 الخلفاء'], ['kutub', '📚 الكتب']].map(([k, l]) => `<a class="${cur === k ? 'on' : ''}" href="#/tarikh${k ? '/' + k : ''}">${l}</a>`).join('')}<a href="#/usul/sira">🌙 السيرة (دروس)</a><a href="#/sira">🕌 السيرة</a><a href="#/sahaba">👥 الصحابة</a></div>`;
 
   V.tarikh = async (el, [sec, id]) => {
     el.innerHTML = '<div class="muted">جارٍ التحميل…</div>';

@@ -234,7 +234,7 @@
           <div>${(it.topics || []).map(t => `<a class="tag" href="#/search?q=${encodeURIComponent(t)}">${esc(t)}</a>`).join('')}</div>
           ${APP.actionsBar(it)}</div>
         <h2>أحكام المحدثين عليه</h2>
-        ${grades ? `<table class="t"><tr><th>المحدّث</th><th>الحكم</th><th>وجه الحكم / العلة</th><th>المصدر</th></tr>${grades}</table>${(it.grades || []).some(g => !g.reason) ? '<div class="muted" style="font-size:13px;margin-top:4px">الأحكام منقولة عن مشروع hadith-api، ووجه الحكم والعلة يُضافان أثناء المراجعة العلمية.</div>' : ''}` : '<div class="muted">لا يوجد حكم مسجل بعد.</div>'}
+        ${grades ? `<table class="t"><tr><th>المحدّث</th><th>الحكم</th><th>وجه الحكم / العلة</th><th>المصدر</th></tr>${grades}</table>${(it.grades || []).some(g => !g.reason) ? '<div class="muted" style="font-size:13px;margin-top:4px">الأحكام منقولة عن مشروع hadith-api، ووجه الحكم والعلة يُضافان أثناء المراجعة العلمية.</div>' : ''}` : '<div class="muted">لا يوجد حكم مسجل في هذا الكتاب نفسه، وما ظهر في «الحكم باختصار» مأخوذ من تخريجه أو من نظيره في الكتب المحكوم عليها.</div>'}
         ${takhrij.length ? `<h2>التخريج (رواه أيضاً)</h2><div>${takhrij.join(' — ')}</div>` : ''}`
         + section('الشروح', byType(L, 'sharh')) + section('آيات مرتبطة', byType(L, 'ayah')) + section('مسائل فقهية استُدل به فيها', byType(L, 'fiqh')) + section('قواعد مؤصّلة به', byType(L, 'qaida'));
     },

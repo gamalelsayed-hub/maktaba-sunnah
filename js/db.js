@@ -135,6 +135,7 @@
       const out = { app: 'maktaba-sunnah', kind: 'user-backup', date: new Date().toISOString() };
       for (const s of USER_STORES) out[s] = await DB.all(s);
       out.settings = (await DB.all('settings')).filter(x => !PRIVATE_SETTING(x && x.key));
+      try { out.local = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!/reviewer|token|secret/i.test(k)) out.local[k] = localStorage.getItem(k); } } catch (e) { }
       return out;
     },
     async importUserData(data) {
@@ -143,6 +144,7 @@
       for (const s of USER_STORES) if (Array.isArray(data[s])) await DB.putMany(s, data[s].filter(x => ok(x) && x.id != null));
       // لا تُستورد إعدادات الصلاحيات (وضع المراجع) من ملف خارجي
       if (Array.isArray(data.settings)) await DB.putMany('settings', data.settings.filter(x => ok(x) && typeof x.key === 'string' && !PRIVATE_SETTING(x.key)));
+      if (ok(data.local)) try { for (const [k, v] of Object.entries(data.local)) if (typeof v === 'string' && !/reviewer|token|secret/i.test(k)) localStorage.setItem(k, v); } catch (e) { }
     }
   };
 
