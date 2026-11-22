@@ -1252,3 +1252,55 @@ body.dark .bt-ls { background: hsl(var(--h) 30% 24%); }
 .bt-cat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
 .bt-cat.over { border-color: #e53935; }
 .bt-cat.over .kh-prog i { background: #e53935; }
+/* ===== رفيقة ===== */
+.rf-hero { background: linear-gradient(135deg, #8e2463, #c2185b); color: #fff; border-radius: 16px; padding: 16px; margin-bottom: 10px; }
+.rf-hero h1 { margin: 0 0 4px; color: #fff; }
+.rf-now { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-bottom: 10px; }
+.rf-nc { display: flex; flex-direction: column; gap: 3px; text-decoration: none; color: inherit; border-inline-start: 5px solid var(--c, #c2185b); }
+.rf-tile .fam-ic { font-size: 26px; }
+.rf-gate { text-align: center; }
+.rf-gate .rf-ic { font-size: 48px; }
+.rf-top { margin-bottom: 8px; }
+.rf-phase { border-inline-start: 6px solid var(--c, #c2185b); }
+.rf-phase > b { font-size: 18px; color: var(--c); }
+.rf-mnav { justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.rf-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.rf-cal i { font-style: normal; font-size: 11px; color: var(--muted); }
+.rf-cal button { position: relative; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 50%; background: var(--k, var(--panel)); color: inherit; font-family: var(--ui); font-size: 13px; cursor: pointer; padding: 0; }
+.rf-cal button[data-k="period"], .rf-cal button[data-k="ovulation"] { color: #fff; }
+.rf-cal button.today { outline: 2px solid var(--gold); }
+.rf-cal button.sel { box-shadow: 0 0 0 3px var(--brand) inset; }
+.rf-cal button s { position: absolute; bottom: 3px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #5c6bc0; }
+.rf-leg { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; margin-top: 8px; }
+.rf-leg i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-inline-end: 4px; vertical-align: middle; }
+.rf-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.rf-chips button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 5px 12px; font-family: var(--ui); cursor: pointer; color: inherit; }
+.rf-chips button.on { background: #c2185b; border-color: #c2185b; color: #fff; }
+.rf-breath { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rf-breath:empty { display: none; }
+.rf-ball { width: 70px; height: 70px; margin: 20px; border-radius: 50%; background: radial-gradient(circle, #f8bbd0, #c2185b); transition: transform 4s ease-in-out; }
+.rf-a { white-space: pre-wrap; line-height: 1.9; }
+.rf-exs, .rf-ws { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.rf-exc { text-align: center; text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.rf-figbox { width: 110px; height: 110px; }
+.rf-figbox.big { width: 200px; height: 200px; margin: 0 auto; }
+.rf-fig { width: 100%; height: 100%; }
+.rf-ex { text-align: start; }
+.rf-run { text-align: center; }
+.rf-run.rest { background: #e8f5e9; }
+.rf-run.warm, .rf-run.cool { background: #fff8e1; }
+.rf-clock { font-size: 54px; font-weight: 700; color: #c2185b; }
+.rf-steps { text-align: start; font-size: 14px; }
+.rf-wc { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 2px; }
+.rf-wc.seen { opacity: .75; }
+.rf-kick { text-align: center; }
+.rf-kb { font-size: 22px; padding: 18px 30px; border-radius: 50px; }
+.rf-preg .lr-progress i { background: #c2185b; }
+.rf-sw h3 { color: #8e2463; }
+body.dark .rf-run.rest, body.dark .rf-run.warm, body.dark .rf-run.cool { background: var(--panel); }
+.rf-who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+.rf-who button { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-family: var(--ui); color: inherit; }
+.rf-who button span { font-size: 34px; }
+.rf-who button small { color: var(--muted); font-size: 11.5px; }
+.rf-whobar { align-items: center; margin-bottom: 8px; }
+.rf-nc, .rf-nc:hover { text-decoration: none !important; }
