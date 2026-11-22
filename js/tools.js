@@ -306,7 +306,7 @@
   V.library = async el => {
     const all = Object.values(APP.state.books);
     const inst = all.filter(b => b.count), shelf = all.filter(b => !b.count);
-    el.innerHTML = `<h1>📚 المكتبة وتحميل الكتب</h1>
+    el.innerHTML = `<h1>📚 طلب العلم: الكتب وتحميلها</h1>
       <div class="lib-promos"><a class="card hk-promo" href="#/ruqyah"><span class="lr-emo">🛡️</span><span><b>الرقية الشرعية</b><small class="muted">من القرآن والسنة، للكبار وللأطفال، بأصوات كبار القرّاء</small></span></a>
       <a class="card hk-promo" href="#/asma"><span class="lr-emo">✨</span><span><b>أسماء الله الحسنى</b><small class="muted">٩٩ اسماً بالمعنى والدليل والأثر والعمل، واسم كل يوم</small></span></a>
       <a class="card hk-promo" href="#/duas"><span class="lr-emo">🤲</span><span><b>أدعية من القرآن والسنة</b><small class="muted">جوامع الدعاء حسب حاجتك: الهم، الرزق، الذرية، السفر…</small></span></a>

@@ -1203,3 +1203,52 @@ body.dark .jz-tile { color: #f2f5f3; background: hsl(var(--h) 30% 22%); border-c
 .q-mean .q-gh dd { display: inline; margin: 0; }
 .q-mean .q-gh dd::after { content: ''; display: block; }
 body.dark .mushaf-text.q-verse .q-mean { background: rgba(255,255,255,.05); }
+/* بوابات الأسرة */
+.fam-doors { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.fam-door { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 14px 8px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); text-decoration: none; color: inherit; box-shadow: 0 2px 8px rgba(0,0,0,.05); transition: transform .15s; }
+.fam-door:active { transform: scale(.97); }
+.fam-door span { font-size: 34px; }
+.fam-door b { font-size: 16px; }
+.fam-door small { font-size: 12px; color: var(--muted); }
+.fam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.fam-tile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 12px 6px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); text-decoration: none; color: inherit; }
+.fam-ic { font-size: 28px; }
+.fam-tile small { font-size: 11.5px; color: var(--muted); }
+.fam-soon ul { line-height: 2; }
+/* إدارة البيت */
+.bt-tabs { flex-wrap: wrap; }
+.bt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.bt-card { text-decoration: none; color: inherit; margin: 0; }
+.bt-li { padding: 3px 0; font-size: 14px; }
+.bt-big { font-size: 28px; font-weight: 700; color: var(--brand); }
+.bt-week { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-top: 8px; }
+.bt-day { background: var(--brand-l); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.bt-day.today { outline: 2px solid var(--brand2); }
+.bt-day label { display: flex; flex-direction: column; font-size: 12.5px; }
+.bt-day select { width: 100%; }
+.bt-recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.bt-rc { margin: 0; }
+.bt-ing { display: flex; gap: 6px; margin: 4px 0; align-items: center; }
+.bt-ing input:first-child { flex: 1; min-width: 0; }
+.bt-add { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.bt-add input:first-child { flex: 1; min-width: 140px; }
+.bt-list { display: flex; flex-direction: column; gap: 6px; }
+.bt-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+.bt-row.low { border-color: #e53935; }
+.bt-row.done { opacity: .55; }
+.bt-row.done b { text-decoration: line-through; }
+.bt-q { font-weight: 700; color: var(--brand); }
+.bt-ics { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.bt-days { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0; }
+.bt-tt { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.bt-ls { background: hsl(var(--h) 70% 92%); border-radius: 8px; padding: 4px 6px; font-size: 13px; display: flex; flex-direction: column; }
+body.dark .bt-ls { background: hsl(var(--h) 30% 24%); }
+.bt-mnav { justify-content: center; gap: 12px; }
+.bt-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+.bt-sum > div { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column; }
+.bt-sum b { font-size: 20px; }
+.bt-sum .pos b { color: #2e7d32; } .bt-sum .neg b { color: #c62828; }
+.bt-cats { display: flex; flex-direction: column; gap: 6px; }
+.bt-cat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; }
+.bt-cat.over { border-color: #e53935; }
+.bt-cat.over .kh-prog i { background: #e53935; }
