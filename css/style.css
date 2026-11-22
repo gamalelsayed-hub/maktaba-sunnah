@@ -1399,3 +1399,5 @@ body.sec-mode #secTabs { display: flex; }
 .sec-tabs a.on { color: var(--brand); }
 .sec-tabs button { background: none; border: 0; font: inherit; color: inherit; display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 11px; }
 .mr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; } .mr-f { display: flex; align-items: center; justify-content: space-between; gap: 6px; background: var(--bg2); border-radius: 10px; padding: 6px 10px; } .mr-f input[type=number] { width: 64px; } .mr-t td, .mr-t th { text-align: center; }
+.sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+@media (min-width: 520px) { .sp-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } .sp-grid > .sp-card:last-child:nth-child(odd) { grid-column: auto; } }
