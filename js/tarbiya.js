@@ -5,7 +5,7 @@
   const V = APP.views;
   const esc = s => AR.escapeHtml(String(s == null ? '' : s));
   let loading = null;
-  const load = () => window.TARBIYA ? Promise.resolve(window.TARBIYA) : (loading || (loading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/tarbiya.js'; s.onload = () => res(window.TARBIYA); s.onerror = rej; document.head.appendChild(s); })));
+  const load = () => window.TARBIYA ? Promise.resolve(window.TARBIYA) : (loading || (loading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/tarbiya.js?v=' + (window.DATA_V || ''); s.onload = () => res(window.TARBIYA); s.onerror = rej; document.head.appendChild(s); })));
   // دليل: نص + مصدر + رابط للنص في المكتبة
   const evHtml = list => (list || []).map(e => `<blockquote class="tb-ev">${esc(e.t)}${e.id ? ` <a class="tb-src" href="#/item/${encodeURIComponent(e.id)}">${e.id.startsWith('quran:') ? '📖 ' + esc((AR.SURAHS || [])[+e.ref.split(':')[0] - 1] || '') + ' ' + AR.toArabicDigits(e.ref.split(':')[1]) : '📚 ' + esc(e.ref)} ↗</a>` : ` <small class="muted">(${esc(e.ref)})</small>`}</blockquote>`).join('');
   const search = q => `<a class="btn sm" href="#/search?q=${encodeURIComponent(q)}">🔎 ابحث في المكتبة عن «${esc(q)}»</a>`;

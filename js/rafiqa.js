@@ -24,7 +24,7 @@
   const R = () => window.RAFIQA;
   function load() {
     if (window.RAFIQA) return Promise.resolve(window.RAFIQA);
-    return loading || (loading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/rafiqa.js'; s.onload = () => res(window.RAFIQA); s.onerror = rej; document.head.appendChild(s); }));
+    return loading || (loading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/rafiqa.js?v=' + (window.DATA_V || ''); s.onload = () => res(window.RAFIQA); s.onerror = rej; document.head.appendChild(s); }));
   }
   // ===== بياناتها =====
   async function get() { return Object.assign({ periods: [], journal: {}, preg: null, visits: [], kicks: [], fit: { secs: 0, rest: 0, rounds: 0 }, seen: {}, fav: {}, remind: { period: true, checks: true, seerah: false, seerahT: '09:00' } }, (await DB.setting('rafiqa')) || {}); }

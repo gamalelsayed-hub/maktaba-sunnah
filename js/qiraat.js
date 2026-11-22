@@ -13,7 +13,7 @@
   // ===== الروايات الثماني (المصاحف المطبوعة) =====
   const RW8 = [['qaloon', 'قالون', 'نافع'], ['warsh', 'ورش', 'نافع'], ['bazzi', 'البزي', 'ابن كثير'], ['qumbul', 'قنبل', 'ابن كثير'], ['doori', 'الدوري', 'أبو عمرو'], ['soosi', 'السوسي', 'أبو عمرو'], ['shouba', 'شعبة', 'عاصم']];
   const loadJs = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-  const surahQR = async s => { window.QR = window.QR || {}; if (!window.QR[s]) await loadJs(`data/qiraat/${String(s).padStart(3, '0')}.js`); return window.QR[s] || {}; };
+  const surahQR = async s => { window.QR = window.QR || {}; if (!window.QR[s]) await loadJs(`data/qiraat/${String(s).padStart(3, '0')}.js?v=${window.DATA_V || ''}`); return window.QR[s] || {}; };
   // ===== الرواة العشرون: فرش الحروف من النشر =====
   const QURRA = [['نافع', ['qa', 'قالون'], ['wr', 'ورش']], ['ابن كثير', ['bz', 'البزّي'], ['qn', 'قنبل']], ['أبو عمرو', ['da', 'الدوري'], ['su', 'السوسي']], ['ابن عامر', ['hi', 'هشام'], ['dh', 'ابن ذكوان']], ['عاصم', ['sh', 'شعبة'], ['hf', 'حفص']], ['حمزة', ['kh', 'خلف'], ['kd', 'خلّاد']], ['الكسائي', ['ah', 'أبو الحارث'], ['dk', 'الدوري']], ['أبو جعفر', ['iw', 'ابن وردان'], ['ij', 'ابن جمّاز']], ['يعقوب', ['rw', 'رويس'], ['rh', 'روح']], ['خلف العاشر', ['is', 'إسحاق'], ['id', 'إدريس']]];
   const CODES = QURRA.flatMap(q => [q[1][0], q[2][0]]);
@@ -106,7 +106,7 @@
     if (tab === 'ayah') return ayahView(el, +a, +b);
     if (tab === 'surah' && a) return surahView(el, +a);
     if (tab === 'search') return searchView(el, a ? decodeURIComponent(a) : '');
-    if (tab === 'matn') { if (a === 'tuhfa' && !window.TUHFA_SHARH) try { await loadJs('data/tuhfa-sharh.js'); } catch (e) { } return matnView(el, a); }
+    if (tab === 'matn') { if (a === 'tuhfa' && !window.TUHFA_SHARH) try { await loadJs('data/tuhfa-sharh.js?v=' + (window.DATA_V || '')); } catch (e) { } return matnView(el, a); }
     let h = `<h1>📜 القراءات العشر والتجويد</h1><div class="tabs">${TABS.map(([k, l]) => `<button class="${(tab || '') === k ? 'on' : ''}" data-t="${k}">${l}</button>`).join('')}</div>`;
     if (!tab) h += `<div class="card"><p>القراءات العشر المتواترة: <b>الصغرى</b> من طريق «الشاطبية» (للسبعة) و«الدرة» (للثلاثة المتممة)، و<b>الكبرى</b> من طريق «طيبة النشر» بطرقها الكثيرة.</p>
         <form class="filters" onsubmit="event.preventDefault();location.hash='#/qiraat/search/'+encodeURIComponent(this.q.value.trim())"><input name="q" placeholder="🔎 اكتب كلمة من القرآن لتظهر كل قراءاتها" style="flex:1"><button class="btn primary">بحث</button></form></div>

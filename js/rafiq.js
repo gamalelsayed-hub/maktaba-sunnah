@@ -8,7 +8,7 @@
   window.addEventListener('hashchange', theme); theme();
   let loading = null;
   const loadJs = (src, key) => window[key] ? Promise.resolve(window[key]) : new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => res(window[key]); s.onerror = rej; document.head.appendChild(s); });
-  const load = () => loading || (loading = Promise.all([loadJs('data/rafiq.js', 'RAFIQ'), loadJs('js/tarbiya.js', 'TB_EV'), loadJs('data/fit-men.js', 'FITMEN')]).then(([r]) => r));
+  const load = () => loading || (loading = Promise.all([loadJs('data/rafiq.js?v=' + (window.DATA_V || ''), 'RAFIQ'), loadJs('js/tarbiya.js', 'TB_EV'), loadJs('data/fit-men.js?v=' + (window.DATA_V || ''), 'FITMEN')]).then(([r]) => r));
   const WHO = { shab: ['👦', 'شاب', 'لم أتزوج بعد'], zawj: ['💍', 'زوج', 'متزوج'], ab: ['👨‍👧', 'أب', 'عندي أولاد'] };
 
 
