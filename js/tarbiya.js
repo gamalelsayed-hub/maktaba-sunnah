@@ -25,6 +25,14 @@
         h += `<a class="btn sm" href="#/tarbiya">← كل الجوانب</a><h2>${p.ic} ${esc(p.name)}</h2><p>${esc(p.desc)}</p>
           ${p.items.map((x, i) => `<div class="card tb-item"><h3>${i + 1}. ${esc(x.t)}</h3>${x.d ? `<p>${esc(x.d)}</p>` : ''}${evHtml(x.ev)}</div>`).join('')}${search(p.name.replace('التربية ', '').replace('على ', ''))}`;
       } else h += `<p>للتربية في الإسلام جوانب متكاملة، لا يغني بعضها عن بعض. اختر جانباً:</p><div class="fam-grid">${T.pillars.map(p => `<a class="fam-tile" href="#/tarbiya/manhaj/${p.id}"><span class="fam-ic">${p.ic}</span><b>${esc(p.name)}</b><small>${AR.toArabicDigits(p.items.length)} مبادئ</small></a>`).join('')}</div>`;
+    } else if (tab === 'barnamaj') {
+      const P = T.program || [], cur = P.find(x => x.id === sub) || P[0];
+      const L = (t, arr) => arr && arr.length ? `<h3>${t}</h3><ul class="tb-list">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '';
+      h += `<p>اختر عمر الطفل لترى ما تفعله معه يومياً وأسبوعياً، والأهداف المرجوّة في هذه المرحلة:</p>
+        <div class="chips">${P.map(x => `<button class="chip${x === cur ? ' on' : ''}" data-ag="${x.id}">${x.ic || ''} ${esc(x.name)}</button>`).join('')}</div>
+        ${cur ? `<div class="card tb-item"><h2>${cur.ic || ''} ${esc(cur.name)}</h2>${L('☀️ كل يوم', cur.daily)}${L('📆 كل أسبوع', cur.weekly)}${L('🎯 الأهداف', cur.goals)}${L('⚠️ احذر', cur.avoid)}${cur.ev ? evHtml(cur.ev) : ''}</div>` : ''}`;
+    } else if (tab === 'akhta') {
+      h += `<p>أخطاء يقع فيها كثير من الآباء والأمهات، مع الدليل والبديل الصحيح:</p>` + (T.mistakes || []).map((m, i) => `<div class="card tb-item"><h3>${i + 1}. ${esc(m.t)}</h3>${m.d ? `<p>${esc(m.d)}</p>` : ''}${m.fix ? `<p><b>✅ البديل:</b> ${esc(m.fix)}</p>` : ''}${m.ev ? evHtml(m.ev) : ''}</div>`).join('');
     } else if (tab === 'wasail') h += `<p>الوسائل التي ربّى بها النبي ﷺ أصحابه، ودلّ عليها القرآن:</p>` + T.methods.map((m, i) => `<div class="card tb-item"><h3>${i + 1}. ${esc(m.t)}</h3><p>${esc(m.d)}</p>${evHtml(m.ev)}</div>`).join('');
     else if (tab === 'marahil') h += T.stages.map(s => `<details class="card"><summary><b>${esc(s.name)}</b> <small class="muted">${esc(s.age)}</small></summary><p><b>${esc(s.role)}</b></p><ul>${s.common.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${s.boys.length ? `<b>👦 للأولاد</b><ul>${s.boys.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${s.girls.length ? `<b>👧 للبنات</b><ul>${s.girls.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</details>`).join('');
     else if (tab === 'mawlud') h += `<p>من هدي النبي ﷺ في المولود، كما جمعه ابن القيم في «زاد المعاد»:</p>` + T.newborn.map(n => `<div class="card tb-item"><h3>${esc(n.t)}</h3>${evHtml(n.ev)}${n.zad ? `<a class="btn sm" href="#/item/${n.zad}">📖 اقرأ الفصل في زاد المعاد</a>` : ''}</div>`).join('');
