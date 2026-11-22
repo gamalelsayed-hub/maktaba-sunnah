@@ -332,7 +332,7 @@
   ];
   if (window.MEDIA) MEDIA.register('radio-native', () => { const A = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Adhan; if (A && A.stopRadio) A.stopRadio().catch(() => { }); });
   V.radio = async el => {
-    const extra = ((window.NEWS && NEWS.data && NEWS.data.radios) || []).filter(x => x && x.url && x.n);
+    const extra = ((window.NEWS && NEWS.data && NEWS.data.radios) || []).filter(x => x && x.n && /^https:\/\//i.test(x.url || '')).map(x => ({ n: String(x.n), d: String(x.d || ''), url: x.url }));
     const all = RADIOS.concat(extra);
     el.innerHTML = `<div class="row"><h1>📻 إذاعات القرآن الكريم</h1><span class="spacer"></span><a class="btn" href="#/listen">🎧 الاستماع للقرآن</a></div>
       <div class="sub">بث مباشر على مدار الساعة — يحتاج اتصالاً بالإنترنت. يستمر التشغيل والشاشة مقفلة، وتتحكم فيه من الإشعار.</div>

@@ -3,6 +3,7 @@
   const DB_NAME = 'maktaba-sunnah';
   const VERSION = 1;
   const USER_STORES = ['bookmarks', 'notes', 'comments', 'srs', 'review'];
+  const PRIVATE_SETTING = k => /^reviewer/i.test(String(k || ''));
   let dbp = null;
 
   function open() {
@@ -133,12 +134,15 @@
     async exportUserData() {
       const out = { app: 'maktaba-sunnah', kind: 'user-backup', date: new Date().toISOString() };
       for (const s of USER_STORES) out[s] = await DB.all(s);
-      out.settings = await DB.all('settings');
+      out.settings = (await DB.all('settings')).filter(x => !PRIVATE_SETTING(x && x.key));
       return out;
     },
     async importUserData(data) {
-      for (const s of USER_STORES) if (Array.isArray(data[s])) await DB.putMany(s, data[s]);
-      if (Array.isArray(data.settings)) await DB.putMany('settings', data.settings);
+      if (!data || typeof data !== 'object') throw new Error('ملف غير صالح');
+      const ok = x => x && typeof x === 'object' && !Array.isArray(x);
+      for (const s of USER_STORES) if (Array.isArray(data[s])) await DB.putMany(s, data[s].filter(x => ok(x) && x.id != null));
+      // لا تُستورد إعدادات الصلاحيات (وضع المراجع) من ملف خارجي
+      if (Array.isArray(data.settings)) await DB.putMany('settings', data.settings.filter(x => ok(x) && typeof x.key === 'string' && !PRIVATE_SETTING(x.key)));
     }
   };
 

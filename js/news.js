@@ -20,7 +20,7 @@
     } catch (e) { }
     return NEWS.data;
   }
-  const msgs = () => (NEWS.data.messages || []).filter(m => m && m.id && m.title && (!m.until || m.until >= new Date().toISOString().slice(0, 10))).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  const msgs = () => (NEWS.data.messages || []).map(m => m && Object.assign({}, m, { link: safeLink(m.link) })).filter(m => m && m.id && m.title && (!m.until || m.until >= new Date().toISOString().slice(0, 10))).sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   const seen = () => new Set(ls('news-seen') || []);
   const markSeen = ids => { const s = seen(); ids.forEach(i => s.add(i)); ls('news-seen', [...s]); badge(); };
   function badge() {
@@ -28,6 +28,8 @@
     if (a) a.innerHTML = 'رسائل وملاحظات' + (n ? ` <b class="nb-badge">${AR.toArabicDigits(n)}</b>` : '');
   }
   const body = t => esc(t).replace(/\n/g, '<br>');
+  // الروابط المسموحة في الرسائل فقط: مسارات داخل التطبيق، وhttps، والبريد، وواتساب
+  const safeLink = u => { u = String(u || ''); return /^(#\/|https:\/\/|mailto:)/i.test(u) ? u : ''; };
 
   function openExt(url) { const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; document.body.appendChild(a); a.click(); a.remove(); }
   // نافذة كتابة الملاحظة
