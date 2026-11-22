@@ -112,7 +112,8 @@
     try { await load(); } catch (e) { el.innerHTML = '<div class="warn">تعذّر تحميل محتوى «رفيقة».</div>'; return; }
     const r = await get();
     const back = sec ? `<a class="btn sm" href="#/rafiqa${sec && a ? '/' + sec : ''}">← ${sec && a ? 'رجوع' : 'رفيقة'}</a>` : '';
-    const F = { cycle, preg, fit, fiqh, seerah, status, life, parent, books }[sec];
+    if (sec === 'parent') { location.replace('#/tarbiya'); return; }
+    const F = { cycle, preg, fit, fiqh, seerah, status, life, books }[sec];
     if (!F) {
       const info = analyze(r.periods);
       const ph = info.has ? R().cycle.phases[isGirl() && (info.phase === 'fertile' || info.phase === 'ovulation') ? 'follicular' : info.phase] : null;
@@ -122,7 +123,7 @@
         <div class="rf-now">${!isGirl() && pi && pi.week >= 0 && pi.week <= 42 ? `<a class="card rf-nc" href="#/rafiqa/preg"><b>🤰 الأسبوع ${D(pi.week)} من الحمل</b><small>باقٍ على الولادة ${D(Math.max(0, pi.left))} يوماً</small></a>` : info.has ? `<a class="card rf-nc" href="#/rafiqa/cycle" style="--c:#c2185b"><b>${esc(ph.name)}</b><small>${info.onPeriod ? 'اليوم ' + D(info.dayOfPeriod) + ' من الدورة' : info.past ? 'متأخرة ' + D(info.past) + ' يوماً' : 'الدورة القادمة بعد ' + D(info.until) + ' يوماً تقريباً'}</small></a>` : `<a class="card rf-nc" href="#/rafiqa/cycle"><b>🩸 ابدئي بتسجيل دورتك</b><small>ليتوقّع التطبيق موعدها القادم</small></a>`}
           <a class="card rf-nc" href="#/rafiqa/seerah/w/${sd.id}"><b>🌟 قدوة اليوم: ${esc(sd.name)}</b><small>${esc(sd.short)}</small></a></div>
         <div class="row rf-whobar"><small>${WHO[who][0]} القسم معروض لكِ: <b>${WHO[who][1]}</b></small><span class="spacer"></span><button class="btn sm" id="rfWho">تغيير</button></div>
-        <div class="fam-grid">${SECS.filter(([k]) => !(isGirl() && (k === 'preg' || k === 'parent'))).map(([k, ic, t, d]) => [k, ic, t, isGirl() ? (GIRL_D[k] || d) : d]).map(([k, ic, t, d]) => `<a class="fam-tile rf-tile" href="#/rafiqa/${k}"><span class="fam-ic">${ic}</span><b>${t}</b><small>${d}</small></a>`).join('')}</div>
+        <div class="fam-grid">${SECS.filter(([k]) => !(isGirl() && (k === 'preg' || k === 'parent'))).map(([k, ic, t, d]) => [k, ic, t, isGirl() ? (GIRL_D[k] || d) : d]).map(([k, ic, t, d]) => `<a class="fam-tile rf-tile" href="${k === 'parent' ? '#/tarbiya' : '#/rafiqa/' + k}"><span class="fam-ic">${ic}</span><b>${t}</b><small>${d}</small></a>`).join('')}</div>
         <div class="muted" style="font-size:12.5px;margin-top:10px">المعلومات الطبية للتوعية، وليست بديلاً عن الطبيبة. والأحكام بأدلتها من الكتاب والسنة وكتب أهل العلم.</div>`;
       el.querySelector('#rfWho').onclick = async () => { await DB.setting('rafiqa-who', null); rer(); };
       return;
@@ -399,13 +400,6 @@
   async function life(el) {
     const L = R().life;
     el.innerHTML = `<h1>🌱 مراحل حياتك</h1>${L.stages.filter(s => !(isGirl() && HIDE_LIFE_STAGE_GIRL.includes(s.id))).map(s => `<h2>${esc(s.name)}</h2>${s.sections.filter(x => !(isGirl() && HIDE_LIFE_GIRL.includes(x.title))).map(x => `<details class="card"><summary><b>${esc(x.title)}</b></summary><ul>${x.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul></details>`).join('')}`).join('')}`;
-  }
-  async function parent(el) {
-    const P = R().parenting;
-    el.innerHTML = `<h1>👨‍👩‍👧 تربية الأبناء</h1><div class="card"><p class="quran-text">${esc(P.intro.ayah)}</p><p>${esc(P.intro.hadith)}</p><p class="muted">${esc(P.intro.note)}</p></div>
-      ${P.stages.map(s => `<details class="card"><summary><b>${esc(s.name)}</b> <small class="muted">${esc(s.age)}</small></summary><p><b>${esc(s.role)}</b></p><ul>${s.common.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${s.boys && s.boys.length ? `<b>للأولاد</b><ul>${s.boys.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}${s.girls && s.girls.length ? `<b>للبنات</b><ul>${s.girls.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</details>`).join('')}
-      <h2>🤍 برّ الوالدين</h2><div class="card"><ul>${P.birr.life.map(x => `<li>${esc(x)}</li>`).join('')}</ul><b>بعد وفاتهما</b><ul>${P.birr.after.map(x => `<li><b>${esc(x.t)}:</b> ${esc(x.d)}</li>`).join('')}</ul><b>لكِ أنتِ</b><ul>${P.birr.forYou.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>
-      <h2>⚖️ الميراث باختصار</h2><div class="card"><p>${esc(P.inheritance.intro)}</p><ul>${P.inheritance.order.map(x => `<li>${esc(x)}</li>`).join('')}</ul><ul>${P.inheritance.shares.map(x => `<li><b>${esc(x.who)}:</b> ${esc(x.rule)}</li>`).join('')}</ul>${P.inheritance.doubts.map(x => `<p class="muted">${esc(x)}</p>`).join('')}</div>`;
   }
   async function books(el) {
     const B = R().library;

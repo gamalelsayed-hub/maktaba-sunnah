@@ -1332,3 +1332,14 @@ body.dark.rf-theme { --bg: #1d1219; --bg2: #26161f; --panel: #2a1a24; --ink: #f6
 body.dark.rf-theme .card, body.dark.rf-theme .fam-tile, body.dark.rf-theme .bt-row { border-color: #3d2633; }
 body.dark.rf-theme h1, body.dark.rf-theme h2, body.dark.rf-theme h3 { color: #f08cc0; }
 body.rf-theme .rf-hero h1, body.rf-theme .rf-hero div { color: #fff; }
+/* ===== التربية ورفيق ===== */
+.tb-ev { margin: 8px 0; padding: 8px 12px; border-inline-start: 4px solid var(--gold); background: var(--bg2); border-radius: 8px; font-family: var(--quran, inherit); line-height: 1.9; }
+.tb-src { font-family: var(--ui); font-size: 12.5px; white-space: nowrap; }
+.tb-item h3 { margin-top: 0; }
+body.rq-theme { --brand: #1E4E8C; --brand2: #1E4E8C; --gold: #2F80C8; --brand-l: #E6F0FB; --hero-a: #1E4E8C; --hero-b: #0F7A8A; }
+body.rq-theme .topbar { background: linear-gradient(135deg, #1E4E8C, #0F7A8A); }
+body.rq-theme .rq-hero { background: linear-gradient(135deg, #1E4E8C, #0F7A8A); }
+body.rq-theme .rq-hero h1, body.rq-theme .rq-hero div { color: #fff; }
+body.rq-theme .btn.primary { background: #1E4E8C; border-color: #1E4E8C; }
+body.rq-theme h1, body.rq-theme h2 { color: #1E4E8C; }
+body.dark.rq-theme h1, body.dark.rq-theme h2 { color: #7fb3ee; }
