@@ -1577,3 +1577,8 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .pg-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 14px;margin:8px 0}.pg-t{flex:1;text-decoration:none;color:inherit}
 .pg-bk.due{border:2px solid #b8892f}
 .ios-hint{position:fixed;bottom:76px;left:10px;right:10px;z-index:9998;background:#0e4a3a;color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 6px 20px rgba(0,0,0,.3);line-height:1.8}.ios-hint .btn{margin-top:6px}
+.tb-sci{background:rgba(47,111,170,.08);border-radius:10px;padding:8px 12px;margin:8px 0}.tb-sci p{margin:4px 0 0}
+.tb-steps{background:rgba(14,74,58,.07);border-radius:10px;padding:8px 12px;margin:8px 0}.tb-steps ol{margin:6px 0 0;padding-inline-start:22px;line-height:1.9}
+.tb-say{margin:8px 0}.tb-sayrow{display:flex;flex-direction:column;gap:2px;border:1px solid rgba(0,0,0,.08);border-radius:10px;padding:6px 10px;margin-top:6px}.tb-sayrow .no{color:#a33;text-decoration:line-through;text-decoration-color:rgba(170,51,51,.4)}.tb-sayrow .yes{color:#0e6b4f;font-weight:600}
+.tb-ev summary{cursor:pointer;color:var(--muted,#777);font-size:.9em}
+.tb-sayrow span{white-space:normal;overflow-wrap:anywhere;display:block;min-width:0}
