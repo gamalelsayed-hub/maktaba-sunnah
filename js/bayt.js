@@ -31,7 +31,7 @@
     if (!b.budget) b.budget = { income: [], cats: DEF_CATS.map(([ic, n]) => ({ id: uid(), ic, n, limit: 0 })), bills: [], exp: [] };
     return b;
   }
-  const save = b => DB.setting('bayt', b);
+  const save = async b => { await DB.setting('bayt', b); if (window.USYNC) USYNC.changed(); };
 
   // ===== قائمة التسوق: مقادير وجبات الأسبوع ناقصاً ما في المطبخ، وما نقص عن الحد الأدنى، وما أضفته بيدك =====
   function shoppingList(b) {

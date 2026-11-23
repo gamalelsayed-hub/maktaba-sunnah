@@ -1596,3 +1596,6 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .us-mj h3{margin:14px 0 6px;color:#0e4a3a}.us-mj details{margin:4px 0}
 .us-lock{position:fixed;inset:0;z-index:10001;background:linear-gradient(#1b2a4a,#0e4a3a);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center}
 .btn.danger{color:#b3261e;border-color:#b3261e}
+.us-sync{background:rgba(14,74,58,.08);border-radius:10px;padding:6px 10px;margin:6px 0;font-size:.92em}
+.us-code{font-family:monospace;font-size:1.5em;letter-spacing:2px;direction:ltr;text-align:center;background:#fbf7ec;border:2px dashed #b8892f;border-radius:10px;padding:10px;margin:8px 0;user-select:all}.us-code.sm{font-size:1.1em;padding:2px 8px;display:inline-block}
+.us-pend{border:2px solid rgba(184,137,47,.5)}

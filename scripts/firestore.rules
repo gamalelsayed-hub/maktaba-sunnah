@@ -1,0 +1,65 @@
+rules_version = '2';
+// قواعد أمان «ربط جوالات الأسرة» في تطبيق زاد الأسرة المسلمة
+// تُلصق في Firebase Console ← Firestore Database ← Rules ثم Publish
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function joinPath(fid) { return /databases/$(database)/documents/families/$(fid)/joins/$(request.auth.uid); }
+    function isMember(fid) { return request.auth != null && exists(joinPath(fid)); }
+    function myJoin(fid) { return get(joinPath(fid)).data; }
+    function isParent(fid) { return isMember(fid) && myJoin(fid).role == 'parent'; }
+    function owns(fid, mid) { return isMember(fid) && myJoin(fid).mid == mid && mid != ''; }
+    function keysOf(fid) { return get(/databases/$(database)/documents/families/$(fid)/secret/keys).data; }
+    function famAfter(fid) { return getAfter(/databases/$(database)/documents/families/$(fid)).data; }
+
+    match /families/{fid} {
+      allow read: if isMember(fid);
+      allow create: if request.auth != null
+        && request.resource.data.creator == request.auth.uid
+        && request.resource.data.keys().hasOnly(['creator', 'name', 'created', 'rev']);
+      allow update: if isParent(fid)
+        || (isMember(fid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rev']));
+      allow delete: if isParent(fid);
+
+      // كلمتا السر (مشفّرتان) لا يقرؤهما أحد، وتُستعملان داخل القواعد فقط
+      match /secret/{doc} {
+        allow read: if false;
+        allow create: if doc == 'keys' && request.auth != null && famAfter(fid).creator == request.auth.uid;
+        allow update: if isParent(fid);
+        allow delete: if isParent(fid);
+      }
+
+      // الأجهزة المرتبطة: كل جهاز مستند باسم معرّفه
+      match /joins/{uid} {
+        allow get: if request.auth != null && (request.auth.uid == uid || isParent(fid));
+        allow list: if isParent(fid);
+        allow create: if request.auth != null && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['role', 'p', 'mid', 'name', 't'])
+          && request.resource.data.mid is string && request.resource.data.name is string
+          && (
+            (request.resource.data.role == 'parent' && famAfter(fid).creator == uid && !exists(/databases/$(database)/documents/families/$(fid)))
+            || (request.resource.data.role == 'parent' && request.resource.data.p == keysOf(fid).pp)
+            || (request.resource.data.role == 'member' && request.resource.data.p == keysOf(fid).pw)
+          );
+        allow update: if request.auth != null && (
+            (request.auth.uid == uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mid', 'name', 't']))
+            || isParent(fid));
+        allow delete: if request.auth != null && (request.auth.uid == uid || isParent(fid));
+      }
+
+      // البيانات المشتركة: state يكتبها الوالدان، وshop يكتبها الجميع
+      match /data/{doc} {
+        allow read: if isMember(fid);
+        allow write: if isParent(fid) || (doc == 'shop' && isMember(fid));
+      }
+      // إنجاز كل فرد: يكتبه صاحبه أو الوالدان، ويراه أفراد الأسرة
+      match /done/{mid} {
+        allow read: if isMember(fid);
+        allow write: if isParent(fid) || owns(fid, mid);
+      }
+      // الملف الصحي: لصاحبه وللوالدين فقط
+      match /health/{mid} {
+        allow read, write: if isParent(fid) || owns(fid, mid);
+      }
+    }
+  }
+}
