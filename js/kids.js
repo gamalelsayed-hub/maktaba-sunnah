@@ -12,7 +12,7 @@
     let last = 0;
     x.addEventListener('click', () => {
       const now = Date.now();
-      if (now - last < 800) { last = 0; x.classList.remove('holding'); LX.switcher('kids'); return; }
+      if (now - last < 800) { last = 0; x.classList.remove('holding'); (window.USRA ? USRA.checkPin() : Promise.resolve(true)).then(ok => { if (ok) LX.switcher('kids'); }); return; }
       last = now; x.classList.add('holding'); say('p_exit_hold'); setTimeout(() => x.classList.remove('holding'), 800);
     });
   }

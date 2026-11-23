@@ -8,7 +8,7 @@
   const AD = native && C.Plugins && C.Plugins.Adhan;
   const isAdhan = n => n.channel === 'adhan' || n.channel === 'adhan_fajr';
   // نطاقات المعرّفات لكل نوع، حتى تُعاد جدولة كل نوع دون المساس بغيره
-  const RANGE = { prayer: [1000, 1999], adhkar: [2000, 2499], fasting: [3000, 3499], zakat: [4000, 4499], khatma: [4500, 4599], learn: [4600, 4699], tasks: [4700, 4999], asma: [5000, 5099], mawasim: [5100, 5199], bayt: [5200, 5599], rafiqa: [5600, 5699], rafiq: [5700, 5749], wajib: [5750, 5799] };
+  const RANGE = { prayer: [1000, 1999], adhkar: [2000, 2499], fasting: [3000, 3499], zakat: [4000, 4499], khatma: [4500, 4599], learn: [4600, 4699], tasks: [4700, 4999], asma: [5000, 5099], mawasim: [5100, 5199], bayt: [5200, 5599], rafiqa: [5600, 5699], rafiq: [5700, 5749], wajib: [5750, 5799], usra: [5800, 5999] };
   const CHANNELS = [
     { id: 'adhan', name: 'الأذان', description: 'تنبيه بالأذان عند دخول وقت الصلاة', importance: 5, sound: 'adhan.mp3', visibility: 1, vibration: true },
     { id: 'adhan_fajr', name: 'أذان الفجر', description: 'أذان الفجر', importance: 5, sound: 'adhan_fajr.mp3', visibility: 1, vibration: true },

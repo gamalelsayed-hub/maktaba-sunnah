@@ -152,9 +152,12 @@
     const line = x => `<div class="bt-row ${b.bought[x.id] ? 'done' : ''}"><button class="tk-chk ${b.bought[x.id] ? 'on' : ''}" data-buy="${esc(x.id)}">${b.bought[x.id] ? '✓' : ''}</button><b>${esc(x.n)}</b><span class="bt-q">${D(x.q)} ${esc(x.u || '')}</span><small class="muted">${esc(x.why)}</small><span class="spacer"></span>${x.extra ? `<button class="btn sm" data-ed="${esc(x.id)}">🗑️</button>` : ''}</div>`;
     el.innerHTML = `<div class="sub">تُحسب القائمة تلقائياً: مقادير وجبات الأسبوع ناقصاً ما في المطبخ، وما نقص عن الحد الأدنى، وما تضيفه بنفسك. وعند شراء صنف يُضاف للمطبخ.</div>
       <div class="card bt-add"><input id="sN" placeholder="أضف صنفاً للقائمة"><input id="sQ" placeholder="الكمية" inputmode="decimal" style="width:80px"><select id="sU">${UNITS.map(u => `<option>${u}</option>`).join('')}</select><button class="btn primary" id="sAdd">➕</button></div>
-      <div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0"><button class="btn" id="sShare">📤 أرسل القائمة (واتساب أو غيره)</button>${got.length ? '<button class="btn" id="sReset">↺ قائمة جديدة</button>' : ''}</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin:8px 0"><button class="btn" id="sShare">📤 أرسل القائمة (واتساب أو غيره)</button><button class="btn" id="sImp">📥 استلام قائمة من رسالة</button>${got.length ? '<button class="btn" id="sReset">↺ قائمة جديدة</button>' : ''}</div>
       <h3>🛒 المطلوب (${D(left.length)})</h3><div class="bt-list">${left.map(line).join('') || '<div class="muted">لا شيء مطلوب الآن 👍</div>'}</div>
       ${got.length ? `<h3>✅ تم شراؤه (${D(got.length)})</h3><div class="bt-list">${got.map(line).join('')}</div>` : ''}`;
+    el.querySelector('#sImp').onclick = async () => { const r = await APP.ask('📥 الصق قائمة التسوق التي وصلتك', [{ key: 't', label: 'كل صنف في سطر (تُتجاهل الأرقام والرموز في أول السطر)', type: 'textarea' }]); if (!r || !r.t.trim()) return;
+      let n = 0; for (const ln of r.t.split(/\n/)) { const x = ln.replace(/^[\s\-•*✓✔️☐▫️·\d٠-٩.)]+/, '').trim(); if (!x || /^(قائمة|🛒)/.test(x)) continue; const m = x.match(/^(.*?)\s*[—\-:]\s*([\d٠-٩.]+)\s*(\S*)$/); b.extra.push({ id: uid(), n: (m ? m[1] : x).slice(0, 60), q: m ? num(m[2], 1) : 1, u: m && UNITS.includes(m[3]) ? m[3] : UNITS[0] }); n++; }
+      await save(b); APP.toast('أُضيف ' + AR.toArabicDigits(n) + ' صنف'); rer(); };
     el.querySelector('#sAdd').onclick = async () => { const n = el.querySelector('#sN').value.trim(); if (!n) return; b.extra.push({ id: uid(), n, q: num(el.querySelector('#sQ').value, 1), u: el.querySelector('#sU').value }); await save(b); rer(); };
     el.querySelectorAll('[data-buy]').forEach(x => x.onclick = async () => {
       const id = x.dataset.buy, it = L.find(y => y.id === id);
@@ -196,7 +199,7 @@
       <div id="cDays" class="bt-days">${DAYS.map((d, i) => `<label><input type="checkbox" value="${i}" ${(x.days || []).includes(i) ? 'checked' : ''}> ${d}</label>`).join('')}</div>
       <label class="fld" id="cDomL">يوم الشهر <input id="cDom" type="number" min="1" max="28" value="${x.dom || 1}" style="width:70px"></label>
       <label class="fld">وقت التذكير <input id="cTm" type="time" value="${esc(x.time)}"></label>
-      <label class="fld">من يقوم بها؟ <input id="cW" value="${esc(x.who)}" placeholder="مثال: أحمد، سارة، أمي"></label>
+      <label class="fld">من يقوم بها؟ <input id="cW" value="${esc(x.who)}" placeholder="مثال: أحمد، سارة، أمي" list="cWl"><datalist id="cWl">${(window.__usraNames || []).map(n => `<option value="${esc(n)}">`).join('')}</datalist></label>
       <label><input type="checkbox" id="cR" ${x.rotate ? 'checked' : ''}> بالتناوب بين الأسماء (كل مرة على واحد)</label>
       <label style="display:block"><input type="checkbox" id="cRm" ${x.remind !== false ? 'checked' : ''}> 🔔 ذكّرني في الوقت المحدد</label>
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn primary" id="cOk">حفظ</button><button class="btn" id="cNo">إلغاء</button></div>`, box => {
