@@ -1670,7 +1670,7 @@ window.PACK_MANIFEST=[
   "file": "book-mukhtasar-minhaj",
   "id": "mukhtasar-minhaj",
   "title": "مختصر منهاج القاصدين",
-  "author": "ابن قدامة المقدسي (ت ٦٨٩هـ)",
+  "author": "نجم الدين ابن قدامة المقدسي (ت ٦٨٩هـ)",
   "count": 237,
   "size": 1070363,
   "version": "897dd4cc65cd",

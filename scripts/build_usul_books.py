@@ -31,7 +31,7 @@ BOOKS = [
  ('0600CabdGhaniMaqdisi.CumdatAhkam.Shamela0006075-ara1', 'umdat-ahkam', 'عمدة الأحكام من كلام خير الأنام', 'عبد الغني المقدسي (ت ٦٠٠هـ)', 'madhhab'),
  ('0751IbnQayyimJawziyya.MadarijSalikin.Shamela0008370-ara1', 'madarij', 'مدارج السالكين', 'ابن القيم (ت ٧٥١هـ)', 'tazkiya'),
  ('0751IbnQayyimJawziyya.WabilSayyib.Shamela0000216-ara1', 'wabil', 'الوابل الصيب من الكلم الطيب', 'ابن القيم (ت ٧٥١هـ)', 'tazkiya'),
- ('0689AhmadIbnCabdRahmanIbnQudama.MukhtasarMinhajQasidin.Shamela0098087-ara1', 'mukhtasar-minhaj', 'مختصر منهاج القاصدين', 'ابن قدامة المقدسي (ت ٦٨٩هـ)', 'tazkiya'),
+ ('0689AhmadIbnCabdRahmanIbnQudama.MukhtasarMinhajQasidin.Shamela0098087-ara1', 'mukhtasar-minhaj', 'مختصر منهاج القاصدين', 'نجم الدين ابن قدامة المقدسي (ت ٦٨٩هـ)', 'tazkiya'),
  ('0751IbnQayyimJawziyya.TibbNabawi.Shamela0023649-ara1', 'tibb-nabawi', 'الطب النبوي', 'ابن القيم (ت ٧٥١هـ)', 'tibb'),
 ]
 def fix(t):

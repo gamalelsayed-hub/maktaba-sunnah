@@ -183,7 +183,16 @@
     const it = await DB.get('items', id);
     // رقم مضموم في المصدر إلى حديث مجاور (alsoNums): ننتقل إلى الحديث الذي يحويه
     if (!it) { const m = /^([a-z0-9-]+):(\d+)$/.exec(id); if (m) { const al = (await DB.searchIndex()).find(x => x.bookId === m[1] && x.also && x.also.includes(+m[2])); if (al) { location.replace('#/item/' + encodeURIComponent(al.id)); return; } } }
-    if (!it) { el.innerHTML = `<div class="warn">النص «${esc(id)}» غير موجود في المكتبة. ربما لم يُستورد كتابه بعد — <a href="#/library">المكتبة</a>.</div>`; return; }
+    if (!it) {
+      const bid = String(id).split(':')[0], m = (window.PACK_MANIFEST || []).find(x => x.id === bid);
+      if (m && window.IMPORT) {
+        el.innerHTML = `<div class="card"><h3>📥 كتاب «${esc(m.title)}» غير محمّل بعد</h3><div class="sub">${esc(m.author || '')}${m.size ? ' — الحجم ' + AR.toArabicDigits((m.size / 1048576).toFixed(1)) + ' م.ب' : ''}</div><button class="btn primary" id="itDl">تحميل الكتاب وفتح الموضع</button> <a class="btn" href="#/library">المكتبة</a><div id="itPr" class="muted" style="margin-top:6px"></div></div>`;
+        el.querySelector('#itDl').onclick = async e => { e.target.disabled = true; const pr = el.querySelector('#itPr'); pr.textContent = 'جارٍ التحميل…';
+          try { await IMPORT.installPacks(t => { if (t) pr.textContent = typeof t === 'string' ? t : 'جارٍ التحميل…'; }, [bid]); if (APP.loadMeta) await APP.loadMeta(); APP.rerender(); } catch (x) { pr.textContent = 'تعذّر التحميل، تأكد من الاتصال بالإنترنت.'; e.target.disabled = false; } };
+        return;
+      }
+      el.innerHTML = `<div class="warn">النص «${esc(id)}» غير موجود في المكتبة. ربما لم يُستورد كتابه بعد — <a href="#/library">المكتبة</a>.</div>`; return;
+    }
     const linked = await APP.linked(it);
     const R = RENDER[it.type] || RENDER.generic;
     el.innerHTML = sampleWarn(it) + (APP.state.reviewer ? '' : `<div class="row" style="margin-bottom:6px">${APP.userBadge(it.id, true)}</div>`) + await R(it, linked) + `<div style="margin-top:16px"><button class="btn" onclick="history.back()">← رجوع</button></div>`;
