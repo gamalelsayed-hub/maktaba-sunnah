@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(KeepAlivePlugin.class);
         registerPlugin(FileOutPlugin.class);
         registerPlugin(AdhanPlugin.class);
+        registerPlugin(BiometricPlugin.class);
         super.onCreate(savedInstanceState);
         // تكبير الصفحة بإصبعين (بلا أزرار تكبير ظاهرة)
         try {

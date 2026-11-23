@@ -67,7 +67,7 @@
   ];
 
   // ===== الواجهة =====
-  const TABS0 = [['home', '👨‍👩‍👧 أسرتي'], ['stars', '⭐ النجوم والمكافآت'], ['sihha', '🩺 صحة الأسرة'], ['majlis', '🪑 مجلس الأسرة'], ['rahim', '🤝 صلة الرحم'], ['aman', '🔒 وضع الأطفال']];
+  const TABS0 = [['home', '👨‍👩‍👧 أسرتي'], ['stars', '⭐ النجوم والمكافآت'], ['sihha', '🩺 صحة الأسرة'], ['majlis', '🪑 مجلس الأسرة'], ['rahim', '🤝 صلة الرحم'], ['aman', '🔒 الأمان والبصمة']];
   let TABS = TABS0;
   V.usra = async (el, [tab, id], p) => {
     if (p && p.beta === '1') try { localStorage.setItem('zad-beta', '1'); } catch (e) { }
@@ -298,17 +298,45 @@ ${!mine ? '-->' : ''}      ${m.birth && age(m) < 7 && isParentDev() ? `<div clas
         <div class="row"><input id="kP" type="password" inputmode="numeric" maxlength="6" placeholder="${K.pin ? '•••• (مضبوط)' : '٤ أرقام'}"><button class="btn primary" id="kPs">حفظ</button>${K.pin ? '<button class="btn" id="kPd">إلغاء الرقم</button>' : ''}</div></div>
       <div class="card"><h3>⏳ حدّ الاستخدام اليومي للأطفال</h3><div class="sub">بعد انتهاء المدة تظهر رسالة لطيفة «انتهى وقت اليوم» ولا يكمل الطفل إلا بالرقم السري.</div>
         <div class="row"><select id="kL">${[0, 15, 20, 30, 45, 60, 90].map(n => `<option value="${n}" ${+K.limit === n ? 'selected' : ''}>${n ? D(n) + ' دقيقة' : 'بلا حدّ'}</option>`).join('')}</select><button class="btn primary" id="kLs">حفظ</button></div>
-        <div class="muted">استُخدم اليوم: ${D(used)} دقيقة.</div></div>`;
+        <div class="muted">استُخدم اليوم: ${D(used)} دقيقة.</div></div>
+      <div class="card"><h3>👆 بصمة الإصبع</h3><div id="bioS" class="sub">جارٍ الفحص…</div>
+        <label class="row" style="gap:8px"><input type="checkbox" id="kBio" ${K.bio ? 'checked' : ''}> استعمل البصمة بدل الرقم السري (للخروج من البراعم ومتابعة الوقت)</label>
+        <label class="row" style="gap:8px;margin-top:6px"><input type="checkbox" id="kLock" ${appLockOn() ? 'checked' : ''}> 🔐 قفل التطبيق كله بالبصمة عند فتحه</label>
+        <div class="muted" style="font-size:12.5px">البصمة لا تُحفظ في التطبيق ولا تُرسل لأي مكان؛ نظام الجوال يتحقق منها ويخبر التطبيق بالنتيجة فقط. وإن تعذرت البصمة يُقبل رمز قفل الجوال.</div></div>`;
+    bioInfo().then(bi => { const x = el.querySelector('#bioS'); if (!x) return; x.textContent = !bi ? 'البصمة متاحة في تطبيق أندرويد فقط (لا تعمل في المتصفح).' : bi.biometric ? 'البصمة مفعّلة في جوالك ✓' : bi.secure ? 'لا توجد بصمة مسجلة في الجوال، وسيُستعمل رمز قفل الجوال.' : 'سجّل بصمة أو رمز قفل في إعدادات الجوال أولاً.'; if (!bi || (!bi.biometric && !bi.secure)) { el.querySelector('#kBio').disabled = true; el.querySelector('#kLock').disabled = true; } });
+    el.querySelector('#kBio').onchange = async e => { if (e.target.checked && !(await bioAuth('تفعيل البصمة'))) { e.target.checked = false; return; } if (!e.target.checked && !(await checkPin(u))) { e.target.checked = true; return; } K.bio = e.target.checked; await save(u); APP.toast('تم الحفظ'); };
+    el.querySelector('#kLock').onchange = async e => { if (!(await bioAuth(e.target.checked ? 'تفعيل قفل التطبيق' : 'إلغاء قفل التطبيق'))) { e.target.checked = !e.target.checked; return; } setAppLock(e.target.checked); APP.toast(e.target.checked ? 'سيُقفل التطبيق بالبصمة عند فتحه' : 'أُلغي قفل التطبيق'); };
     el.querySelector('#kPs').onclick = async () => { const v = el.querySelector('#kP').value.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim(); if (!/^\d{4,6}$/.test(v)) return APP.toast('الرقم من ٤ إلى ٦ أرقام'); K.pin = await hash(v); await save(u); APP.toast('تم ضبط الرقم السري'); rer(); };
     const pd = el.querySelector('#kPd'); if (pd) pd.onclick = async () => { if (!(await checkPin(u))) return; K.pin = ''; await save(u); rer(); };
     el.querySelector('#kLs').onclick = async () => { K.limit = +el.querySelector('#kL').value; await save(u); APP.toast('تم الحفظ'); rer(); };
   }
+  const BIO = () => window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Biometric;
+  async function bioInfo() { try { const b = BIO(); if (!b) return null; return await b.available(); } catch (e) { return null; } }
+  async function bioAuth(title) { try { await BIO().auth({ title, subtitle: 'زاد الأسرة المسلمة' }); return true; } catch (e) { return false; } }
   async function hash(s) { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('usra:' + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); } catch (e) { return 'p:' + s; } }
   async function checkPin(u) {
-    u = u || await get(); if (!u.kids.pin) return true;
+    u = u || await get();
+    if (u.kids.bio) { const bi = await bioInfo(); if (bi && (bi.biometric || bi.secure)) { if (await bioAuth('للوالدين: تأكيد بالبصمة')) return true; if (!u.kids.pin) return false; } }
+    if (!u.kids.pin) return true;
     const r = await APP.ask('🔒 أدخل الرقم السري (للوالدين)', [{ key: 'p', label: 'الرقم السري' }]); if (!r) return false;
     const ok = (await hash(String(r.p).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim())) === u.kids.pin; if (!ok) APP.toast('الرقم غير صحيح'); return ok;
   }
+  // ===== 🔐 قفل التطبيق بالبصمة =====
+  function appLockOn() { try { return localStorage.getItem('app-lock') === '1'; } catch (e) { return false; } }
+  function setAppLock(v) { try { if (v) localStorage.setItem('app-lock', '1'); else localStorage.removeItem('app-lock'); } catch (e) { } }
+  let hiddenAt = 0, locking = false;
+  async function lockNow() {
+    if (!appLockOn() || locking || !BIO()) return; locking = true;
+    const bi = await bioInfo(); if (!bi || (!bi.biometric && !bi.secure)) { setAppLock(false); locking = false; return; }
+    const o = document.createElement('div'); o.className = 'us-lock app-lock';
+    o.innerHTML = '<div><div style="font-size:64px">🔐</div><h2>زاد الأسرة المسلمة</h2><p>التطبيق مقفل</p><button class="btn primary" id="alU">👆 افتح بالبصمة</button></div>';
+    document.body.appendChild(o);
+    const go = async () => { if (await bioAuth('افتح زاد الأسرة')) { o.remove(); locking = false; } };
+    o.querySelector('#alU').onclick = go; go();
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 60e3) lockNow(); });
+  if (appLockOn()) setTimeout(lockNow, 300);
+
   // يُستدعى من زر خروج الأطفال
   window.USRA = { checkPin, get };
   get().then(u => { window.__usraNames = u.members.map(m => m.name); }).catch(() => { });
