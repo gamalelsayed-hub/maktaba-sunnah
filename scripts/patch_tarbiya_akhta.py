@@ -50,3 +50,18 @@ for m in T['mistakes']:
     if x: m.update(x); n += 1
 open(F, 'w', encoding='utf-8').write(pre + json.dumps(T, ensure_ascii=False, separators=(',', ':')) + ';\n' if s.rstrip().endswith(';') else pre + json.dumps(T, ensure_ascii=False, separators=(',', ':')))
 print(n, len(T['mistakes']))
+
+# ===== الدفعة الثانية: المشكلات (٨٦)، وأخطاء إضافية، والبودكاست =====
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build-data'))
+import tarbiya_problems, tarbiya_mistakes2
+T['problems'] = tarbiya_problems.P
+have = {x['t'] for x in T['mistakes']}
+T['mistakes'] += [x for x in tarbiya_mistakes2.M if x['t'] not in have]
+T['podcasts'] = [
+  dict(t='استشارة مع سارة', by='د. سارة العبدالكريم — دكتوراه في الطفولة المبكرة، شبكة مايكس (السعودية)', d='استشارات تربوية عملية من أسئلة الأهالي: الغيرة، والعناد، والدراسة، والمراهقة. وبعض حلقاتها بالتعاون مع جمعيات أسرية سعودية مرخّصة.', href='https://podcasts.apple.com/sa/podcast/%D8%A7%D8%B3%D8%AA%D8%B4%D8%A7%D8%B1%D8%A9-%D9%85%D8%B9-%D8%B3%D8%A7%D8%B1%D8%A9/id1449825757'),
+  dict(t='بودكاست جمعية وئام', by='جمعية وئام للخدمات الأسرية (جمعية سعودية مرخّصة)', d='حلقات توعوية في العلاقات الأسرية والتربية من مختصين.', href='https://podcasts.apple.com/sa/podcast/%D8%AC%D9%85%D8%B9%D9%8A%D8%A9-%D9%88%D8%A6%D8%A7%D9%85/id1538545374'),
+  dict(t='جمعية المودة للتنمية الأسرية', by='جمعية سعودية مرخّصة', d='برامج واستشارات أسرية ومحتوى توعوي للوالدين.', href='https://almawaddah.org.sa/'),
+]
+open(F, 'w', encoding='utf-8').write(pre + json.dumps(T, ensure_ascii=False, separators=(',', ':')) + ';\n')
+print('problems', len(T['problems']), 'mistakes', len(T['mistakes']))
