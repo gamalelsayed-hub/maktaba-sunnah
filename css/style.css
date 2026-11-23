@@ -1585,3 +1585,4 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .tb-q{width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(0,0,0,.15);font:inherit;margin:6px 0}
 .tb-cats{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}.tb-cats .chip{white-space:nowrap;border:1px solid rgba(0,0,0,.12);background:transparent;border-radius:16px;padding:5px 12px;font:inherit;cursor:pointer}.tb-cats .chip.on{background:#0e4a3a;color:#fff}
 .tb-pr summary{cursor:pointer}
+.tb-music{background:rgba(184,137,47,.12);border-radius:10px;padding:8px 12px;margin:8px 0;line-height:1.8}.tb-mus{color:#8a5a00}
