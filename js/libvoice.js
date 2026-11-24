@@ -48,17 +48,29 @@
   const textOf = it => [...new Set([it.type !== 'hadith' ? it.title : '', it.isnad, it.matn || it.text, it.sharh, it.body].filter(x => typeof x === 'string' && x.trim()))].join('\n\n');
   const ord = it => (it.num != null ? +it.num : it.seq != null ? +it.seq : (it.surah || 0) * 1000 + (it.ayah || 0));
   const fileOf = id => String(id).replace(/[^\w.-]+/g, '_');
-  const extOf = t => /ogg/.test(t) ? 'ogg' : /mp4|aac|m4a/.test(t) ? 'm4a' : 'webm';
+  const extOf = t => /ogg/.test(t) ? 'ogg' : /mp4|aac|m4a/.test(t) ? 'm4a' : /mpeg|mp3/.test(t) ? 'mp3' : /wav/.test(t) ? 'wav' : 'webm';
 
   // ---------- التسجيل ----------
   let rec = null;
+  // إعداد الميكروفون: اختيار ميكروفون خارجي (مثل LARK) وإيقاف معالجة الجوال للصوت
+  const micCfg = async () => (await DB.setting('libvoiceMic')) || { id: '', raw: false };
   async function startRec() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    const m = await micCfg(), proc = !m.raw;
+    const audio = { echoCancellation: proc, noiseSuppression: proc, autoGainControl: proc };
+    if (m.id) audio.deviceId = { ideal: m.id };
+    const stream = await navigator.mediaDevices.getUserMedia({ audio });
     const mt = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
-    const r = rec = new MediaRecorder(stream, mt ? { mimeType: mt, audioBitsPerSecond: 32000 } : undefined); const chunks = [], t0 = Date.now();
+    const r = rec = new MediaRecorder(stream, mt ? { mimeType: mt, audioBitsPerSecond: m.raw ? 64000 : 32000 } : undefined); const chunks = [], t0 = Date.now();
     r.ondataavailable = e => e.data.size && chunks.push(e.data);
     r.start(1000);
     return new Promise(res => { r.onstop = () => { stream.getTracks().forEach(t => t.stop()); rec = null; res({ blob: new Blob(chunks, { type: r.mimeType || 'audio/webm' }), sec: Math.round((Date.now() - t0) / 1000) }); }; });
+  }
+
+  // ---------- إرفاق تسجيل من تطبيق آخر (Dolby On، ASR…) ----------
+  const durOf = blob => new Promise(res => { const a = new Audio(); const u = URL.createObjectURL(blob); a.preload = 'metadata'; a.onloadedmetadata = () => { const d = isFinite(a.duration) ? a.duration : 0; URL.revokeObjectURL(u); res(Math.round(d)); }; a.onerror = () => { URL.revokeObjectURL(u); res(0); }; a.src = u; });
+  const typeOfFile = f => f.type || (/\.m4a$|\.aac$/i.test(f.name) ? 'audio/mp4' : /\.mp3$/i.test(f.name) ? 'audio/mpeg' : /\.wav$/i.test(f.name) ? 'audio/wav' : /\.ogg|\.opus$/i.test(f.name) ? 'audio/ogg' : 'audio/webm');
+  function pickAudio(multi) {
+    return new Promise(res => { const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'audio/*,.m4a,.mp3,.wav,.ogg,.opus,.aac'; inp.multiple = !!multi; inp.onchange = () => res([...inp.files]); inp.click(); });
   }
 
   // ---------- التشغيل («اقرأ لي») ----------
@@ -135,7 +147,7 @@
     if (x.method === 8 && window.DecompressionStream) return new Uint8Array(await new Response(new Blob([x.raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
     throw new Error('صيغة ضغط غير مدعومة');
   }
-  const typeOfExt = f => /\.ogg$/.test(f) ? 'audio/ogg' : /\.m4a$/.test(f) ? 'audio/mp4' : 'audio/webm';
+  const typeOfExt = f => /\.ogg$/.test(f) ? 'audio/ogg' : /\.m4a$/.test(f) ? 'audio/mp4' : /\.mp3$/.test(f) ? 'audio/mpeg' : /\.wav$/.test(f) ? 'audio/wav' : 'audio/webm';
   async function importFiles(files) {
     let added = 0, kept = 0;
     for (const file of files) {
@@ -248,12 +260,51 @@
           <button class="btn primary lv-rec" data-rec>🎙️ ${done ? 'أعد التسجيل' : 'سجّل'}</button>
           ${done ? '<button class="btn" data-play>▶ استمع</button>' : ''}
           <button class="btn" data-next>${done ? '✔ التالي' : '⏭ تخطَّ'}</button>
+        </div>
+        <div class="row lv-ext" style="gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+          <button class="btn sm" data-att>📎 إرفاق ملف لهذا النص</button>
+          <button class="btn sm" data-attm>📎📎 ملفات متتابعة من هنا</button>
+          <button class="btn sm" data-mic>🎤 الميكروفون</button>
         </div><div id="lvInline" class="lv-inline"></div>`;
       el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
       const sj = el.querySelector('[data-surah]'); if (sj) sj.onchange = () => { const k = items.findIndex(x => x.surah === +sj.value && !have.has(x.id)); i = k >= 0 ? k : items.findIndex(x => x.surah === +sj.value); stopPlay(); show(); };
       el.querySelector('[data-prev]').onclick = () => { if (i > 0) { i--; stopPlay(); show(); } };
       el.querySelector('[data-next]').onclick = () => { i++; stopPlay(); show(); window.scrollTo(0, 0); };
       const pb = el.querySelector('[data-play]'); if (pb) pb.onclick = () => play(it, title, { noBar: true });
+      // إرفاق ملف صوتي سُجّل بتطبيق آخر: يُحسب في المتابعة والهدف اليومي كأنه سُجّل هنا
+      const attach = async (files, start) => {
+        let n = 0, big = 0;
+        for (let k = 0; k < files.length && items[start + k]; k++) {
+          const f = files[k], target = items[start + k], blob = new Blob([await f.arrayBuffer()], { type: typeOfFile(f) });
+          if (blob.size > 8 * 1048576) big++;
+          const sec = await durOf(blob), isNew = !have.has(target.id);
+          await VS.put({ id: target.id, bookId, blob, type: blob.type, sec, at: Date.now(), src: f.name });
+          have.add(target.id); await addSeconds(sec); n++;
+          if (isNew) await DB.setting('libvoiceSince', ((await DB.setting('libvoiceSince')) || 0) + 1);
+        }
+        APP.toast('✔ أُرفق ' + AD(n) + ' تسجيلاً' + (big ? ' — تنبيه: بعض الملفات كبيرة (WAV)؛ صيغة M4A أصغر بكثير' : ''), 6000);
+        return n;
+      };
+      el.querySelector('[data-att]').onclick = async () => { const fs = await pickAudio(false); if (!fs.length) return; stopPlay(); await attach(fs, i); await show(); play(it, title, { noBar: true }); };
+      el.querySelector('[data-attm]').onclick = async () => {
+        const fs = (await pickAudio(true)).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        if (!fs.length) return;
+        const last = items[Math.min(items.length - 1, i + fs.length - 1)];
+        if (!confirm('سيُرفق ' + AD(fs.length) + ' ملفاً بالترتيب حسب أسمائها:\nمن: ' + (fs[0].name) + ' ← النص الحالي\nإلى: ' + fs[fs.length - 1].name + ' ← ' + (APP.titleOf ? APP.titleOf(last) : last.id) + '\nمتابعة؟')) return;
+        stopPlay(); const n = await attach(fs, i); i += n; show(); window.scrollTo(0, 0);
+      };
+      el.querySelector('[data-mic]').onclick = async () => {
+        let devs = []; try { const st = await navigator.mediaDevices.getUserMedia({ audio: true }); st.getTracks().forEach(t => t.stop()); devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); } catch (e) { }
+        const m = await micCfg();
+        APP.modal(`<h2 style="margin-top:0">🎤 الميكروفون</h2>
+          <label class="muted">الميكروفون المستعمل</label><select id="micD" style="width:100%"><option value="">تلقائي (الافتراضي)</option>${devs.map((d, k) => `<option value="${esc(d.deviceId)}" ${d.deviceId === m.id ? 'selected' : ''}>${esc(d.label || 'ميكروفون ' + (k + 1))}</option>`).join('')}</select>
+          <label class="row" style="gap:8px;margin-top:10px"><input type="checkbox" id="micR" ${m.raw ? 'checked' : ''}> ميكروفون خارجي احترافي: أوقف معالجة الجوال للصوت (إلغاء الصدى والضوضاء ورفع الصوت التلقائي) وسجّل بجودة أعلى</label>
+          <div class="muted" style="font-size:12.5px;margin-top:8px">مع ميكروفون مثل Hollyland LARK: وصّله قبل فتح هذه النافذة، واختره من القائمة، وفعّل الخيار السابق؛ فمعالجة الجوال قد تشوّه صوت الميكروفون الجيد.</div>
+          <div class="row" style="margin-top:10px"><button class="btn primary" id="micOk">حفظ</button><button class="btn" id="micNo">إلغاء</button></div>`, box => {
+          box.querySelector('#micNo').onclick = () => APP.closeModal();
+          box.querySelector('#micOk').onclick = async () => { await DB.setting('libvoiceMic', { id: box.querySelector('#micD').value, raw: box.querySelector('#micR').checked }); APP.closeModal(); APP.toast('تم الحفظ ✔'); };
+        });
+      };
       const rb = el.querySelector('[data-rec]');
       rb.onclick = async () => {
         if (rec) { rec.stop(); return; }
