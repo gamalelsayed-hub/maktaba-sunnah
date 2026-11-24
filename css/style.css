@@ -1600,3 +1600,5 @@ body.dark .dw-book { background: var(--bg2); border-color: var(--line); }
 .us-code{font-family:monospace;font-size:1.5em;letter-spacing:2px;direction:ltr;text-align:center;background:#fbf7ec;border:2px dashed #b8892f;border-radius:10px;padding:10px;margin:8px 0;user-select:all}.us-code.sm{font-size:1.1em;padding:2px 8px;display:inline-block}
 .us-pend{border:2px solid rgba(184,137,47,.5)}
 .app-lock{z-index:10002}
+.abc-ic{display:inline-flex;align-items:center;justify-content:center;font-family:var(--quran),serif;font-weight:700;background:linear-gradient(135deg,#0e4a3a,#2f8f6b);color:#fbf7ec;border-radius:12px;padding:.05em .3em .15em;line-height:1.2;letter-spacing:.05em;font-size:.62em;white-space:nowrap;vertical-align:middle}
+.sp-ic .abc-ic{font-size:21px;padding:3px 9px 6px;border-radius:10px}

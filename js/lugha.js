@@ -26,7 +26,7 @@
     if (sec === 'kutub') return kutub(el);
     const T = (h, ic, t, d, soon) => `<a class="card lg-tile${soon ? ' soon' : ''}" href="${soon ? 'javascript:void 0' : h}"><span>${ic}</span><b>${t}</b><small>${d}</small>${soon ? '<i>قريباً</i>' : ''}</a>`;
     const dn = await done();
-    el.innerHTML = hero('🔤 علوم العربية', 'من الصفر إلى الإتقان: دروس مبسّطة، وتدريب تفاعلي، وإحالة إلى المتون والشروح.') + `<div class="lg-grid">
+    el.innerHTML = hero('<span class="abc-ic">أ ب ت</span> علوم العربية', 'من الصفر إلى الإتقان: دروس مبسّطة، وتدريب تفاعلي، وإحالة إلى المتون والشروح.') + `<div class="lg-grid">
       ${T('#/lugha/nahw', '📘', 'النحو', `مسار متدرج: ${D(G.lessons.length)} درساً · أنهيت ${D(G.lessons.filter(l => dn.has(l.id)).length)}`)}
       ${T('#/lugha/train', '🎯', 'مدرّب الإعراب', 'أعرب الجمل كلمةً كلمة، واعرف خطأك فوراً')}
       ${T('#/lugha/quran', '📖', 'إعراب القرآن', 'تدرّب على إعراب الفاتحة وقصار السور، وإعراب أي آية من كتب الإعراب')}
