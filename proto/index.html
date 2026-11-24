@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>نموذج الواجهة الجديدة — زاد الأسرة المسلمة</title>
+<meta name="robots" content="noindex">
+<style>
+@font-face{font-family:'Plex Arabic';src:url(../fonts/IBMPlexSansArabic-Regular.ttf) format('truetype');font-weight:400;font-display:swap}
+@font-face{font-family:'Plex Arabic';src:url(../fonts/IBMPlexSansArabic-Medium.ttf) format('truetype');font-weight:500 600;font-display:swap}
+@font-face{font-family:'Plex Arabic';src:url(../fonts/IBMPlexSansArabic-Bold.ttf) format('truetype');font-weight:700 800;font-display:swap}
+@font-face{font-family:'Naskh';src:url(../fonts/NotoNaskhArabic.ttf) format('truetype');font-weight:400 700;font-display:swap}
+@font-face{font-family:'Amiri Quran';src:url(../fonts/AmiriQuran-Regular.ttf) format('truetype');font-display:swap}
+
+/* ===== لوحات الألوان ===== */
+:root,[data-theme=emerald]{
+  --bg:#f5f1e8;--bg2:#ece5d4;--panel:#fffdf8;--ink:#14201b;--muted:#6d746f;--line:#e5dcc6;
+  --hero1:#0b3d2e;--hero2:#06281e;--hero3:#0f5540;
+  --gold:#b8913f;--gold2:#d9b86a;--gold-soft:#f3e7c9;
+  --ic-bg:linear-gradient(145deg,#0f5540,#0a3a2c);--ic-fg:#e9cf8d;
+  --sh:0 1px 2px rgba(20,32,27,.04),0 8px 24px -8px rgba(20,32,27,.12);
+  --sh-h:0 2px 4px rgba(20,32,27,.06),0 18px 36px -12px rgba(20,32,27,.22);
+}
+[data-theme=navy]{
+  --bg:#f4f2ee;--bg2:#e9e5dc;--panel:#ffffff;--ink:#141a2a;--muted:#6a6f7c;--line:#e3ded2;
+  --hero1:#14213d;--hero2:#0b1428;--hero3:#1f3160;
+  --gold:#b08d47;--gold2:#d7b56e;--gold-soft:#f2e8d0;
+  --ic-bg:linear-gradient(145deg,#1f3160,#121d3a);--ic-fg:#e4c983;
+  --sh:0 1px 2px rgba(20,26,42,.04),0 8px 24px -8px rgba(20,26,42,.14);
+  --sh-h:0 2px 4px rgba(20,26,42,.06),0 18px 36px -12px rgba(20,26,42,.26);
+}
+[data-theme=night]{
+  --bg:#0c1210;--bg2:#121a17;--panel:#151e1a;--ink:#ece8dd;--muted:#9aa39e;--line:#24302a;
+  --hero1:#0f2a20;--hero2:#08160f;--hero3:#173b2d;
+  --gold:#d4ae5c;--gold2:#ecd08e;--gold-soft:#2a2414;
+  --ic-bg:linear-gradient(145deg,#1b3a2d,#10241b);--ic-fg:#e8cb84;
+  --sh:0 1px 2px rgba(0,0,0,.3),0 8px 24px -8px rgba(0,0,0,.5);
+  --sh-h:0 18px 36px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg)}
+body{font-family:'Plex Arabic',Tahoma,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;transition:background .4s,color .4s}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+
+/* ===== شريط التحكم في النموذج ===== */
+.ctl{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:8px 10px;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);color:#fff;font-size:12.5px}
+.ctl span{opacity:.7;margin-inline-start:6px}
+.ctl button{border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;border-radius:999px;padding:5px 12px;font-size:12.5px}
+.ctl button.on{background:#d9b86a;border-color:#d9b86a;color:#111;font-weight:700}
+
+/* ===== الهيدر الفخم ===== */
+.hero{position:relative;overflow:hidden;color:#fff;padding:34px 20px 74px;text-align:center;
+  background:radial-gradient(120% 90% at 85% -10%,var(--hero3) 0%,transparent 55%),linear-gradient(160deg,var(--hero1),var(--hero2));}
+.hero::before{content:'';position:absolute;inset:0;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23e9cf8d' stroke-width='1'%3E%3Cpath d='M32 4l8 20 20 8-20 8-8 20-8-20-20-8 20-8z'/%3E%3Ccircle cx='32' cy='32' r='6'/%3E%3C/g%3E%3C/svg%3E");background-size:64px}
+.hero::after{content:'';position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);opacity:.6}
+.logo{position:relative;width:76px;height:76px;margin:0 auto 14px;border-radius:22px;padding:3px;background:linear-gradient(145deg,var(--gold2),var(--gold) 60%,#8a6a2a);box-shadow:0 10px 30px -6px rgba(0,0,0,.5)}
+.logo img{width:100%;height:100%;border-radius:19px;display:block}
+.hero h1{position:relative;font-family:'Naskh',serif;font-size:30px;font-weight:700;letter-spacing:0;line-height:1.4}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--gold2),#f6e3b0,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 6s linear infinite}
+.motto{position:relative;margin-top:6px;font-size:13.5px;color:rgba(255,255,255,.72)}
+.greet{position:relative;display:inline-flex;gap:8px;align-items:center;margin-top:16px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(233,207,141,.25);font-size:12.5px;color:#f1e2b8}
+.greet i{width:7px;height:7px;border-radius:50%;background:var(--gold2);box-shadow:0 0 0 0 rgba(217,184,106,.7);animation:pulse 2.2s infinite}
+
+.wrap{max-width:760px;margin:-50px auto 0;padding:0 16px 60px;position:relative}
+
+/* ===== البطاقة الرئيسية ===== */
+.main{display:flex;align-items:center;gap:16px;padding:18px;border-radius:22px;background:var(--panel);box-shadow:var(--sh-h);border:1px solid var(--line);position:relative;overflow:hidden}
+.main::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(var(--gold2),var(--gold))}
+.main .ic{width:58px;height:58px;border-radius:18px}
+.main b{display:block;font-size:18px;font-weight:700}
+.main small{display:block;color:var(--muted);font-size:12.8px;line-height:1.7;margin-top:2px}
+.main .go{margin-inline-start:auto;width:36px;height:36px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold);transition:transform .3s}
+.main:hover .go{transform:translateX(-4px)}
+
+/* ===== بطاقة اليوم (عداد + شريط) ===== */
+.today{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;padding:16px 18px;border-radius:20px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh)}
+.ring{width:74px;height:74px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.ring .bgc{stroke:var(--bg2)}
+.ring .fg{stroke:url(#gg);stroke-linecap:round;stroke-dasharray:201;stroke-dashoffset:201;transition:stroke-dashoffset 1.4s cubic-bezier(.2,.8,.2,1)}
+.ring span{position:absolute;inset:0;display:grid;place-items:center;font-weight:700;font-size:17px}
+.today h3{font-size:15px;font-weight:700}
+.today p{font-size:12.8px;color:var(--muted);margin-top:2px}
+.bar{height:7px;border-radius:9px;background:var(--bg2);margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.stats{display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--muted)}
+.stats b{color:var(--ink);font-size:14px;margin-inline-end:3px}
+
+/* ===== التبويبات بمؤشر منزلق ===== */
+.tabs{position:relative;display:flex;margin:26px 0 14px;padding:5px;border-radius:16px;background:var(--bg2)}
+.tabs button{flex:1;position:relative;z-index:1;border:0;background:none;padding:10px 4px;font-size:14px;font-weight:600;color:var(--muted);transition:color .3s}
+.tabs button.on{color:var(--ink)}
+.tabs .ind{position:absolute;top:5px;bottom:5px;border-radius:12px;background:var(--panel);box-shadow:var(--sh);transition:right .45s cubic-bezier(.3,1.3,.5,1),width .45s}
+
+/* ===== شبكة الأقسام ===== */
+.sub{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:var(--gold);margin:4px 2px 12px;letter-spacing:.2px}
+.sub::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{position:relative;display:flex;flex-direction:column;gap:10px;padding:16px 14px 14px;border-radius:20px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--sh);overflow:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s,border-color .25s}
+.card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120px 80px at var(--mx,80%) var(--my,0%),rgba(217,184,106,.16),transparent 70%);opacity:0;transition:opacity .3s;pointer-events:none}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh-h);border-color:color-mix(in srgb,var(--gold) 35%,var(--line))}
+.card:hover::after{opacity:1}
+.card:active,.main:active{transform:scale(.965);transition-duration:.08s}
+.card b{font-size:15px;font-weight:700}
+.card small{font-size:12px;color:var(--muted);line-height:1.65}
+.card .q{position:absolute;top:10px;left:10px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12px;display:grid;place-items:center}
+
+/* ===== الأيقونات الموحدة ===== */
+.ic{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;background:var(--ic-bg);color:var(--ic-fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px -6px rgba(0,0,0,.35);transition:transform .4s cubic-bezier(.3,1.4,.5,1)}
+.ic svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.main .ic svg{width:30px;height:30px}
+.ic .t{font-family:'Naskh',serif;font-size:14px;font-weight:700;letter-spacing:-.5px}
+.card:hover .ic{transform:rotate(-6deg) scale(1.06)}
+.card.rf .ic{--ic-bg:linear-gradient(145deg,#8a3b5c,#5e2340);--ic-fg:#f6d7e3}
+.card.kd .ic{--ic-bg:linear-gradient(145deg,#d48a2a,#a8611a);--ic-fg:#fff3dc}
+
+/* ===== هيكل التحميل ===== */
+.sk{border-radius:20px;background:var(--panel);border:1px solid var(--line);padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+.sk i{display:block;border-radius:8px;background:linear-gradient(90deg,var(--bg2) 25%,color-mix(in srgb,var(--bg2) 40%,var(--panel)) 50%,var(--bg2) 75%);background-size:300% 100%;animation:skel 1.3s infinite}
+.sk .a{width:46px;height:46px;border-radius:14px}.sk .b{height:14px;width:70%}.sk .c{height:10px;width:90%}
+
+.guide{display:flex;gap:10px;align-items:center;justify-content:center;width:100%;margin-top:22px;padding:14px;border-radius:16px;border:1px dashed color-mix(in srgb,var(--gold) 55%,transparent);background:var(--gold-soft);color:var(--ink);font-size:14px;font-weight:600}
+.note{margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.9}
+.note b{color:var(--ink)}
+
+/* ===== حركات الدخول ===== */
+.rv{opacity:0;transform:translateX(38px)}
+.in .rv{animation:slideIn .6s cubic-bezier(.2,.85,.25,1) forwards;animation-delay:calc(var(--i,0) * 55ms + 120ms)}
+.in .hero .logo{animation:pop .7s cubic-bezier(.3,1.5,.5,1) both}
+.in .hero h1,.in .hero .motto,.in .hero .greet{animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both}
+.in .hero .motto{animation-delay:.1s}.in .hero .greet{animation-delay:.2s}
+.page-out{animation:pageOut .28s ease forwards}
+
+@keyframes slideIn{to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.6) rotate(-8deg)}to{opacity:1;transform:none}}
+@keyframes pageOut{to{opacity:0;transform:translateX(-30px)}}
+@keyframes shine{to{background-position:-200% 0}}
+@keyframes skel{from{background-position:100% 0}to{background-position:-100% 0}}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(217,184,106,0)}100%{box-shadow:0 0 0 0 rgba(217,184,106,0)}}
+
+/* ===== تقليل الحركة ===== */
+.calm *,.calm *::before,.calm *::after{animation:none!important;transition:none!important}
+.calm .rv{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* صفحة القسم التجريبية */
+.secpage{display:none}
+.secpage.show{display:block}
+.back{display:inline-flex;gap:6px;align-items:center;margin:0 0 14px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font-size:13px;color:var(--ink)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,30px);opacity:0;padding:10px 18px;border-radius:999px;background:var(--hero1);color:#f1e2b8;font-size:13px;box-shadow:var(--sh-h);transition:.35s cubic-bezier(.2,.8,.2,1);z-index:60}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b8913f"/><stop offset="1" stop-color="#ecd08e"/></linearGradient></defs></svg>
+
+<div class="ctl">
+  <span>الألوان:</span>
+  <button data-th="emerald" class="on">زمرّدي وذهبي</button>
+  <button data-th="navy">كحلي ملكي وذهبي</button>
+  <button data-th="night">ليلي</button>
+  <span>|</span>
+  <button id="replay">↻ أعد الحركة</button>
+  <button id="calm">تقليل الحركة</button>
+</div>
+
+<div id="app">
+<header class="hero">
+  <div class="logo"><img src="../icons/icon-192.png" alt=""></div>
+  <h1>زاد <em>الأسرة المسلمة</em></h1>
+  <div class="motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div>
+  <div class="greet"><i></i><span id="greetT">مساء الخير — العصر بعد ٤٢ دقيقة</span></div>
+</header>
+
+<main class="wrap" id="home">
+  <a class="main rv" style="--i:0" href="#" data-go="زاد الأسرة">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 21h16M6 21V11M18 21V11M12 3c-3 2.5-6 4.5-6 8h12c0-3.5-3-5.5-6-8z"/><path d="M12 1.5v1.5M10 21v-4a2 2 0 014 0v4"/></svg></span>
+    <div><b>زاد الأسرة</b><small>القرآن الكريم، والصلاة والأذان، والأذكار والأدعية، والرقية، والمكتبة كاملة</small></div>
+    <span class="go"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+  </a>
+
+  <div class="today rv" style="--i:1">
+    <div class="ring"><svg viewBox="0 0 74 74"><circle class="bgc" cx="37" cy="37" r="32"/><circle class="fg" id="ringFg" cx="37" cy="37" r="32"/></svg><span id="ringN">٠٪</span></div>
+    <div>
+      <h3>وردك اليوم</h3>
+      <p>بقي لك صفحتان من ورد القرآن، ودرس «ما لا يسع» جاهز</p>
+      <div class="bar"><i id="barI"></i></div>
+      <div class="stats"><span><b data-count="12">٠</b>يوم متتالي</span><span><b data-count="45">٠</b>درساً منجزاً</span><span><b data-count="3">٠</b>شهادات</span></div>
+    </div>
+  </div>
+
+  <div class="tabs rv" style="--i:2" id="tabs">
+    <span class="ind" id="ind"></span>
+    <button class="on" data-tab="fam">أفراد الأسرة</button>
+    <button data-tab="ilm">العلم</button>
+  </div>
+
+  <div id="panel"></div>
+
+  <button class="guide rv" style="--i:12" id="g1">💡 كيف أستفيد من التطبيق؟ (دليل الأقسام)</button>
+  <div class="note rv" style="--i:13"><b>هذا نموذج للتجربة فقط</b> ولا يغيّر شيئاً في التطبيق. جرّب: الألوان الثلاثة من الشريط العلوي، والتبديل بين «أفراد الأسرة» و«العلم»، واضغط أي بطاقة لترى الانتقال بين الصفحات وهيكل التحميل، و«تقليل الحركة» لكبار السن.</div>
+</main>
+
+<main class="wrap secpage" id="sec">
+  <button class="back rv" style="--i:0" id="back">‹ رجوع</button>
+  <div class="sub rv" style="--i:1" id="secT">القسم</div>
+  <div class="grid" id="secG"></div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const I = {
+  home:'<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
+  parents:'<circle cx="8" cy="7" r="3"/><circle cx="16.5" cy="8.5" r="2.5"/><path d="M2.5 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6M13 20c.3-2.7 1.8-4.5 3.5-4.5S20 17.3 21 20"/>',
+  pen:'<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13.5 6.5l4 4"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+  flower:'<circle cx="12" cy="9" r="2.2"/><path d="M12 6.8c0-3 3.5-3 3.5-.3S12 9 12 9s-3.5-.2-3.5-2.5S12 3.8 12 6.8zM14.2 9c3 0 3 3.5.3 3.5S12 9 12 9M9.8 9c-3 0-3 3.5-.3 3.5S12 9 12 9"/><path d="M12 11.5V21M12 17c-2-2.5-5-2-5-2s.5 3 5 3M12 16c2-2 4.5-1.5 4.5-1.5s-.5 2.5-4.5 2.5"/>',
+  sprout:'<path d="M12 21v-9"/><path d="M12 12C12 7 8 5 4 5c0 4 3 7 8 7zM12 14c0-4 3-6.5 7.5-6.5 0 4-3 6.5-7.5 6.5z"/><path d="M8 21h8"/>',
+  book:'<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
+  columns:'<path d="M3 21h18M4 18h16M5 9h14M12 3L4 7.5h16z"/><path d="M7 9v9M12 9v9M17 9v9"/>',
+  mega:'<path d="M3 10v4h3l7 4V6L6 10z"/><path d="M16.5 9a4 4 0 010 6M19 7a7 7 0 010 10"/>',
+  pin:'<path d="M6 3h12v18l-6-4-6 4z"/><path d="M9.5 8.5h5"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/>',
+  star:'<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  users:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'
+};
+const svg = k => `<svg viewBox="0 0 24 24">${I[k]}</svg>`;
+const ABT = '<span class="t">أ ب ت</span>';
+const FAM = [
+  ['home','أسرتي','ملف لكل فرد، والنجوم، والصحة، ومجلس الأسرة، وصلة الرحم'],
+  ['parents','زاد الوالدين','تربية الأبناء، وإدارة البيت، والمواريث'],
+  ['pen','زاد الكبار والأميين','القراءة والكتابة من الصفر'],
+  ['compass','زاد الرفيق','للشباب'],
+  ['flower','زاد الرفيقة','للمرأة والفتاة','rf'],
+  ['sprout','زاد البراعم','الحروف وجزء عمّ والقصص والرسم','kd'],
+];
+const ILM = [
+  ['book','علوم الشريعة','القرآن والحديث والفقه والعقيدة وأصول العلوم'],
+  ['abt','علوم العربية','النحو والصرف والبلاغة والخط والشعر والأدب'],
+  ['columns','التاريخ والحضارة','السيرة والصحابة والعصور والدول'],
+  ['mega','الدعوة إلى الله','لأهل الأديان واللادينيين، وطرق الدعوة'],
+  ['pin','ما لا يسع المسلم جهله','درس يومي قصير بالإشعار'],
+  ['chart','تقدمي وشهاداتي','دروسك والبحث فيها والشهادات'],
+];
+const SUBP = [['users','أفراد الأسرة','أضف كل فرد ببرنامجه اليومي'],['star','النجوم والمكافآت','مهام الأبناء واعتمادها'],['heart','صحة الأسرة','الأدوية والتطعيمات والطوارئ'],['shield','الأمان والبصمة','قفل التطبيق ووضع الأطفال']];
+
+const card = (c, i) => `<a href="#" class="card rv ${c[3]||''}" style="--i:${i}" data-go="${c[1]}"><span class="q">؟</span><span class="ic">${c[0]==='abt'?ABT:svg(c[0])}</span><b>${c[1]}</b><small>${c[2]}</small></a>`;
+const AD = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const app = document.getElementById('app'), panel = document.getElementById('panel');
+
+function renderTab(t, animate) {
+  const list = t === 'fam' ? FAM : ILM;
+  panel.innerHTML = `<div class="sub rv" style="--i:3">${t==='fam'?'من الكبير إلى الصغير':'العلم الشرعي والعربي والتاريخ'}</div><div class="grid">${list.map((c,i)=>card(c,i+4)).join('')}</div>`;
+  if (animate) { panel.classList.remove('in'); void panel.offsetWidth; panel.classList.add('in'); }
+  bindCards(panel);
+}
+function moveInd() {
+  const on = document.querySelector('#tabs button.on'), tabs = document.getElementById('tabs'), ind = document.getElementById('ind');
+  const r = on.getBoundingClientRect(), tr = tabs.getBoundingClientRect();
+  ind.style.width = r.width + 'px'; ind.style.right = (tr.right - r.right) + 'px';
+}
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  moveInd(); renderTab(b.dataset.tab, true);
+});
+
+function countUp() {
+  const calm = document.body.classList.contains('calm') || matchMedia('(prefers-reduced-motion:reduce)').matches;
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const to = +el.dataset.count, t0 = performance.now(), dur = calm ? 0 : 1200;
+    const step = t => { const p = dur ? Math.min(1, (t - t0) / dur) : 1, e = 1 - Math.pow(1 - p, 3); el.textContent = AD(Math.round(to * e)); if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+  const pct = 68, fg = document.getElementById('ringFg'), n = document.getElementById('ringN'), bar = document.getElementById('barI');
+  fg.style.strokeDashoffset = 201; bar.style.width = 0;
+  setTimeout(() => { fg.style.strokeDashoffset = 201 * (1 - pct / 100); bar.style.width = pct + '%'; }, 350);
+  const t0 = performance.now(), dur = calm ? 0 : 1400;
+  const st = t => { const p = dur ? Math.min(1, (t - t0 - 350) / dur) : 1; n.textContent = AD(Math.max(0, Math.round(pct * (1 - Math.pow(1 - Math.max(0,p), 3))))) + '٪'; if (p < 1) requestAnimationFrame(st); };
+  requestAnimationFrame(st);
+}
+function play() { app.classList.remove('in'); void app.offsetWidth; app.classList.add('in'); panel.classList.add('in'); countUp(); }
+
+// الانتقال إلى صفحة قسم مع هيكل التحميل
+const home = document.getElementById('home'), sec = document.getElementById('sec'), secG = document.getElementById('secG');
+function openSec(title) {
+  home.classList.add('page-out');
+  setTimeout(() => {
+    home.style.display = 'none'; home.classList.remove('page-out');
+    sec.classList.add('show'); document.getElementById('secT').textContent = title;
+    secG.innerHTML = Array.from({length:4}, () => '<div class="sk"><i class="a"></i><i class="b"></i><i class="c"></i></div>').join('');
+    window.scrollTo({top:0});
+    sec.classList.remove('in'); void sec.offsetWidth; sec.classList.add('in');
+    setTimeout(() => { secG.innerHTML = SUBP.map((c,i)=>card(c,i+2)).join(''); sec.classList.remove('in'); void sec.offsetWidth; sec.classList.add('in'); bindCards(secG, true); }, 900);
+  }, 260);
+}
+document.getElementById('back').onclick = () => {
+  sec.classList.add('page-out');
+  setTimeout(() => { sec.classList.remove('show','page-out'); home.style.display = ''; play(); moveInd(); }, 260);
+};
+function bindCards(root, inner) {
+  root.querySelectorAll('[data-go]').forEach(a => {
+    a.onclick = e => { e.preventDefault(); if (e.target.classList.contains('q')) return toast('هنا يظهر شرح «كيف أستفيد» من القسم'); inner ? toast('هنا تُفتح صفحة «' + a.dataset.go + '»') : openSec(a.dataset.go); };
+    a.onpointermove = e => { const r = a.getBoundingClientRect(); a.style.setProperty('--mx', (e.clientX - r.left) + 'px'); a.style.setProperty('--my', (e.clientY - r.top) + 'px'); };
+  });
+}
+function toast(t) { const el = document.getElementById('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toast.h); toast.h = setTimeout(() => el.classList.remove('show'), 1800); }
+
+// الألوان والتحكم
+document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => {
+  document.documentElement.dataset.theme = b.dataset.th;
+  document.querySelectorAll('[data-th]').forEach(x => x.classList.toggle('on', x === b));
+});
+document.getElementById('replay').onclick = () => { if (sec.classList.contains('show')) document.getElementById('back').click(); else play(); };
+document.getElementById('calm').onclick = e => { document.body.classList.toggle('calm'); e.target.classList.toggle('on'); };
+document.getElementById('g1').onclick = () => toast('هنا يفتح دليل الأقسام');
+bindCards(home);
+
+const h = new Date().getHours();
+document.getElementById('greetT').textContent = (h < 12 ? 'صباح الخير' : 'مساء الخير') + ' — الصلاة القادمة بعد ٤٢ دقيقة';
+renderTab('fam', false);
+requestAnimationFrame(() => { moveInd(); play(); });
+addEventListener('resize', moveInd);
+</script>
+</body>
+</html>
