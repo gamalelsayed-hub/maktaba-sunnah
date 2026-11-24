@@ -145,6 +145,16 @@
     'ℹ': 'info', '💾': 'save', '⚠': 'warn', '📻': 'speaker', '🛏': 'bed', '🦷': 'tooth', '🌡': 'thermo', '🩹': 'aid', '🏥': 'aid', '🚑': 'aid', '📱': 'phone2', '🎯': 'target', '🤰': 'user', '🤱': 'baby', '🧘': 'user',
     '🎒': 'bag', '🧺': 'bag', '📬': 'inbox', '🪑': 'users', '👕': 'bag', '🧽': 'broom', '🎤️': 'mic',
   };
+  // ألوان متناسقة من عائلة واحدة: لكل نوع لون
+  const HUE = { quran: '#0f7a55', day: '#b7791f', family: '#a3375c', ilm: '#2f56a0', health: '#0f8088', money: '#8a5a2b', kids: '#d4681e', admin: '#5b6578' };
+  const CAT = {
+    quran: 'book bookc kaaba phones speaker mic note', day: 'sun sunrise sunset moon beads hands mosque cal alarm clock hijri star sparkle bell belloff timer hourglass pray dove',
+    family: 'home family users user heart flower baby child ring shake gift smile chat bubble crown', ilm: 'books cap scale scroll puzzle link columns hist abc brain question search feather mega idcard map camel target microscope ladder',
+    health: 'steth pill drop syringe aid thermo tooth run muscle leaf sprout tree water mountain wind feet bed bottle lock shield', money: 'coins abacus case cart receipt chart chartup tools gear box bag trophy',
+  };
+  const K2C = {}; for (const [c, ks] of Object.entries(CAT)) ks.split(' ').forEach(k => K2C[k] = c);
+  const SEC = { family: 'family', day: 'day', quran: 'quran', kids: 'kids', sunnah: 'ilm', admin: 'admin' };
+  const hueFor = (el, k) => { const d = el.closest('.nav-sec'); if (d && SEC[d.dataset.sec]) return HUE[SEC[d.dataset.sec]]; return HUE[K2C[k]] || HUE.quran; };
   const norm = s => s.replace(/[️‍\u{1F3FB}-\u{1F3FF}]/gu, m => m === '‍' ? m : '').trim();
   const keyOf = t => { t = (t || '').trim(); if (!t) return null; return M[t] || M[norm(t)] || M[norm(t).replace(/‍.*/u, '')] || null; };
   const svg = k => `<svg class="zsv" viewBox="0 0 24 24" aria-hidden="true">${P[k]}</svg>`;
@@ -157,9 +167,9 @@
   function boxes(root) {
     root.querySelectorAll(BOX).forEach(el => {
       if (el.dataset.zi || skip(el)) return; el.dataset.zi = 1;
-      if (el.querySelector('svg, img, .abc-ic')) { el.classList.add('zi'); return; }
+      if (el.querySelector('svg, img, .abc-ic')) { el.classList.add('zi'); el.style.setProperty('--hue', hueFor(el, 'abc')); return; }
       const t = el.textContent.trim(), m = t.match(EMO); if (!m || m[0].length !== t.length) return;
-      const k = keyOf(t); el.classList.add('zi'); if (k) el.innerHTML = svg(k); else el.classList.add('zi-emo');
+      const k = keyOf(t); el.classList.add('zi'); el.style.setProperty('--hue', hueFor(el, k)); if (k) { el.innerHTML = svg(k); el.dataset.k = k; } else el.classList.add('zi-emo');
     });
   }
   function heads(root) {
@@ -167,7 +177,7 @@
       if (h.dataset.zh || skip(h)) return; h.dataset.zh = 1;
       const tn = [...h.childNodes].find(n => n.nodeType === 3 ? n.textContent.trim() : true); if (!tn || tn.nodeType !== 3) return;
       const s = tn.textContent.replace(/^\s+/, ''), m = s.match(EMO); if (!m) return;
-      const k = keyOf(m[0]); const sp = document.createElement('span'); sp.className = 'zh' + (k ? '' : ' zh-emo'); sp.innerHTML = k ? svg(k) : m[0];
+      const k = keyOf(m[0]); const sp = document.createElement('span'); sp.className = 'zh' + (k ? '' : ' zh-emo'); sp.innerHTML = k ? svg(k) : m[0]; if (k) { sp.dataset.k = k; sp.style.setProperty('--hue', hueFor(h, k)); }
       tn.textContent = s.slice(m[0].length).replace(/^\s*/, ''); h.insertBefore(sp, tn);
     });
   }
@@ -188,6 +198,20 @@
   document.addEventListener('DOMContentLoaded', () => apply(document.body));
   if (document.body) apply(document.body);
   window.ZICONS = { svg, keyOf, apply, has: k => !!P[k] };
+
+  // حركة صغيرة عند الضغط تناسب الأيقونة (الجرس يرن، النجمة تلمع، الكتاب ينفتح…)
+  document.addEventListener('pointerdown', e => {
+    const host = e.target.closest && e.target.closest('a, button, .tile, .fam-tile, summary'); if (!host) return;
+    const z = host.querySelector('.zi[data-k], .zb, .zh[data-k]'); if (!z) return;
+    z.classList.remove('z-tap'); void z.offsetWidth; z.classList.add('z-tap'); setTimeout(() => z.classList.remove('z-tap'), 800);
+  }, { passive: true });
+
+  // 🌙 لمسة المواسم: فوانيس في رمضان، ونجوم في العيدين (على شاشة البداية)
+  window.ZICONS.season = () => {
+    try { const f = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn', { month: 'numeric', day: 'numeric' }).formatToParts(new Date()); const m = +f.find(x => x.type === 'month').value, d = +f.find(x => x.type === 'day').value;
+      if (m === 9) return 'ramadan'; if ((m === 10 && d <= 3) || (m === 12 && d >= 9 && d <= 13)) return 'eid'; } catch (e) { }
+    return '';
+  };
 
   // 🎈 أصوات مرحة لقسم البراعم (تُولَّد على الجهاز بلا ملفات)
   let ctx = null;

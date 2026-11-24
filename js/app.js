@@ -264,7 +264,7 @@
       const name = parts[0] || 'home';
       $$('.sidebar a').forEach(a => a.classList.toggle('active', a.dataset.nav === name || (name === 'item' && false)));
       // افتح مجموعة القائمة التي فيها الصفحة الحالية
-      { const act = $('.sidebar a.active'), sec = act && act.closest('details.nav-sec'); if (sec && !sec.open) sec.open = true; }
+      { const act = $('.sidebar details a.active'), sec = act && act.closest('details.nav-sec'); if (sec && !sec.open) sec.open = true; }
       APP.closeMenu && APP.closeMenu();
       const tab = ['quran', 'listen', 'tajweed'].includes(name) ? 'quran' : ['tasmee', 'hifz'].includes(name) ? 'tasmee' : name;
       $$('#tabbar [data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
@@ -454,9 +454,12 @@
       $('#menuBtn').onclick = () => $('#sidebar').classList.contains('open') ? APP.closeMenu() : openMenu();
       $('#tabMore').onclick = openMenu;
       $('#scrim').onclick = APP.closeMenu;
-      // مجموعات القائمة: «يومي» مفتوحة، والباقي مطويّ، ويُحفظ ما يفتحه المستخدم
-      { let st = {}; try { st = JSON.parse(localStorage.getItem('navSecs') || '{}'); } catch (e) { }
-        $$('details.nav-sec').forEach(d => { if (d.dataset.sec in st) d.open = !!st[d.dataset.sec]; d.addEventListener('toggle', () => { st[d.dataset.sec] = d.open ? 1 : 0; try { localStorage.setItem('navSecs', JSON.stringify(st)); } catch (e) { } }); }); }
+      // مجموعات القائمة: تُفتح مجموعة واحدة فقط (مجموعة الصفحة الحالية)، والبحث يصفّي الروابط
+      $$('details.nav-sec').forEach(d => d.addEventListener('toggle', () => { if (d.open && !$('#sidebar').classList.contains('searching')) $$('details.nav-sec').forEach(x => { if (x !== d) x.open = false; }); }));
+      { const q = $('#navQ'); if (q) q.addEventListener('input', () => {
+        const v = AR.normalize(q.value.trim()), sb = $('#sidebar'); sb.classList.toggle('searching', !!v);
+        $$('.sidebar details.nav-sec').forEach(d => { let n = 0; d.querySelectorAll('a').forEach(a => { const hit = !v || AR.normalize(a.textContent).includes(v); a.classList.toggle('nq-hide', !hit); if (hit && v && !a.classList.contains('hidden')) n++; }); d.classList.toggle('nq-hide', !!v && !n); if (v) d.open = !!n; });
+      }); }
       $('#modal').onclick = e => { if (e.target.id === 'modal') APP.closeModal(); };
       $('#notesFab').onclick = () => { $('#notesPanel').classList.toggle('hidden'); APP.renderNotes(); };
       $('#notesClose').onclick = () => $('#notesPanel').classList.add('hidden');

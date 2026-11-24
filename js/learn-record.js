@@ -63,7 +63,8 @@
     const tab = (() => { try { return localStorage.getItem('sp-tab') || 'fam'; } catch (e) { return 'fam'; } })();
     const theme = (await DB.setting('theme')) || 'emerald', dark = !!(await DB.setting('dark'));
     let n = 0; const I = () => `style="--i:${n++}"`;
-    const C = (aud, href, k, t, d, cls = '') => `<div class="sp-cw rv" ${I()}><a class="sp-card ${cls}" href="${href}" data-aud="${aud}"><span class="sp-ic">${k === 'abt' ? '<span class="abc-ic">أ ب ت</span>' : ic(k)}</span><b>${t}</b><small>${d}</small></a><button class="sp-help" data-help="${href}" aria-label="كيف أستفيد">؟</button></div>`;
+    const HU = { home: '#a3375c', parents: '#8a4a7a', pen: '#b7791f', book: '#0f7a55', abt: '#0f8088', columns: '#8a5a2b', mega: '#b7791f', pin: '#2f56a0', chart: '#5b6578' };
+    const C = (aud, href, k, t, d, cls = '') => `<div class="sp-cw rv" ${I()}><a class="sp-card ${cls}" href="${href}" data-aud="${aud}"${HU[k] ? ` style="--hue:${HU[k]}"` : ''}><span class="sp-ic">${k === 'abt' ? '<span class="abc-ic">أ ب ت</span>' : ic(k)}</span><b>${t}</b><small>${d}</small></a><button class="sp-help" data-help="${href}" aria-label="كيف أستفيد">؟</button></div>`;
     const h = new Date().getHours(), morning = h >= 4 && h < 12;
     const st = streak();
     el.innerHTML = `<div class="sp sp2">
@@ -111,6 +112,13 @@
       </div>
     </div>`;
     const $ = s => el.querySelector(s);
+    // لمسة الموسم: فوانيس رمضان أو نجوم العيد
+    { const ss = window.ZICONS && ZICONS.season && ZICONS.season(), hero = $('.sp-hero');
+      const LN = '<svg viewBox="0 0 30 70"><path d="M15 0v14" stroke="#e9cf8d" stroke-width="1.2"/><path d="M9 18h12l-2-4h-8z" fill="#c9a54e"/><path d="M8 18c-3 6-3 18 0 24h14c3-6 3-18 0-24z" fill="rgba(243,210,120,.25)" stroke="#e9cf8d" stroke-width="1.2"/><path d="M15 18v24M10.5 18c-1.5 6-1.5 18 0 24M19.5 18c1.5 6 1.5 18 0 24" stroke="#e9cf8d" stroke-width=".8" fill="none"/><circle cx="15" cy="30" r="3" fill="#ffe7a3"/><path d="M9 42h12l-2 4h-8z" fill="#c9a54e"/><path d="M15 46v4" stroke="#e9cf8d"/></svg>';
+      if (ss && hero) { const box = document.createElement('div'); box.className = 'sp-season';
+        box.innerHTML = ss === 'ramadan' ? [[5, 0, 34], [16, -1.2, 14], [82, -.6, 22], [93, -1.8, 40]].map(([x, d, h]) => `<span class="sp-lantern" style="left:${x}%;animation-delay:${d}s;top:${h - 30}px">${LN}</span>`).join('')
+          : Array.from({ length: 14 }, (_, i) => `<span class="sp-twk" style="left:${(i * 37) % 96 + 2}%;top:${(i * 53) % 70 + 8}%;animation-delay:${(i % 5) * -.5}s">✦</span>`).join('');
+        hero.prepend(box); } }
     requestAnimationFrame(() => { const r = el.querySelector('.sp2'); if (r) r.classList.add('in'); });
 
     // الألوان من أعلى الشاشة
