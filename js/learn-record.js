@@ -21,39 +21,148 @@
     '#/adab': ['🪶 الشعر والأدب', 'الشعراء ودواوينهم وكتب الأدب في المكتبة.', ['ابحث ببيت أو كلمة أو اسم شاعر.', 'تصفح الشعراء حسب العصر: الجاهلي، والإسلامي، والعباسي، وما بعده.', 'مختارات في الحكمة والزهد والأخلاق.']],
   };
   // ===== شاشة البداية: من أنت؟ =====
+  // أيقونات مرسومة موحّدة (خطوط بلون السمة)
+  const ICO = {
+    mosque: '<path d="M4 21h16M6 21V11M18 21V11M12 3c-3 2.5-6 4.5-6 8h12c0-3.5-3-5.5-6-8z"/><path d="M12 1.5v1.5M10 21v-4a2 2 0 014 0v4"/>',
+    home: '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/>',
+    parents: '<circle cx="8" cy="7" r="3"/><circle cx="16.5" cy="8.5" r="2.5"/><path d="M2.5 20c0-3.3 2.5-6 5.5-6s5.5 2.7 5.5 6M13 20c.3-2.7 1.8-4.5 3.5-4.5S20 17.3 21 20"/>',
+    pen: '<path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13.5 6.5l4 4"/>',
+    compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+    flower: '<circle cx="12" cy="9" r="2.2"/><path d="M12 6.8c0-3 3.5-3 3.5-.3S12 9 12 9s-3.5-.2-3.5-2.5S12 3.8 12 6.8zM14.2 9c3 0 3 3.5.3 3.5S12 9 12 9M9.8 9c-3 0-3 3.5-.3 3.5S12 9 12 9"/><path d="M12 11.5V21M12 17c-2-2.5-5-2-5-2s.5 3 5 3M12 16c2-2 4.5-1.5 4.5-1.5s-.5 2.5-4.5 2.5"/>',
+    sprout: '<path d="M12 21v-9"/><path d="M12 12C12 7 8 5 4 5c0 4 3 7 8 7zM12 14c0-4 3-6.5 7.5-6.5 0 4-3 6.5-7.5 6.5z"/><path d="M8 21h8"/>',
+    book: '<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',
+    columns: '<path d="M3 21h18M4 18h16M5 9h14M12 3L4 7.5h16z"/><path d="M7 9v9M12 9v9M17 9v9"/>',
+    mega: '<path d="M3 10v4h3l7 4V6L6 10z"/><path d="M16.5 9a4 4 0 010 6M19 7a7 7 0 010 10"/>',
+    pin: '<path d="M6 3h12v18l-6-4-6 4z"/><path d="M9.5 8.5h5"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon: '<path d="M20 14.5A8 8 0 119.5 4a6.5 6.5 0 0010.5 10.5z"/>',
+  };
+  const ic = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICO[k]}</svg>`;
+  window.SP_ICON = ic;
+  const THEMES = [['emerald', 'زمردي', '#0d5c3f'], ['royal', 'كحلي ملكي', '#1e3a8a'], ['teal', 'فيروزي', '#0f5e66'], ['sand', 'رملي', '#7a4a1d'], ['ruby', 'عنّابي', '#6e1f30'], ['slate', 'رمادي فاخر', '#2f3b4c']];
+
+  // أيام الاستخدام المتتالية
+  function streak() {
+    let a = []; try { a = JSON.parse(localStorage.getItem('open-days') || '[]'); } catch (e) { }
+    const key = d => d.toISOString().slice(0, 10), t = key(new Date());
+    if (a[a.length - 1] !== t) { a.push(t); a = a.slice(-400); try { localStorage.setItem('open-days', JSON.stringify(a)); } catch (e) { } }
+    const set = new Set(a); let n = 0; const d = new Date();
+    while (set.has(key(d))) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  const calm = () => document.body.classList.contains('no-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function countTo(node, to, suffix = '') {
+    if (!node) return; const dur = calm() ? 0 : 1100, t0 = performance.now();
+    const st = t => { const p = dur ? Math.min(1, (t - t0) / dur) : 1; node.textContent = AD(Math.round(to * (1 - Math.pow(1 - p, 3)))) + suffix; if (p < 1) requestAnimationFrame(st); };
+    requestAnimationFrame(st);
+  }
+
   V.start = async el => {
-    document.body.classList.add('learn-mode'); document.body.classList.remove('learn-kids', 'learn-lit');
-    const C = (aud, href, ic, t, d, cls = '') => `<div class="sp-cw"><a class="sp-card ${cls}" href="${href}" data-aud="${aud}"><span class="sp-ic">${ic}</span><b>${t}</b><small>${d}</small></a><button class="sp-help" data-help="${href}" aria-label="كيف أستفيد">؟</button></div>`;
-    el.innerHTML = `<div class="sp">
-      <div class="sp-brand"><img src="icons/icon-192.png" alt=""><h1>زاد الأسرة المسلمة</h1><div class="sp-motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div></div>
-      <div class="sp-cw"><a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">🕌</span><div><b>زاد الأسرة</b><small>القرآن الكريم، والصلاة والأذان، والأذكار والأدعية، والرقية، والمكتبة كاملة</small></div><span class="sp-go">‹</span></a><button class="sp-help" data-help="#/" aria-label="كيف أستفيد">؟</button></div>
-      <div id="spWj"></div>
-      <div class="sp-sub">أفراد الأسرة: من الكبير إلى الصغير</div>
-      <div class="sp-grid">
-        ${C('r:#/usra', '#/usra', '🏠', 'أسرتي', 'ملف لكل فرد، والنجوم، والصحة، ومجلس الأسرة، وصلة الرحم')}
-        ${C('r:#/parents', '#/parents', '👨‍👩‍👧', 'زاد الوالدين', 'تربية الأبناء، وإدارة البيت، والمواريث')}
-        ${C('lit', '#/literacy', '✍️', 'زاد الكبار والأميين', 'القراءة والكتابة من الصفر')}
-        ${C('r:#/rafiq', '#/rafiq', '🧭', 'زاد الرفيق', 'للشباب', 'sp-rq')}
-        ${C('r:#/rafiqa', '#/rafiqa', '🌸', 'زاد الرفيقة', 'للمرأة والفتاة', 'sp-rf')}
-        ${C('kids', '#/kids', '🧒', 'زاد البراعم', 'الحروف وجزء عمّ والقصص والرسم')}
+    document.body.classList.add('learn-mode', 'sp-on'); document.body.classList.remove('learn-kids', 'learn-lit');
+    const tab = (() => { try { return localStorage.getItem('sp-tab') || 'fam'; } catch (e) { return 'fam'; } })();
+    const theme = (await DB.setting('theme')) || 'emerald', dark = !!(await DB.setting('dark'));
+    let n = 0; const I = () => `style="--i:${n++}"`;
+    const C = (aud, href, k, t, d, cls = '') => `<div class="sp-cw rv" ${I()}><a class="sp-card ${cls}" href="${href}" data-aud="${aud}"><span class="sp-ic">${k === 'abt' ? '<span class="abc-ic">أ ب ت</span>' : ic(k)}</span><b>${t}</b><small>${d}</small></a><button class="sp-help" data-help="${href}" aria-label="كيف أستفيد">؟</button></div>`;
+    const h = new Date().getHours(), morning = h >= 4 && h < 12;
+    const st = streak();
+    el.innerHTML = `<div class="sp sp2">
+      <header class="sp-hero">
+        <span class="sp-orb o1"></span><span class="sp-orb o2"></span><span class="sp-orb o3"></span>
+        <div class="sp-themes" role="group" aria-label="ألوان التطبيق">
+          ${THEMES.map(([k, t, c]) => `<button class="sp-dot ${!dark && theme === k ? 'on' : ''}" data-th="${k}" title="${t}" aria-label="${t}" style="--c:${c}"></button>`).join('')}
+          <button class="sp-dot sp-night ${dark ? 'on' : ''}" data-dark="1" title="ليلي" aria-label="الوضع الليلي">${ic('moon')}</button>
+        </div>
+        <div class="sp-logo"><img src="icons/icon-192.png" alt=""></div>
+        <h1>زاد <em>الأسرة المسلمة</em></h1>
+        <div class="sp-motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div>
+        <div class="sp-greet"><i></i><span id="spGreet">${morning ? 'صباح الخير' : 'مساء الخير'}</span></div>
+      </header>
+      <div class="sp-body">
+        <div class="sp-cw rv" ${I()}><a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">${ic('mosque')}</span><div><b>زاد الأسرة</b><small>القرآن الكريم، والصلاة والأذان، والأذكار والأدعية، والرقية، والمكتبة كاملة</small></div><span class="sp-go"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span></a><button class="sp-help" data-help="#/" aria-label="كيف أستفيد">؟</button></div>
+        <a class="sp-today rv" ${I()} href="#/taqaddum">
+          <div class="sp-ring"><svg viewBox="0 0 74 74"><defs><linearGradient id="spGG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--gold)"/><stop offset="1" stop-color="var(--gold2)"/></linearGradient></defs><circle class="bgc" cx="37" cy="37" r="32"/><circle class="fg" id="spRing" cx="37" cy="37" r="32"/></svg><span id="spPct">٠٪</span></div>
+          <div class="sp-tdx"><h3>تقدّمك في الدروس</h3><p id="spTdP">كل خطوة تقرّبك، واصل ولو بدرس قصير</p>
+            <div class="sp-bar"><i id="spBar"></i></div>
+            <div class="sp-stats"><span><b id="spStreak">٠</b> ${st === 1 ? 'يوم' : 'أيام متتالية'}</span><span><b id="spDone">٠</b> درساً منجزاً</span><span><b id="spCert">٠</b> شهادات</span></div></div>
+        </a>
+        <div id="spWj" class="rv" ${I()}></div>
+        <div class="sp-tabs rv" ${I()} id="spTabs"><span class="sp-ind" id="spInd"></span><button data-tab="fam" class="${tab === 'fam' ? 'on' : ''}">أفراد الأسرة</button><button data-tab="ilm" class="${tab === 'ilm' ? 'on' : ''}">العلم</button></div>
+        <div id="spPanels">
+          <div class="sp-panel ${tab === 'fam' ? 'on' : ''}" data-p="fam"><div class="sp-sub">من الكبير إلى الصغير</div><div class="sp-grid">
+            ${C('r:#/usra', '#/usra', 'home', 'أسرتي', 'ملف لكل فرد، والنجوم، والصحة، ومجلس الأسرة، وصلة الرحم')}
+            ${C('r:#/parents', '#/parents', 'parents', 'زاد الوالدين', 'تربية الأبناء، وإدارة البيت، والمواريث')}
+            ${C('lit', '#/literacy', 'pen', 'زاد الكبار والأميين', 'القراءة والكتابة من الصفر')}
+            ${C('r:#/rafiq', '#/rafiq', 'compass', 'زاد الرفيق', 'للشباب', 'sp-rq')}
+            ${C('r:#/rafiqa', '#/rafiqa', 'flower', 'زاد الرفيقة', 'للمرأة والفتاة', 'sp-rf')}
+            ${C('kids', '#/kids', 'sprout', 'زاد البراعم', 'الحروف وجزء عمّ والقصص والرسم', 'sp-kd')}
+          </div></div>
+          <div class="sp-panel ${tab === 'ilm' ? 'on' : ''}" data-p="ilm">${(n = 4, '')}<div class="sp-sub">العلم الشرعي والعربي والتاريخ</div><div class="sp-grid">
+            ${C('r:#/ilm', '#/ilm', 'book', 'علوم الشريعة', 'القرآن والقراءات والحديث والفقه والعقيدة وأصول العلوم والتزكية')}
+            ${C('r:#/lugha', '#/lugha', 'abt', 'علوم العربية', 'النحو والصرف والبلاغة والإملاء والعروض والخط والشعر والأدب')}
+            ${C('r:#/tarikh', '#/tarikh', 'columns', 'التاريخ والحضارة', 'السيرة والصحابة والعصور والدول والخلفاء')}
+            ${C('r:#/dawah', '#/dawah', 'mega', 'الدعوة إلى الله', 'لأهل الأديان واللادينيين، وطرق الدعوة')}
+            ${C('r:#/wajib', '#/wajib', 'pin', 'ما لا يسع المسلم جهله', 'درس يومي قصير بالإشعار')}
+            ${C('r:#/taqaddum', '#/taqaddum', 'chart', 'تقدمي وشهاداتي', 'كل دروسك في مكان واحد، والبحث فيها، والشهادات، ونقل التقدم')}
+          </div></div>
+        </div>
+        <button class="sp-guide rv" style="--i:11" id="spGuide">💡 كيف أستفيد من التطبيق؟ (دليل الأقسام)</button>
+        <div class="sp-note">ترجع إلى هذه الشاشة من أي قسم بزر «↩ شاشة البداية». اضغط «؟» بجوار أي قسم لتعرف كيف تستفيد منه، وغيّر ألوان التطبيق من الدوائر أعلى الشاشة.</div>
       </div>
-      <div class="sp-sub">العلم</div>
-      <div class="sp-grid">
-        ${C('r:#/ilm', '#/ilm', '📗', 'علوم الشريعة', 'القرآن والقراءات والحديث والفقه والعقيدة وأصول العلوم والتزكية')}
-        ${C('r:#/lugha', '#/lugha', '<span class="abc-ic">أ ب ت</span>', 'علوم العربية', 'النحو والصرف والبلاغة والإملاء والعروض والخط والشعر والأدب')}
-        ${C('r:#/tarikh', '#/tarikh', '🏛️', 'التاريخ والحضارة', 'السيرة والصحابة والعصور والدول والخلفاء')}
-        ${C('r:#/dawah', '#/dawah', '📣', 'الدعوة إلى الله', 'لأهل الأديان واللادينيين، وطرق الدعوة')}
-        ${C('r:#/wajib', '#/wajib', '📌', 'ما لا يسع المسلم جهله', 'درس يومي قصير بالإشعار')}
-        ${C('r:#/taqaddum', '#/taqaddum', '📊', 'تقدمي وشهاداتي', 'كل دروسك في مكان واحد، والبحث فيها، والشهادات، ونقل التقدم')}
-      </div>
-      <button class="sp-guide" id="spGuide">💡 كيف أستفيد من التطبيق؟ (دليل الأقسام)</button>
-      <div class="sp-note">هذه هي الشاشة الرئيسية، وترجع إليها من أي قسم بزر «↩ شاشة البداية». اضغط «؟» بجوار أي قسم لتعرف كيف تستفيد منه.</div>
     </div>`;
-    if (window.WAJIB_APP) WAJIB_APP.card().then(h => { const b = el.querySelector('#spWj'); if (b) b.innerHTML = h; });
+    const $ = s => el.querySelector(s);
+    requestAnimationFrame(() => { const r = el.querySelector('.sp2'); if (r) r.classList.add('in'); });
+
+    // الألوان من أعلى الشاشة
+    el.querySelectorAll('.sp-dot').forEach(b => b.addEventListener('click', async () => {
+      const fs = (await DB.setting('fontSize')) || 17;
+      if (b.dataset.dark) { const d = !(await DB.setting('dark')); await DB.setting('dark', d); APP.applyLook({ fontSize: fs, dark: d, theme: (await DB.setting('theme')) || 'emerald' }); b.classList.toggle('on', d); el.querySelectorAll('[data-th]').forEach(x => x.classList.toggle('on', !d && x.dataset.th === ((document.body.dataset.theme) || 'emerald'))); }
+      else { await DB.setting('theme', b.dataset.th); await DB.setting('dark', false); APP.applyLook({ fontSize: fs, dark: false, theme: b.dataset.th }); el.querySelectorAll('.sp-dot').forEach(x => x.classList.toggle('on', x === b)); }
+      const hero = $('.sp-hero'); if (hero) { hero.classList.remove('sp-glow'); void hero.offsetWidth; hero.classList.add('sp-glow'); }
+      window.FEEL && FEEL.tap();
+    }));
+
+    // التبويبات بمؤشر منزلق
+    const moveInd = () => { const on = $('#spTabs button.on'), tb = $('#spTabs'), ind = $('#spInd'); if (!on || !tb) return; const r = on.getBoundingClientRect(), tr = tb.getBoundingClientRect(); ind.style.width = r.width + 'px'; ind.style.right = (tr.right - r.right) + 'px'; };
+    el.querySelectorAll('#spTabs button').forEach(b => b.addEventListener('click', () => {
+      el.querySelectorAll('#spTabs button').forEach(x => x.classList.toggle('on', x === b)); moveInd();
+      el.querySelectorAll('.sp-panel').forEach(p => { const on = p.dataset.p === b.dataset.tab; p.classList.toggle('on', on); if (on) { p.classList.remove('re'); void p.offsetWidth; p.classList.add('re'); } });
+      try { localStorage.setItem('sp-tab', b.dataset.tab); } catch (e) { }
+    }));
+    requestAnimationFrame(moveInd); setTimeout(moveInd, 400);
+    V.start._mv = moveInd;
+    if (!V.start._rs) { V.start._rs = 1; addEventListener('resize', () => { if (document.getElementById('spTabs')) V.start._mv(); }); }
+
+    // لمعة خفيفة تتبع الإصبع
+    el.querySelectorAll('.sp-card, .sp-main').forEach(a => a.addEventListener('pointerdown', e => {
+      if (calm()) return; const r = a.getBoundingClientRect(), s = document.createElement('span'); s.className = 'sp-ripple'; s.style.left = (e.clientX - r.left) + 'px'; s.style.top = (e.clientY - r.top) + 'px'; a.appendChild(s); setTimeout(() => s.remove(), 650);
+    }));
+
+    // التحية والصلاة القادمة
+    if (APP.nextPrayerInfo) APP.nextPrayerInfo().then(p => { const g = $('#spGreet'); if (g && p) g.textContent = `${morning ? 'صباح الخير' : 'مساء الخير'} — ${p.name} ${p.time} (بعد ${p.left})`; }).catch(() => { });
+    if (window.WAJIB_APP) WAJIB_APP.card().then(h => { const b = $('#spWj'); if (b) b.innerHTML = h; });
+
+    // التقدم الحقيقي في الدروس
+    countTo($('#spStreak'), st);
+    const fill = (pct, done, cert) => {
+      const ring = $('#spRing'), bar = $('#spBar'); if (!ring) return;
+      setTimeout(() => { ring.style.strokeDashoffset = 201 * (1 - pct / 100); bar.style.width = pct + '%'; }, 250);
+      countTo($('#spPct'), pct, '٪'); countTo($('#spDone'), done); countTo($('#spCert'), cert);
+      const p = $('#spTdP'); if (p) p.textContent = done === 0 ? 'ابدأ أول درس اليوم، وستُسجَّل خطواتك هنا' : pct >= 100 ? 'ما شاء الله! أتممت كل الدروس' : `أحسنت، أنجزت ${AD(done)} درساً، واصل ولو بدرس قصير`;
+    };
+    setTimeout(async () => {
+      try {
+        if (!window.PROGRESS) return fill(0, 0, 0);
+        const T = await PROGRESS.allTracks(); let all = 0, dn = 0, cert = 0;
+        for (const t of T) { const d = t.lessons.filter(l => l.done).length; all += t.lessons.length; dn += d; if (t.lessons.length && d === t.lessons.length) cert++; }
+        fill(all ? Math.round(dn * 100 / all) : 0, dn, cert);
+      } catch (e) { fill(0, 0, 0); }
+    }, 350);
+
     const HELP = window.START_HELP || {};
     const showHelp = k => { const h = HELP[k]; if (!h) return; APP.modal(`<h3>${h[0]}</h3><div class="sp-hl">${h[1]}</div><ul class="sp-hlist">${h[2].map(x => `<li>${x}</li>`).join('')}</ul><a class="btn" href="${k}" onclick="document.getElementById('modal').classList.add('hidden')">ادخل القسم ‹</a>`); };
     el.querySelectorAll('.sp-help').forEach(b => b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); showHelp(b.dataset.help); }));
-    el.querySelector('#spGuide').addEventListener('click', () => APP.modal(`<h3>💡 دليل الاستفادة من أقسام التطبيق</h3>${Object.entries(HELP).map(([k, h]) => `<details class="sp-gd"><summary>${h[0]}</summary><div class="sp-hl">${h[1]}</div><ul class="sp-hlist">${h[2].map(x => `<li>${x}</li>`).join('')}</ul><a href="${k}" onclick="document.getElementById('modal').classList.add('hidden')">ادخل القسم ‹</a></details>`).join('')}`));
+    $('#spGuide').addEventListener('click', () => APP.modal(`<h3>💡 دليل الاستفادة من أقسام التطبيق</h3>${Object.entries(HELP).map(([k, h]) => `<details class="sp-gd"><summary>${h[0]}</summary><div class="sp-hl">${h[1]}</div><ul class="sp-hlist">${h[2].map(x => `<li>${x}</li>`).join('')}</ul><a href="${k}" onclick="document.getElementById('modal').classList.add('hidden')">ادخل القسم ‹</a></details>`).join('')}`));
     el.querySelectorAll('[data-aud]').forEach(a => a.addEventListener('click', () => {
       try { localStorage.setItem('audience', a.dataset.aud); } catch (e) { } LEARN.stop();
       if (a.dataset.aud === 'adult') setTimeout(() => { try { if (!localStorage.getItem('tour-done') && window.GUIDE) GUIDE.tour(0); } catch (e) { } }, 1500);

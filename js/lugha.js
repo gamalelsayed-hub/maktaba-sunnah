@@ -77,7 +77,7 @@
         c.querySelector('.lg-why').innerHTML = `${ok ? '✅ أحسنت.' : '❌ ليس هذا.'} ${esc(why || '')}`;
         if (ok) right++;
         if (Q.querySelectorAll('[data-done]').length === l.q.length) {
-          if (right === l.q.length) { await markDone(key); APP.toast('أحسنت! أتممت الدرس ✓'); }
+          if (right === l.q.length) { await markDone(key); window.CELEBRATE ? CELEBRATE('أحسنت! أتممت الدرس ✓') : APP.toast('أحسنت! أتممت الدرس ✓'); }
           else Q.insertAdjacentHTML('beforeend', `<div class="muted">أجبت ${D(right)} من ${D(l.q.length)}. راجع القواعد ثم <a href="javascript:void 0" onclick="APP.rerender()">أعد الاختبار</a>.</div>`);
         }
       });

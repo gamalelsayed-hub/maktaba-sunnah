@@ -270,7 +270,10 @@
       $$('#tabbar [data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === tab));
       const view = APP.views[name] || APP.views.notfound;
       const el = $('#view');
-      el.innerHTML = '<div class="muted">جارٍ التحميل…</div>';
+      document.body.classList.remove('sp-on');
+      // هيكل تحميل لامع بدل النص، ولا حركة دخول في صفحات القراءة
+      el.innerHTML = '<div class="skel" aria-label="جارٍ التحميل"><i class="s1"></i><i class="s2"></i><div class="skel-g"><i></i><i></i><i></i><i></i></div></div>';
+      document.body.classList.toggle('reading', ['quran', 'item', 'book', 'mushaf', 'listen', 'tasmee', 'hifz', 'mujam'].includes(name));
       try { await view(el, parts.slice(1), params); }
       catch (e) { console.error(e); el.innerHTML = `<div class="warn">حدث خطأ: ${esc(e.message)}</div>`; }
       APP.renderNotes();

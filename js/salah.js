@@ -150,6 +150,9 @@
     return out;
   });
 
+  // الصلاة القادمة بنص قصير (لشاشة البداية)
+  APP.nextPrayerInfo = async () => { const c = await cfg(); if (c.lat == null) return null; const nx = next(c); return nx ? { name: NAMES[nx.p], time: fmt(nx.at), left: left(nx.at - Date.now()) } : null; };
+
   // بطاقة الصلاة القادمة للرئيسية
   APP.nextPrayerTile = async () => {
     const c = await cfg();

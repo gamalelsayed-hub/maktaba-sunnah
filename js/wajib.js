@@ -43,7 +43,7 @@
     el.querySelectorAll('.lg-o').forEach(b => b.onclick = async () => {
       const ok = +b.dataset.j === a; b.classList.add(ok ? 'ok' : 'no');
       el.querySelector('.lg-why').textContent = ok ? '✅ أحسنت! حُفظ الدرس في تقدّمك.' : '❌ ليس هذا، أعد قراءة الدرس وحاول مرة أخرى.';
-      if (ok) { done.add(x.i); await DB.setting('wajib-done', [...done]); el.querySelectorAll('.lg-o').forEach(z => z.disabled = true); window.NOTIFY && NOTIFY.rescheduleAll(); }
+      if (ok) { window.CELEBRATE && CELEBRATE('أحسنت! درس اليوم ✓'); done.add(x.i); await DB.setting('wajib-done', [...done]); el.querySelectorAll('.lg-o').forEach(z => z.disabled = true); window.NOTIFY && NOTIFY.rescheduleAll(); }
     });
   }
 
