@@ -91,12 +91,22 @@
 
   // ===== زر الرجوع في أندرويد: يرجع داخل التطبيق، ويغلق النوافذ أولاً =====
   const App = P.App;
+  // رجوع منطقي: داخل القسم خطوة خطوة، ومن رئيسية أي قسم إلى شاشة البداية، ومن شاشة البداية ضغطتان للخروج
+  const HOMES = ['', 'all', 'parents', 'rafiq', 'rafiqa', 'usra', 'ilm', 'lugha', 'tarikh', 'dawah', 'wajib', 'taqaddum', 'literacy', 'kids', 'usul', 'bayt', 'tarbiya'];
+  let lastBack = 0;
+  const goStart = () => { location.hash = '#/start'; };
   if (App) App.addListener('backButton', () => {
     const modal = document.getElementById('modal'), side = document.getElementById('sidebar');
     if (modal && !modal.classList.contains('hidden')) { modal.classList.add('hidden'); return; }
     if (side && side.classList.contains('open')) { window.APP && APP.closeMenu && APP.closeMenu(); return; }
-    if (document.body.classList.contains('learn-mode') && window.LEARN) { if (!LEARN.back()) App.exitApp(); return; }
-    if (location.hash && location.hash !== '#/' && history.length > 1) history.back();
-    else App.exitApp();
+    const path = (location.hash.slice(1) || '/').split('?')[0], parts = path.split('/').filter(Boolean);
+    if (parts[0] === 'start') {
+      const now = Date.now();
+      if (now - lastBack < 2200) return App.exitApp();
+      lastBack = now; window.APP && APP.toast && APP.toast('اضغط رجوع مرة أخرى للخروج'); return;
+    }
+    if (document.body.classList.contains('learn-mode') && window.LEARN) { if (!LEARN.back()) goStart(); return; }
+    if (parts.length <= 1 && HOMES.includes(parts[0] || '')) return goStart();
+    if (history.length > 1) history.back(); else goStart();
   });
 })();
