@@ -18,3 +18,21 @@
   window.CELEBRATE = celebrate;
   window.FEEL = { tap, celebrate, success: () => { const h = H(); if (h && on('haptics')) h.notification({ type: 'SUCCESS' }).catch(() => { }); } };
 })();
+
+// ↩️ في الويب (زر رجوع المتصفح أو السحب): الرجوع من رئيسية أي قسم يذهب إلى شاشة البداية
+(() => {
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) return;
+  const HOMES = ['', 'all', 'parents', 'rafiq', 'rafiqa', 'usra', 'ilm', 'lugha', 'tarikh', 'dawah', 'wajib', 'taqaddum', 'literacy', 'kids', 'usul', 'bayt', 'tarbiya'];
+  // نعرف الرجوع بمقارنة الصفحة الجديدة بالتي قبل الحالية في سجلّنا
+  const st = [location.hash];
+  window.addEventListener('hashchange', () => {
+    const cur = location.hash;
+    if (st.length > 1 && cur === st[st.length - 2]) {
+      const pp = (st[st.length - 1].slice(1) || '/').split('?')[0].split('/').filter(Boolean); st.pop();
+      if (pp.length <= 1 && HOMES.includes(pp[0] || '') && !/^#\/start/.test(cur)) { st[st.length - 1] = '#/start'; location.replace('#/start'); }
+      return;
+    }
+    if (st[st.length - 1] === cur) return;
+    st.push(cur); if (st.length > 200) st.shift();
+  });
+})();
