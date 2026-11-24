@@ -1866,3 +1866,9 @@ body.reading #view h1::before, body.reading #view h1 > .zh, body.reading #view h
 body.no-motion .z-tap, body.no-motion #view h1 > .zh, body.no-motion #view h1 > .zh .zsv, body.no-motion #view h1::before, body.no-motion .btn::after, body.no-motion .global-search button::after, body.no-motion .sp-lantern, body.no-motion .sp-twk { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .z-tap, #view h1 > .zh, #view h1 > .zh .zsv, #view h1::before, .btn::after, .sp-lantern, .sp-twk { animation: none !important; } }
 .sp2 .sp-card[style*="--hue"] .sp-ic { background: linear-gradient(145deg, var(--hue), color-mix(in srgb, var(--hue) 55%, #000)); color: #fbeac0; box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 16px -8px var(--hue); }
+
+/* 🌙 حارس الوضع الليلي */
+body.dark .dkx { background: var(--dkx-bg, var(--panel)) !important; background-image: none !important; border-color: var(--dkx-bd, var(--line)) !important; }
+body.dark .dkx.dkx-ink, body.dark .dkx .dkx-ink { color: var(--ink) !important; }
+body.dark .dkx-in { background: var(--bg2) !important; color: var(--ink) !important; border-color: var(--line) !important; }
+body.dark .lg-idea { background: color-mix(in srgb, #2f56a0 12%, var(--panel)); border-color: color-mix(in srgb, #2f56a0 30%, var(--line)); color: var(--ink); }
