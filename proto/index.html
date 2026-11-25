@@ -172,8 +172,7 @@ button{font-family:inherit;cursor:pointer}
 <header class="hero">
   <div class="logo"><img src="../icons/icon-192.png" alt=""></div>
   <h1>زاد <em>الأسرة المسلمة</em></h1>
-  <div class="motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div>
-  <div class="greet"><i></i><span id="greetT">مساء الخير — العصر بعد ٤٢ دقيقة</span></div>
+<div class="motto">معًا نبني بيتًا: دينًا، وعلمًا، وصحةً، وحياةً</div>  <div class="greet"><i></i><span id="greetT">السلام عليكم — العصر بعد ٤٢ دقيقة</span></div>
 </header>
 
 <main class="wrap" id="home">
@@ -321,9 +320,9 @@ document.getElementById('replay').onclick = () => { if (sec.classList.contains('
 document.getElementById('calm').onclick = e => { document.body.classList.toggle('calm'); e.target.classList.toggle('on'); };
 document.getElementById('g1').onclick = () => toast('هنا يفتح دليل الأقسام');
 bindCards(home);
-
+//عدلت التحية الى السلام عليكم
 const h = new Date().getHours();
-document.getElementById('greetT').textContent = (h < 12 ? 'صباح الخير' : 'مساء الخير') + ' — الصلاة القادمة بعد ٤٢ دقيقة';
+document.getElementById('greetT').textContent = (h < 12 ? 'السلام عليكم' : 'السلام عليكم') + ' — الصلاة القادمة بعد ٤٢ دقيقة';
 renderTab('fam', false);
 requestAnimationFrame(() => { moveInd(); play(); });
 addEventListener('resize', moveInd);
