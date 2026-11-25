@@ -193,6 +193,53 @@
       blurred(x, 10, () => { for (let i = 0; i < 70; i++) { const px = r() * W, py = r() * H, s = W * (.02 + r() * .07); x.fillStyle = `rgba(${[255, 240, 200][i % 3]},${[250, 255, 235][i % 3]},${[200, 190, 170][i % 3]},${.08 + r() * .25})`; x.beginPath(); x.arc(px, py, s, 0, 7); x.fill(); } });
       finish(x, W, H, r, .3, .04);
     }],
+    ['lake', 'بحيرة فيروزية', true, (x, W, H, r) => {
+      const hz = H * .66, n = mkNoise(r);
+      x.fillStyle = lg(x, 0, hz, [[0, '#2fb3d6'], [.6, '#8fdcea'], [1, '#d9f6f2']]); x.fillRect(0, 0, W, hz);
+      clouds(x, W, H, r, { y0: 0, y1: .5, cover: .3, scale: 2.2, lit: [255, 255, 255], dark: [200, 232, 240], sun: [.6, .1], alpha: .95 });
+      mountain(x, W, H, r, n, 1, hz, H * .26, 1.6, '#5f9fa8', '#9ccfcf'); haze(x, W, hz - H * .08, hz + H * .01, 'rgba(210,244,240,');
+      mountain(x, W, H, r, n, 2, hz, H * .15, 2.4, '#2f7a78', '#5fb0a6');
+      // غابة خضراء على الضفة
+      x.fillStyle = lg(x, hz - H * .09, hz, [[0, '#2f8a4c'], [1, '#1c5c34']]); x.beginPath(); x.moveTo(W * .5, hz); for (let i = 0; i <= 60; i++) { const u = .5 + i / 120; x.lineTo(W * u, hz - H * .045 * (.4 + fbm(n, u * 12, 9, 3)) * (u > .6 ? 1.6 : .7)); } x.lineTo(W, hz); x.closePath(); x.fill();
+      x.fillStyle = lg(x, hz, H, [[0, '#46bfc1'], [.5, '#27a3a8'], [1, '#157f88']]); x.fillRect(0, hz, W, H - hz);
+      // انعكاس الجبال وتموّجات
+      x.save(); x.globalAlpha = .28; x.translate(0, hz * 2); x.scale(1, -1); blurred(x, 5, () => { x.drawImage(x.canvas, 0, hz - H * .3, W, H * .3, 0, hz - H * .3, W, H * .3); }); x.restore();
+      for (let i = 0; i < 160; i++) { const y = hz + Math.pow(r(), 1.5) * (H - hz), w = 30 + r() * W * .25 * (y - hz) / (H - hz); x.strokeStyle = `rgba(255,255,255,${.06 + r() * .16})`; x.lineWidth = .8 + 2.2 * (y - hz) / (H - hz); const px = r() * W; x.beginPath(); x.moveTo(px, y); x.quadraticCurveTo(px + w / 2, y - 3, px + w, y); x.stroke(); }
+      // قارب صغير
+      const bx = W * (.3 + r() * .25), by = H * .83, bw = W * .17; x.fillStyle = 'rgba(0,50,60,.3)'; x.beginPath(); x.ellipse(bx, by + 10, bw * .55, 7, 0, 0, 7); x.fill();
+      x.fillStyle = '#f4efe4'; x.beginPath(); x.moveTo(bx - bw / 2, by - 12); x.lineTo(bx + bw / 2, by - 12); x.lineTo(bx + bw * .4, by + 6); x.lineTo(bx - bw * .4, by + 6); x.closePath(); x.fill(); x.fillStyle = '#b98a4c'; x.fillRect(bx - bw / 2, by - 14, bw, 5);
+      haze(x, W, hz - H * .02, hz + H * .03, 'rgba(225,250,245,');
+      finish(x, W, H, r, .2, .04);
+    }],
+    ['wildflowers', 'زهور برية', true, (x, W, H, r) => {
+      x.fillStyle = lg(x, 0, H * .55, [[0, '#6f9bb0'], [.7, '#a9c6cf'], [1, '#d8d4c4']]); x.fillRect(0, 0, W, H);
+      for (let i = 0; i < 90; i++) { x.fillStyle = `rgba(255,255,255,${.1 + r() * .3})`; x.beginPath(); x.arc(r() * W, r() * H * .5, .8 + r() * 1.6, 0, 7); x.fill(); }
+      const n = mkNoise(r);
+      mountain(x, W, H, r, n, 1, H * .5, H * .2, 2.4, '#b08a68', '#8a6a52'); haze(x, W, H * .38, H * .56, 'rgba(190,200,205,');
+      mountain(x, W, H, r, n, 2, H * .66, H * .14, 3, '#3d4c3a', '#25311f');
+      x.fillStyle = lg(x, H * .62, H, [[0, '#2b3524'], [1, '#141a10']]); x.fillRect(0, H * .72, W, H * .28);
+      // زهور برتقالية ضبابية في المقدمة
+      blurred(x, 9, () => { for (let i = 0; i < 38; i++) { const t = Math.pow(r(), .7), px = r() * W, py = H * (.62 + t * .42), s = W * (.025 + t * .08); const g = x.createRadialGradient(px, py, 0, px, py, s); g.addColorStop(0, `rgba(255,${170 + r() * 40 | 0},60,.95)`); g.addColorStop(1, 'rgba(230,120,30,.55)'); x.fillStyle = g; x.beginPath(); x.arc(px, py, s, 0, 7); x.fill(); } });
+      blurred(x, 1.4, () => { for (let i = 0; i < 40; i++) { const px = r() * W, py = H * (.56 + r() * .14), s = 3 + r() * 6; x.fillStyle = `rgba(255,${175 + r() * 40 | 0},70,.9)`; x.beginPath(); x.arc(px, py, s, 0, 7); x.fill(); x.strokeStyle = 'rgba(60,70,40,.7)'; x.lineWidth = 1.2; x.beginPath(); x.moveTo(px, py); x.lineTo(px + (r() - .5) * 8, py + 30 + r() * 30); x.stroke(); } });
+      finish(x, W, H, r, .42, .07);
+    }],
+    ['pinkbeach', 'شاطئ وردي', true, (x, W, H, r) => {
+      const hz = H * .62;
+      x.fillStyle = lg(x, 0, hz, [[0, '#b45d8f'], [.45, '#e58fae'], [.85, '#f6b9c0'], [1, '#fbd2c2']]); x.fillRect(0, 0, W, hz);
+      clouds(x, W, H, r, { y0: .05, y1: .6, cover: .3, scale: 2.2, lit: [255, 214, 214], dark: [190, 110, 160], sun: [.5, .6], alpha: .6 });
+      x.fillStyle = '#3f3a63'; x.fillRect(0, hz - 3, W, 6); ridge(x, W, H, hz - 2, H * .012, r, '#2f3057', 8, .6);
+      water(x, W, H, r, hz, { top: [120, 120, 175], bot: [58, 78, 130], sun: null });
+      // موج وزبد في المقدمة
+      for (let k = 0; k < 4; k++) { const y0 = H * (.8 + k * .05); blurred(x, 3 + k, () => { x.fillStyle = `rgba(255,255,255,${.55 - k * .08})`; x.beginPath(); x.moveTo(0, H); x.lineTo(0, y0); for (let i = 0; i <= 80; i++) { const u = i / 80; x.lineTo(W * u, y0 + Math.sin(u * 14 + k * 2 + r() * .4) * H * .012 + (r() - .5) * H * .008); } x.lineTo(W, H); x.closePath(); x.fill(); }); }
+      x.fillStyle = lg(x, H * .84, H, [[0, 'rgba(235,225,245,0)'], [1, 'rgba(210,190,225,.85)']]); x.fillRect(0, H * .84, W, H * .16);
+      finish(x, W, H, r, .28, .05);
+    }],
+    ['peony', 'ورود ناعمة', false, (x, W, H, r) => {
+      x.fillStyle = lg(x, 0, H, [[0, '#fbfaf8'], [1, '#ecebea']]); x.fillRect(0, 0, W, H);
+      const flower = (cx, cy, s, c1, c2) => { for (let ring = 6; ring >= 0; ring--) { const rr = s * (ring + 1) / 7, n = 7 + ring; for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2 + ring * .6, px = cx + Math.cos(a) * rr * .45, py = cy + Math.sin(a) * rr * .45, g = x.createRadialGradient(px, py, 0, px, py, rr * .7); g.addColorStop(0, ring > 3 ? c1 : c2); g.addColorStop(1, c1); x.globalAlpha = .88; x.fillStyle = g; x.beginPath(); x.ellipse(px, py, rr * .6, rr * .42, a, 0, 7); x.fill(); } } x.globalAlpha = 1; };
+      [[W * .86, H * .06, W * .2], [W * .08, H * .78, W * .24], [W * .5, H * .96, W * .2], [W * .93, H * .52, W * .1]].forEach(([cx, cy, s], i) => { x.save(); x.shadowColor = 'rgba(90,60,80,.22)'; x.shadowBlur = 30; x.shadowOffsetY = 12; flower(cx, cy, s, i % 2 ? '#e45f9f' : '#ee86b6', '#fbd3e4'); x.restore(); });
+      finish(x, W, H, r, .1, .03);
+    }],
     ['islamic', 'زخرفة زمرّدية', true, (x, W, H, r) => {
       x.fillStyle = lg(x, 0, H, [[0, '#0d5c3f'], [1, '#05281c']]); x.fillRect(0, 0, W, H);
       const s = W / 7; x.strokeStyle = 'rgba(233,207,141,.16)'; x.lineWidth = 2;
