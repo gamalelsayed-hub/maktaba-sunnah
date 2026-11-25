@@ -128,6 +128,7 @@
         ${canHifz ? '<button class="btn sm" data-act="hifz">🧠 أضف لحفظي</button>' : ''}
         <button class="btn sm" data-act="mindmap">🗺 خريطة ذهنية</button>
         <button class="btn sm" data-act="copy">📋 نسخ مع التوثيق</button>
+        <button class="btn sm" data-act="card">🖼️ صورة للمشاركة</button>
         <button class="btn sm" data-act="listen">${it.type === 'ayah' ? '🔊 استمع للتلاوة' : '🗣️ اقرأ لي'}</button>`;
       if (APP.state.reviewer) h += `<button class="btn sm" data-act="vrec">🎙️ سجّل بصوتي</button>`;
       if (APP.state.reviewer) h += `<span class="spacer"></span>${APP.statusTag(it.id)}
@@ -172,6 +173,7 @@
         case 'vrec': location.hash = '#/voicerec/' + encodeURIComponent(it.bookId) + '/' + encodeURIComponent(id); return;
         case 'mindmap': location.hash = '#/mindmap/' + encodeURIComponent(id); return;
         case 'copy': APP.copy(APP.cite(it)); return;
+        case 'card': if (window.SHARECARD) SHARECARD.open(SHARECARD.fromItem(it)); return;
         case 'listen': {
           if (it.type === 'ayah' && window.QA) { QA.play([[it.surah, it.ayah]], { noBasmala: true }); return; }
           if (window.LIBVOICE && await LIBVOICE.play(it)) return;   // تسجيل بشري إن وُجد

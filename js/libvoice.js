@@ -94,8 +94,10 @@
     const box = opt && opt.noBar ? document.getElementById('lvInline') : null;
     if (box) { // شاشة التسجيل: مشغّل داخل الصفحة بشريط سحب كامل
       if (window.MEDIA) MEDIA.claim('libvoice');
-      box.innerHTML = '<audio controls autoplay style="width:100%"></audio>';
-      cur = box.firstChild; cur.src = src; cur.play().catch(() => { });
+      box.innerHTML = '<audio controls preload="auto" data-media="libvoice" style="width:100%"></audio>';
+      cur = box.firstChild; cur.src = src;
+      // تسجيلات webm من المتصفح بلا مدة مكتوبة: نحسبها حتى يظهر شريط التقدم
+      cur.addEventListener('loadedmetadata', function fix() { if (this.duration === Infinity || isNaN(this.duration)) { this.currentTime = 1e101; this.addEventListener('timeupdate', function back() { this.removeEventListener('timeupdate', back); this.currentTime = 0; this.play().catch(() => { }); }); } else this.play().catch(() => { }); }, { once: true });
       return true;
     }
     // الاستماع العادي: المشغّل الكامل (سحب، تقديم وتأخير، مؤقت، وتحكم من الإشعار)
@@ -191,7 +193,8 @@
   V.voicerec = async (el, [bookId, startId]) => {
     if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="warn">هذه الصفحة لصاحب التطبيق فقط.</div>'; return; }
     if (!APP.state.reviewerUnlocked) { el.innerHTML = '<div class="card">هذه الشاشة للمراجع العلمي فقط.</div>'; return; }
-    if (bookId) return focus(el, bookId, startId ? decodeURIComponent(startId) : null);
+    const cat = bookId && bookId.startsWith('c:') ? bookId.slice(2) : null;
+    if (bookId && !cat) return focus(el, bookId, startId ? decodeURIComponent(startId) : null);
     const s = await stats();
     const books = Object.values(APP.state.books).filter(b => b.type !== 'quran');
     const qb = Object.values(APP.state.books).find(b => b.type === 'quran');
@@ -199,6 +202,29 @@
     const rows = await Promise.all(books.map(async b => ({ b, total: await DB.count('items', 'bookId', b.id), done: await VS.count(b.id).catch(() => 0) })));
     if (qb) rows.unshift({ b: { id: qb.id, title: '📖 المصحف بصوتي — آيةً آية (رواية حفص)' }, total: await DB.count('items', 'bookId', qb.id), done: await VS.count(qb.id).catch(() => 0) });
     for (const src of SOURCES) { const its = await src.items().catch(() => []); if (its.length) rows.push({ b: { id: src.id, title: src.title }, total: its.length, done: await VS.count(src.id).catch(() => 0) }); }
+    // تصنيف الكتب في أقسام: القرآن، الأطفال، الحديث، التفسير... حتى يسهل الوصول
+    const MF = {}; (window.PACK_MANIFEST || []).forEach(m => MF[m.id] = m);
+    const catOf = id => {
+      const m = MF[id] || {}, t = m.type || (APP.state.books[id] || {}).type || '', f = m.file || '';
+      if (id === (qb && qb.id)) return 'quran';
+      if (/^(hk-|nawawi-kids)/.test(id)) return 'kids';
+      if (/^(asma-husna|duas-sunnah|ruqyah-duas)$/.test(id)) return 'adhkar';
+      if (/^hadith-/.test(f) || t === 'hadith' || t === 'sharh') return 'hadith';
+      if (/tafsir|qiraatbook|mutash/.test(t) || /^tafsir/.test(id)) return 'tafsir';
+      if (/fiqhbook|matn|usulbook/.test(t)) return 'fiqh';
+      if (/sirabook|tarikhbook|rijal/.test(t)) return 'tarikh';
+      if (/lughabook|adabbook|diwan/.test(t)) return 'lugha';
+      if (t === 'dawahbook') return 'dawah';
+      return 'other';
+    };
+    const CATS = [['quran', '📖', 'القرآن الكريم', 'آيةً آية، أو حدّد نطاقاً تسجّله'], ['kids', '🧒', 'الأطفال والتعلّم', 'الحروف والحركات والكلمات والقصص والأربعون للأطفال'], ['adhkar', '🤲', 'الأذكار والأدعية', 'أسماء الله الحسنى، وأدعية السنة، والرقية'],
+      ['hadith', '📜', 'الحديث وشروحه', 'الأربعون، ورياض الصالحين، والكتب الستة'], ['tafsir', '📗', 'التفسير وعلوم القرآن', 'التفاسير والقراءات والمتشابه'], ['fiqh', '⚖️', 'الفقه والعقيدة والأصول', 'المتون وكتب الفقه وأصوله'],
+      ['tarikh', '🏛️', 'السيرة والتاريخ', 'السيرة والتراجم والتاريخ'], ['lugha', '✍️', 'العربية والأدب', 'النحو والبلاغة والأدب والدواوين'], ['dawah', '📣', 'الدعوة', 'كتب الحوار والدعوة'], ['other', '📚', 'كتب أخرى', '']];
+    rows.forEach(r => r.cat = catOf(r.b.id));
+    let kidsClips = null;
+    if (window.LEARN && LEARN.clips) { const all = LEARN.clips(), have = new Set(await LEARN.VS.keys().catch(() => [])); kidsClips = { total: all.length, done: all.filter(c => have.has(c.key)).length }; }
+    const shown = cat ? rows.filter(r => r.cat === cat) : [];
+    const catInfo = cat && CATS.find(c => c[0] === cat);
     const allRecs = await VS.every().catch(() => []), unexp = allRecs.filter(r => !r.exp).length;
     const lastExp = await DB.setting('libvoiceLastExport');
     el.innerHTML = `<h1>🎙️ تسجيل المكتبة بصوتي</h1>
@@ -218,7 +244,16 @@
         <li>الآيات داخل النص اقرأها بالتجويد. وقل «صلى الله عليه وسلم» كاملة حيث كُتبت ﷺ.</li>
         <li>لو أخطأت: «أعد التسجيل» يستبدل القديم. ولا تسجّل وأنت متعب؛ نصف ساعة متقنة خير من ساعتين متعجلة.</li>
       </ul></details>
-      <div class="lv-books">${rows.map(({ b, total, done }) => `<div class="card lv-book ${done && done >= total ? 'ok' : ''}">
+      ${cat ? `<div class="row" style="justify-content:space-between;margin:6px 0"><h2 style="margin:0">${catInfo ? catInfo[1] + ' ' + catInfo[2] : ''}</h2><a class="btn sm" href="#/voicerec">↩ كل الأقسام</a></div>` : `<div class="lv-cats">${CATS.map(([k, ic, t, d]) => {
+        const rs = rows.filter(r => r.cat === k); let tot = rs.reduce((a, r) => a + r.total, 0), dn = rs.reduce((a, r) => a + r.done, 0);
+        if (k === 'kids' && kidsClips) { tot += kidsClips.total; dn += kidsClips.done; }
+        if (!tot) return '';
+        return `<a class="card lv-cat" href="#/voicerec/c:${k}"><span class="ic">${ic}</span><b>${t}</b><small class="muted">${d}</small><div class="lr-progress"><i style="width:${tot ? Math.max(dn ? 2 : 0, Math.round(dn / tot * 100)) : 0}%"></i></div><small class="muted">سُجّل ${AD(dn)} من ${AD(tot)}${rs.length > 1 ? ' · ' + AD(rs.length) + ' كتاباً' : ''}</small></a>`; }).join('')}</div>`}
+      ${cat === 'kids' && kidsClips ? `<div class="card lv-book"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><b>🔤 أصوات البراعم والأميين: الحروف، والحركات، والمدود، والكلمات، والجمل، والقصص</b><span class="muted">${AD(kidsClips.done)} / ${AD(kidsClips.total)}</span></div>
+        <div class="lr-progress"><i style="width:${Math.round(kidsClips.done / kidsClips.total * 100)}%"></i></div>
+        <div class="muted" style="font-size:13px;margin-top:6px">كل مقطع تسجّله يسمعه الطفل في الدروس والألعاب بدل صوت الجهاز.</div>
+        <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px"><a class="btn sm primary" href="#/learnrec/go">🎙️ ${kidsClips.done ? 'أكمل' : 'ابدأ'} (المقطع التالي)</a><a class="btn sm" href="#/learnrec">📋 المقاطع مقسّمة حسب الدرس</a></div></div>` : ''}
+      <div class="lv-books">${shown.map(({ b, total, done }) => `<div class="card lv-book ${done && done >= total ? 'ok' : ''}">
         <div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(b.title)}</b><span class="muted">${AD(done)} / ${AD(total)}</span></div>
         <div class="lr-progress"><i style="width:${total ? Math.round(done / total * 100) : 0}%"></i></div>
         <div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">
@@ -236,7 +271,12 @@
   async function focus(el, bookId, startId) {
     el.innerHTML = '<div class="card">جارٍ تحميل الكتاب…</div>';
     const src = srcOf(bookId);
-    const items = src ? (await src.items()).map((x, k) => Object.assign({ seq: k }, x)) : (await DB.byIndex('items', 'bookId', bookId)).sort((a, b) => ord(a) - ord(b) || String(a.id).localeCompare(String(b.id)));
+    let items = src ? (await src.items()).map((x, k) => Object.assign({ seq: k }, x)) : (await DB.byIndex('items', 'bookId', bookId)).sort((a, b) => ord(a) - ord(b) || String(a.id).localeCompare(String(b.id)));
+    // القرآن: تسجيل نطاق محدد (من سورة/آية إلى سورة/آية)
+    const isQB = items.length && items[0].type === 'ayah';
+    const QR = isQB ? await DB.setting('libvoiceQRange') : null, qk = x => x.surah * 1000 + x.ayah;
+    if (QR) items = items.filter(x => qk(x) >= QR.s1 * 1000 + QR.a1 && qk(x) <= QR.s2 * 1000 + QR.a2);
+    const qrLabel = QR ? `سورة ${AR.SURAHS[QR.s1 - 1]} ${AD(QR.a1)} ← سورة ${AR.SURAHS[QR.s2 - 1]} ${AD(QR.a2)}` : 'المصحف كاملاً';
     const have = new Set(await VS.keys(bookId).catch(() => []));
     let i = startId ? Math.max(0, items.findIndex(x => x.id === startId)) : items.findIndex(x => !have.has(x.id));
     if (i < 0) i = 0;
@@ -249,6 +289,8 @@
       const head = isQ ? 'سورة ' + AR.SURAHS[it.surah - 1] + ' — الآية ' + AD(it.ayah) : (it.kitab || it.chapter || '');
       el.innerHTML = `<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="row" style="gap:8px"><a href="#/voicerec">↩ الكتب</a><button class="btn sm" data-expnew>📦 صدّر الجديد</button></span><span class="muted">${esc(title)} — ${AD(i + 1)} / ${AD(items.length)} · سُجّل ${AD(have.size)}</span></div>
         ${goalCard(s)}
+        ${isQB ? `<div class="card lv-range"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span>🎯 النطاق: <b>${esc(qrLabel)}</b></span><button class="btn sm" data-range>تغيير النطاق</button></div>
+          <div class="lr-progress"><i style="width:${Math.round(items.filter(x => have.has(x.id)).length / Math.max(1, items.length) * 100)}%"></i></div><small class="muted">سُجّل ${AD(items.filter(x => have.has(x.id)).length)} من ${AD(items.length)} آية في هذا النطاق</small></div>` : ''}
         <div class="card lv-text">
           <div class="muted">${esc(head)}${it.num != null ? ' — حديث ' + AD(it.num) : ''}${it.page ? ' — ' + esc(it.page) : ''} ${done ? '<span class="tag st-ok">✔ مسجّل</span>' : ''}</div>
           ${isQ ? `<div class="lv-read quran-text lv-q">${esc(it.text || '')} <span class="muted">﴿${AD(it.ayah)}﴾</span></div>
@@ -267,7 +309,24 @@
           <button class="btn sm" data-mic>🎤 الميكروفون</button>
         </div><div id="lvInline" class="lv-inline"></div>`;
       el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
-      const sj = el.querySelector('[data-surah]'); if (sj) sj.onchange = () => { const k = items.findIndex(x => x.surah === +sj.value && !have.has(x.id)); i = k >= 0 ? k : items.findIndex(x => x.surah === +sj.value); stopPlay(); show(); };
+      const rg = el.querySelector('[data-range]'); if (rg) rg.onclick = () => {
+        const opts = sel => AR.SURAHS.map((n, k) => `<option value="${k + 1}" ${k + 1 === sel ? 'selected' : ''}>${AD(k + 1)}. ${esc(n)}</option>`).join('');
+        const r = QR || { s1: it.surah, a1: 1, s2: it.surah, a2: 999 };
+        APP.modal(`<h2 style="margin-top:0">🎯 نطاق التسجيل</h2><p class="muted" style="margin-top:0">اختر من أين تبدأ وإلى أين تنتهي، والتطبيق يعرض لك آيات هذا النطاق فقط بالترتيب ويحسب تقدمك فيه.</p>
+          <label>من سورة <select id="qs1" style="width:100%">${opts(r.s1)}</select></label><label>الآية <input id="qa1" type="number" min="1" value="${r.a1}" style="width:100%"></label>
+          <label style="margin-top:8px;display:block">إلى سورة <select id="qs2" style="width:100%">${opts(r.s2)}</select></label><label>الآية <input id="qa2" type="number" min="1" value="${r.a2 === 999 ? '' : r.a2}" placeholder="آخر السورة" style="width:100%"></label>
+          <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="btn primary" id="qOk">حفظ النطاق</button><button class="btn" id="qAll">المصحف كاملاً</button><button class="btn" id="qNo">إلغاء</button></div>`, box => {
+          const $ = q => box.querySelector(q);
+          $('#qNo').onclick = () => APP.closeModal();
+          $('#qAll').onclick = async () => { await DB.setting('libvoiceQRange', null); APP.closeModal(); stopPlay(); focus(el, bookId); };
+          $('#qOk').onclick = async () => {
+            let v = { s1: +$('#qs1').value, a1: Math.max(1, +$('#qa1').value || 1), s2: +$('#qs2').value, a2: +$('#qa2').value || 999 };
+            if (v.s2 * 1000 + v.a2 < v.s1 * 1000 + v.a1) v = { s1: v.s2, a1: v.a2 === 999 ? 1 : v.a2, s2: v.s1, a2: v.a1 };
+            await DB.setting('libvoiceQRange', v); APP.closeModal(); stopPlay(); focus(el, bookId);
+          };
+        });
+      };
+      const sj = el.querySelector('[data-surah]'); if (sj) sj.onchange = () => { const k = items.findIndex(x => x.surah === +sj.value && !have.has(x.id)); const j = k >= 0 ? k : items.findIndex(x => x.surah === +sj.value); if (j < 0) { APP.toast('هذه السورة خارج النطاق المحدد — غيّر النطاق أولاً'); sj.value = it.surah; return; } i = j; stopPlay(); show(); };
       el.querySelector('[data-prev]').onclick = () => { if (i > 0) { i--; stopPlay(); show(); } };
       el.querySelector('[data-next]').onclick = () => { i++; stopPlay(); show(); window.scrollTo(0, 0); };
       const pb = el.querySelector('[data-play]'); if (pb) pb.onclick = () => play(it, title, { noBar: true });
@@ -328,5 +387,5 @@
   }
 
   const blob = async id => { const r = await VS.get(id).catch(() => null); return r && r.blob ? r.blob : null; };
-  window.LIBVOICE = { play, stop: stopPlay, blob, addSource, SOURCES, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
+  window.LIBVOICE = { record: startRec, isRecording: () => !!rec, stopRecording: () => rec && rec.stop(), play, stop: stopPlay, blob, addSource, SOURCES, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
 })();

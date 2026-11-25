@@ -16,8 +16,8 @@
     },
   };
   // عناصر الصوت الظاهرة في الصفحة (تسجيلات التجويد ونحوها)
-  MEDIA.register('dom', () => document.querySelectorAll('audio').forEach(a => { if (!a.paused) a.pause(); }));
-  document.addEventListener('play', e => { if (e.target && e.target.tagName === 'AUDIO' && e.target.isConnected) MEDIA.claim('dom'); }, true);
+  MEDIA.register('dom', () => document.querySelectorAll('audio:not([data-media])').forEach(a => { if (!a.paused) a.pause(); }));
+  document.addEventListener('play', e => { const a = e.target; if (a && a.tagName === 'AUDIO' && a.isConnected) MEDIA.claim(a.dataset.media || 'dom'); }, true);
   window.MEDIA = MEDIA;
 
   // أزرار الوسائط في المتصفح (سماعات البلوتوث ولوحة المفاتيح وشاشة القفل في الجوال عبر المتصفح)

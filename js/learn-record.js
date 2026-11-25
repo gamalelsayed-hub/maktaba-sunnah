@@ -76,8 +76,8 @@
         </div>
         <div class="sp-logo"><img src="icons/icon-192.png" alt=""></div>
         <h1>زاد <em>الأسرة المسلمة</em></h1>
-        <div class="sp-motto">لكل فرد في البيت: دينه، وعلمه، وصحته، وحياته</div>
-        <div class="sp-greet"><i></i><span id="spGreet">${morning ? 'صباح الخير' : 'مساء الخير'}</span></div>
+        <div class="sp-motto">معًا نبني بيتًا: دينًا، وعلمًا، وصحةً، وحياةً</div>
+        <div class="sp-greet"><i></i><span id="spGreet">السلام عليكم ورحمة الله</span></div>
       </header>
       <div class="sp-body">
         <div class="sp-cw rv" ${I()}><a class="sp-main" href="#/" data-aud="adult"><span class="sp-ic">${ic('mosque')}</span><div><b>زاد الأسرة</b><small>القرآن الكريم، والصلاة والأذان، والأذكار والأدعية، والرقية، والمكتبة كاملة</small></div><span class="sp-go"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span></a><button class="sp-help" data-help="#/" aria-label="كيف أستفيد">؟</button></div>
@@ -147,7 +147,7 @@
     }));
 
     // التحية والصلاة القادمة
-    if (APP.nextPrayerInfo) APP.nextPrayerInfo().then(p => { const g = $('#spGreet'); if (g && p) g.textContent = `${morning ? 'صباح الخير' : 'مساء الخير'} — ${p.name} ${p.time} (بعد ${p.left})`; }).catch(() => { });
+    if (APP.nextPrayerInfo) APP.nextPrayerInfo().then(p => { const g = $('#spGreet'); if (g && p) g.textContent = `السلام عليكم — ${p.name} ${p.time} (بعد ${p.left})`; }).catch(() => { });
     if (window.WAJIB_APP) WAJIB_APP.card().then(h => { const b = $('#spWj'); if (b) b.innerHTML = h; });
 
     // التقدم الحقيقي في الدروس
@@ -187,6 +187,8 @@
   // ===== استوديو التسجيل =====
   let rec = null, chunks = [];
   async function startRec() {
+    // نفس إعداد الميكروفون في تسجيل المكتبة (مثل Hollyland LARK بلا معالجة الجوال)
+    if (window.LIBVOICE && LIBVOICE.record) { rec = { stop: () => LIBVOICE.stopRecording() }; try { const r = await LIBVOICE.record(); return r.blob; } finally { rec = null; } }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
     const mt = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
     rec = new MediaRecorder(stream, mt ? { mimeType: mt } : undefined); chunks = [];
