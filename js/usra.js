@@ -249,6 +249,22 @@ ${!mine ? '-->' : ''}      ${m.birth && age(m) < 7 && isParentDev() ? `<div clas
   }
 
   // ===== 🔗 ربط الجوالات =====
+  // موافقة صريحة قبل رفع أي بيانات للأسرة (تُطلب قبل الإنشاء والانضمام)
+  async function syncConsent() {
+    const C = [
+      'قبل ربط الأسرة، اقرأ ما سيُرسل إلى خوادم Google (Firebase):',
+      '• أسماء الأفراد وأدوارهم وتواريخ ميلادهم وصفوفهم',
+      '• برامجهم ومهامهم ونجومهم وقائمة التسوق ومهام البيت',
+      '• الملف الصحي لمن له ملف: الحالات والأدوية والتطعيمات',
+      'الملف الصحي يراه صاحبه والوالدان فقط، والدخول مجهول بلا إيميل ولا رقم.',
+      'لا يُرسل أبداً: الملاحظات والمحفوظات والتسجيلات والموقع.',
+      'يمكنك الفصل أو حذف الأسرة وبياناتها من الخادم في أي وقت.',
+      'هل توافق على رفع هذه البيانات؟'
+    ].join('\n');
+    if (!confirm(C)) return false;
+    try { await DB.setting('usraSyncConsent', new Date().toISOString()); } catch (e) { }
+    return true;
+  }
   async function syncTab(el, u) {
     if (!window.USYNC) { el.innerHTML = '<div class="card muted">غير متاح.</div>'; return; }
     if (!SY()) {
@@ -262,6 +278,7 @@ ${!mine ? '-->' : ''}      ${m.birth && age(m) < 7 && isParentDev() ? `<div clas
           <button class="btn primary" id="syJ" style="margin-top:8px">انضمام</button></div>`;
       el.querySelector('#syC').onclick = async () => {
         if (!u.members.length) return APP.toast('أضف أفراد الأسرة أولاً من «أسرتي»');
+        if (!(await syncConsent())) return;
         const r = await APP.ask('إنشاء الأسرة', [{ key: 'name', label: 'اسم الأسرة (مثال: أسرة السيد)' }, { key: 'me', label: 'من أنت؟', options: u.members.filter(m => !isChild(m) || ['father', 'mother'].includes(m.role)).map(m => m.name) }, { key: 'pw', label: 'كلمة سر الأبناء والأفراد (٦ أحرف فأكثر)' }, { key: 'pp', label: 'كلمة سر الوالدين (مختلفة، للأب أو الأم الآخر)' }]);
         if (!r) return; if ((r.pw || '').length < 6 || (r.pp || '').length < 6 || r.pw === r.pp) return APP.toast('كلمتا السر ٦ أحرف فأكثر ومختلفتان');
         const me = u.members.find(m => m.name === r.me);
@@ -272,6 +289,7 @@ ${!mine ? '-->' : ''}      ${m.birth && age(m) < 7 && isParentDev() ? `<div clas
         const k = el.querySelector('#syK').value, p = el.querySelector('#syP').value, asP = el.querySelector('#syR').value === 'p';
         if (!k || !p) return APP.toast('اكتب الرمز وكلمة السر');
         if (u.members.length && !confirm('سيُستبدل ما في «أسرتي» على هذا الجوال ببيانات الأسرة. متابعة؟')) return;
+        if (!(await syncConsent())) return;
         try { APP.toast('جارٍ الانضمام…'); await USYNC.join(k, p, asP); APP.toast('تم الانضمام ✓'); rer(); } catch (e) { APP.toast(e.message || 'تعذر الانضمام'); }
       };
       return;

@@ -4,6 +4,9 @@
 name: نشر نسخة الويب
 
 on:
+  push:
+    branches: [main]
+    paths: ['index.html', 'sw.js', 'manifest.webmanifest', 'privacy.html', 'css/**', 'js/**', 'data/**', 'fonts/**', 'icons/**', 'img/**', 'audio/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -26,7 +29,7 @@ jobs:
       - name: تجهيز ملفات الموقع
         run: |
           mkdir site
-          cp -r index.html sw.js manifest.webmanifest css js data icons site/
+          cp -r index.html sw.js manifest.webmanifest privacy.html css js data icons fonts img audio site/
           cp دليل-البرنامج.md site/ || true
           touch site/.nojekyll
       - uses: actions/configure-pages@v5
