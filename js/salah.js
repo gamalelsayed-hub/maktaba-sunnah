@@ -133,8 +133,22 @@
   };
 
   // ===== جدولة الأذان لسبعة أيام =====
+  // ودجت شاشة الجوال (أندرويد): نرسل له مواقيت الأيام السبعة القادمة كلها ليعرض الصلاة القادمة والعدّ التنازلي
+  function pushWidget(c) {
+    try {
+      const AD = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Adhan;
+      if (!AD || !AD.widgetTimes || c.lat == null) return;
+      const items = [];
+      for (let k = 0; k < 7; k++) {
+        const d = new Date(); d.setDate(d.getDate() + k);
+        const t = timesFor(c, d);
+        for (const p of FIVE) items.push({ n: NAMES[p], at: t[p].getTime() });
+      }
+      AD.widgetTimes({ items, place: c.place || '' }).catch(() => { });
+    } catch (e) { }
+  }
   NOTIFY.register('prayer', async () => {
-    const c = await cfg(); if (!c.enabled || c.lat == null) return [];
+    const c = await cfg(); pushWidget(c); if (!c.enabled || c.lat == null) return [];
     const out = [];
     for (let k = 0; k < 7; k++) {
       const d = new Date(); d.setDate(d.getDate() + k);

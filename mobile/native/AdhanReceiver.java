@@ -14,6 +14,7 @@ public class AdhanReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context c, Intent in) {
         if (!AdhanScheduler.ACTION.equals(in.getAction())) return;
+        try { PrayerWidget.refresh(c); } catch (Exception ignored) { }
         Intent s = new Intent(c, AdhanService.class);
         s.putExtras(in);
         try {

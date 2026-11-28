@@ -1,5 +1,6 @@
 package org.waqf.maktabasunnah;
 
+import android.content.Intent;
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
 
@@ -15,6 +16,26 @@ public class MainActivity extends BridgeActivity {
         try {
             android.webkit.WebSettings ws = bridge.getWebView().getSettings();
             ws.setSupportZoom(true); ws.setBuiltInZoomControls(true); ws.setDisplayZoomControls(false);
+        } catch (Exception ignored) { }
+        goRoute(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        goRoute(intent);
+    }
+
+    /** فتح شاشة معيّنة من اختصارات ودجت الجوال (مثل أذكار الصباح) */
+    private void goRoute(Intent in) {
+        try {
+            if (in == null) return;
+            String r = in.getStringExtra("route");
+            if (r == null || !r.matches("#/[A-Za-z0-9/_-]{1,60}")) return;
+            in.removeExtra("route");
+            final String js = "(function g(n){var v=document.getElementById('view');if(window.APP&&v){location.hash='" + r + "';}else if(n<80){setTimeout(function(){g(n+1)},250);}})(0)";
+            bridge.getWebView().postDelayed(() -> bridge.getWebView().evaluateJavascript(js, null), 400);
         } catch (Exception ignored) { }
     }
 

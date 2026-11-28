@@ -48,6 +48,50 @@
     }
   }
 
+  // ===== التمرير التلقائي أثناء القراءة =====
+  // الثواني المخصصة للصفحة الواحدة: بطيء (ترتيل) / متوسط / سريع. يتحرك النص بحيث يبقى السطر الجاري قرب أعلى الشاشة
+  const AUTO = { on: false, sec: 150 };
+  try { const v = JSON.parse(localStorage.getItem('mushaf-auto') || '{}'); if (v.sec) AUTO.sec = v.sec; } catch (e) { }
+  const saveAuto = () => { try { localStorage.setItem('mushaf-auto', JSON.stringify({ sec: AUTO.sec })); } catch (e) { } };
+  let autoRaf = 0, autoLock = null, autoClean = null;
+  function stopAuto() {
+    AUTO.on = false; cancelAnimationFrame(autoRaf); autoRaf = 0; if (autoClean) { autoClean(); autoClean = null; }
+    try { autoLock && autoLock.release && autoLock.release(); } catch (e) { } autoLock = null;
+  }
+  function runAuto(el, wrap, page, ui) {
+    cancelAnimationFrame(autoRaf); if (autoClean) { autoClean(); autoClean = null; }
+    if (!AUTO.on) { ui(); return; }
+    try { if (navigator.wakeLock && !autoLock) navigator.wakeLock.request('screen').then(l => { autoLock = l; }).catch(() => { }); } catch (e) { }
+    window.scrollTo(0, 0);
+    let t0 = performance.now(), paused = 0, lastUser = 0;
+    const bump = () => { lastUser = performance.now(); };
+    const evs = ['touchstart', 'wheel', 'mousedown'];
+    evs.forEach(ev => window.addEventListener(ev, bump, { passive: true }));
+    const cleanup = () => evs.forEach(ev => window.removeEventListener(ev, bump));
+    autoClean = cleanup;
+    let prev = t0;
+    ui();
+    const tick = now => {
+      if (!AUTO.on || !el.isConnected || !wrap.isConnected) { cleanup(); return; }
+      const dt = now - prev; prev = now;
+      // إذا لمس المستخدم الشاشة أو حرّكها نوقف العدّاد ثانيتين ليتحكم بنفسه
+      if (now - lastUser < 2000) { paused += dt; autoRaf = requestAnimationFrame(tick); return; }
+      const T = AUTO.sec * 1000, t = now - t0 - paused;
+      if (t >= T) {
+        cleanup();
+        if (page >= N_PAGES) { stopAuto(); ui(); if (window.APP) APP.toast('انتهى المصحف 🌿'); return; }
+        location.hash = '#/mushaf/' + (page + 1); return; // الصفحة التالية تستأنف التمرير تلقائياً
+      }
+      const r = wrap.getBoundingClientRect(), top = r.top + window.scrollY, vh = window.innerHeight;
+      const maxS = Math.max(0, document.documentElement.scrollHeight - vh);
+      const y = Math.min(maxS, Math.max(0, top + (t / T) * r.height - vh * 0.3));
+      window.scrollTo(0, y);
+      autoRaf = requestAnimationFrame(tick);
+    };
+    autoRaf = requestAnimationFrame(tick);
+  }
+  window.addEventListener('hashchange', () => { if (!/^#\/mushaf/.test(location.hash)) stopAuto(); });
+
   V.mushaf = async (el, parts, p) => {
     await loadIndex();
     const raw = +(parts && parts[0]) || 0;
@@ -81,6 +125,17 @@
     const wrap = $('#mpWrap');
     fit(wrap);
     const ro = window.ResizeObserver ? new ResizeObserver(() => fit(wrap)) : null; if (ro) ro.observe(wrap);
+    // زر التمرير التلقائي العائم
+    const ctl = document.createElement('div');
+    ctl.className = 'mp-auto';
+    ctl.innerHTML = `<button class="btn sm primary" id="mpAuto"></button><select id="mpSpd" title="سرعة القراءة (الوقت لكل صفحة)"><option value="240">بطيء</option><option value="150">متوسط</option><option value="90">سريع</option></select>`;
+    el.appendChild(ctl);
+    const autoUi = () => { ctl.querySelector('#mpAuto').textContent = AUTO.on ? '⏸ إيقاف التمرير' : '⏬ تمرير تلقائي'; };
+    const spd = ctl.querySelector('#mpSpd'); spd.value = String(AUTO.sec); if (!spd.value) spd.value = '150';
+    spd.onchange = () => { AUTO.sec = +spd.value; saveAuto(); if (AUTO.on) runAuto(el, wrap, page, autoUi); };
+    ctl.querySelector('#mpAuto').onclick = () => { AUTO.on = !AUTO.on; if (!AUTO.on) stopAuto(); runAuto(el, wrap, page, autoUi); };
+    autoUi();
+    if (AUTO.on) setTimeout(() => runAuto(el, wrap, page, autoUi), 400);
     $('#mpSurah').onchange = async e => { location.hash = '#/mushaf/' + (await pageOf(+e.target.value, 1)); };
     $('#mpJuz').onchange = async e => { if (e.target.value === '') return; const [s, a] = juzStarts[+e.target.value]; location.hash = '#/mushaf/' + (await pageOf(s, a)); };
     $('#mpGo').onchange = e => { const v = Math.min(N_PAGES, Math.max(1, +e.target.value || 1)); location.hash = '#/mushaf/' + v; };

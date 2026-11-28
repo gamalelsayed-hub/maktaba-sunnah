@@ -26,6 +26,14 @@ public class AdhanPlugin extends Plugin {
         call.resolve(r);
     }
 
+    /** مواقيت الصلاة لودجت شاشة الجوال: items = [{n: اسم الصلاة, at: بالمللي ثانية}] */
+    @PluginMethod
+    public void widgetTimes(PluginCall call) {
+        JSArray items = call.getArray("items");
+        PrayerWidget.save(getContext(), items != null ? items.toString() : "[]", call.getString("place", ""));
+        call.resolve();
+    }
+
     @PluginMethod
     public void test(PluginCall call) {
         Context ctx = getContext();

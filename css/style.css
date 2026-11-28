@@ -1897,3 +1897,8 @@ body.dark .lg-idea { background: color-mix(in srgb, #2f56a0 12%, var(--panel)); 
 .lv-cat .ic { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; font-size: 21px; }
 .lv-cat small { font-size: 12px; line-height: 1.6; }
 .lv-range { padding: 10px 14px; }
+
+/* التمرير التلقائي للمصحف بالصور */
+.mp-auto { position: fixed; right: 12px; bottom: 74px; z-index: 36; display: flex; gap: 6px; align-items: center; background: var(--panel); border: 1px solid var(--line, #d9d4c0); border-radius: 14px; padding: 6px 8px; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+.mp-auto select { font-size: 13px; padding: 4px 6px; border-radius: 8px; }
+@media (min-width: 900px) { .mp-auto { bottom: 22px; right: 22px; } }
