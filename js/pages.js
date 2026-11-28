@@ -128,11 +128,15 @@
     // زر التمرير التلقائي العائم
     const ctl = document.createElement('div');
     ctl.className = 'mp-auto';
-    ctl.innerHTML = `<button class="btn sm primary" id="mpAuto"></button><select id="mpSpd" title="سرعة القراءة (الوقت لكل صفحة)"><option value="240">بطيء</option><option value="150">متوسط</option><option value="90">سريع</option></select>`;
+    ctl.innerHTML = `<button class="btn sm primary" id="mpAuto"></button><select id="mpSpd" title="سرعة القراءة (الوقت لكل صفحة)"><option value="240">بطيء</option><option value="150">متوسط</option><option value="90">سريع</option><option value="0">مخصّص</option></select><label class="mp-sec" title="عدد الثواني لكل صفحة ثم تُقلب الصفحة تلقائياً"><input id="mpSec" type="number" inputmode="numeric" min="10" max="1800" step="5"> ث/صفحة</label>`;
     el.appendChild(ctl);
     const autoUi = () => { ctl.querySelector('#mpAuto').textContent = AUTO.on ? '⏸ إيقاف التمرير' : '⏬ تمرير تلقائي'; };
-    const spd = ctl.querySelector('#mpSpd'); spd.value = String(AUTO.sec); if (!spd.value) spd.value = '150';
-    spd.onchange = () => { AUTO.sec = +spd.value; saveAuto(); if (AUTO.on) runAuto(el, wrap, page, autoUi); };
+    const spd = ctl.querySelector('#mpSpd');
+    const secIn = ctl.querySelector('#mpSec');
+    const syncSpd = () => { secIn.value = AUTO.sec; spd.value = ['240', '150', '90'].includes(String(AUTO.sec)) ? String(AUTO.sec) : '0'; };
+    syncSpd();
+    spd.onchange = () => { if (+spd.value) { AUTO.sec = +spd.value; saveAuto(); syncSpd(); if (AUTO.on) runAuto(el, wrap, page, autoUi); } else secIn.focus(); };
+    secIn.onchange = () => { const v = Math.round(+secIn.value); if (!(v >= 10 && v <= 1800)) { APP.toast('اكتب عدد ثوانٍ بين ١٠ و١٨٠٠'); syncSpd(); return; } AUTO.sec = v; saveAuto(); syncSpd(); if (AUTO.on) runAuto(el, wrap, page, autoUi); };
     ctl.querySelector('#mpAuto').onclick = () => { AUTO.on = !AUTO.on; if (!AUTO.on) stopAuto(); runAuto(el, wrap, page, autoUi); };
     autoUi();
     if (AUTO.on) setTimeout(() => runAuto(el, wrap, page, autoUi), 400);
