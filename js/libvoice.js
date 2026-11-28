@@ -289,7 +289,7 @@
       const head = isQ ? 'سورة ' + AR.SURAHS[it.surah - 1] + ' — الآية ' + AD(it.ayah) : (it.kitab || it.chapter || '');
       el.innerHTML = `<div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="row" style="gap:8px"><a href="#/voicerec">↩ الكتب</a><button class="btn sm" data-expnew>📦 صدّر الجديد</button></span><span class="muted">${esc(title)} — ${AD(i + 1)} / ${AD(items.length)} · سُجّل ${AD(have.size)}</span></div>
         ${goalCard(s)}
-        ${isQB ? `<div class="card lv-range"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span>🎯 النطاق: <b>${esc(qrLabel)}</b></span><button class="btn sm" data-range>تغيير النطاق</button></div>
+        ${isQB ? `<div class="card lv-range"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap"><span>🎯 النطاق: <b>${esc(qrLabel)}</b></span><span class="row" style="gap:6px;flex-wrap:wrap"><button class="btn sm" data-split>📥 استيراد تسجيل متصل (تقطيع تلقائي)</button><button class="btn sm" data-range>تغيير النطاق</button></span></div>
           <div class="lr-progress"><i style="width:${Math.round(items.filter(x => have.has(x.id)).length / Math.max(1, items.length) * 100)}%"></i></div><small class="muted">سُجّل ${AD(items.filter(x => have.has(x.id)).length)} من ${AD(items.length)} آية في هذا النطاق</small></div>` : ''}
         <div class="card lv-text">
           <div class="muted">${esc(head)}${it.num != null ? ' — حديث ' + AD(it.num) : ''}${it.page ? ' — ' + esc(it.page) : ''} ${done ? '<span class="tag st-ok">✔ مسجّل</span>' : ''}</div>
@@ -309,6 +309,7 @@
           <button class="btn sm" data-mic>🎤 الميكروفون</button>
         </div><div id="lvInline" class="lv-inline"></div>`;
       el.querySelector('[data-expnew]').onclick = async e => { e.currentTarget.disabled = true; try { await exportNew(); } finally { e.currentTarget && (e.currentTarget.disabled = false); } };
+      const sp = el.querySelector('[data-split]'); if (sp) sp.onclick = () => { stopPlay(); if (window.LVSPLIT) LVSPLIT.open(el, bookId, () => focus(el, bookId)); };
       const rg = el.querySelector('[data-range]'); if (rg) rg.onclick = () => {
         const opts = sel => AR.SURAHS.map((n, k) => `<option value="${k + 1}" ${k + 1 === sel ? 'selected' : ''}>${AD(k + 1)}. ${esc(n)}</option>`).join('');
         const r = QR || { s1: it.surah, a1: 1, s2: it.surah, a2: 999 };
@@ -387,5 +388,5 @@
   }
 
   const blob = async id => { const r = await VS.get(id).catch(() => null); return r && r.blob ? r.blob : null; };
-  window.LIBVOICE = { record: startRec, isRecording: () => !!rec, stopRecording: () => rec && rec.stop(), play, stop: stopPlay, blob, addSource, SOURCES, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
+  window.LIBVOICE = { _int: { VS, addSeconds }, record: startRec, isRecording: () => !!rec, stopRecording: () => rec && rec.stop(), play, stop: stopPlay, blob, addSource, SOURCES, has: id => VS.get(id).then(Boolean).catch(() => false), exportBook, exportNew, exportAll, importFiles, pickAndImport, PLAN, GOAL_MIN };
 })();
